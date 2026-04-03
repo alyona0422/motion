@@ -16,6 +16,8 @@ build/
 .env
 .env.*
 !.env.example
+.dev-backup.env
+**/.dev-backup.env
 
 # Logs
 *.log

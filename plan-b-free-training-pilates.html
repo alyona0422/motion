@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plan B · Pilates free training</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/plan-b-base.css" />
+  <link rel="stylesheet" href="css/plan-b-modal-detail.css" />
+  <link rel="stylesheet" href="css/plan-b-profile.css" />
+  <link rel="stylesheet" href="css/plan-b-immersive.css" />
+  <link rel="stylesheet" href="css/plan-b-pilates-report.css" />
+</head>
+<body data-plan-b-page="pilates">
+  <main class="device-shell" aria-label="Plan B home verification">
+    <div class="particle-layer" aria-hidden="true"></div>
+    <div class="vignette" aria-hidden="true"></div>
+
+<div class="pilates-view is-active" id="pilatesView" aria-hidden="false">
+      <div class="pilates-bar">
+        <h2>Pilates · Free Training</h2>
+        <button class="back-btn" id="pilatesBackBtn" type="button">Back</button>
+      </div>
+      <div class="dashboard" id="pilatesDashboard">
+        <header class="top">
+          <div class="title-block">
+            <h1>Free Training</h1>
+            <p>Real-time Tracking: Duration / Resistance / Energy / Calories</p>
+          </div>
+          <div class="system-status">
+            <div>System Online</div>
+            <div>09:41</div>
+          </div>
+        </header>
+
+        <section class="main">
+          <div class="left">
+            <article class="panel">
+              <h2 class="panel-title">Core Metrics</h2>
+              <div class="metrics">
+                <div class="metric">
+                  <label>Duration</label>
+                  <strong id="pilatesDurationValue">00:00</strong>
+                </div>
+                <div class="metric">
+                  <label>Total Resistance</label>
+                  <strong><span id="pilatesResistanceValue">42.0</span><small>kg</small></strong>
+                </div>
+                <div class="metric">
+                  <label>Energy Output</label>
+                  <strong><span id="pilatesEnergyValue">0</span><small>kJ</small></strong>
+                </div>
+                <div class="metric">
+                  <label>Calories</label>
+                  <strong><span id="pilatesCalorieValue">0</span><small>kcal</small></strong>
+                </div>
+              </div>
+            </article>
+
+            <article class="panel spring-layout">
+              <h2 class="panel-title">Spring Configuration</h2>
+              <div class="spring-list">
+                <button class="spring is-active" data-kg="5" data-color="green" type="button" aria-label="5kg green spring">
+                  <span class="coil"></span>
+                  <span class="spring-value">5kg</span>
+                  <span class="spring-label">Adaptive</span>
+                </button>
+                <button class="spring is-active" data-kg="6.5" data-color="yellow" type="button" aria-label="6.5kg yellow spring">
+                  <span class="coil"></span>
+                  <span class="spring-value">6.5kg</span>
+                  <span class="spring-label">Dynamic</span>
+                </button>
+                <button class="spring is-active" data-kg="6.5" data-color="yellow" type="button" aria-label="6.5kg yellow spring">
+                  <span class="coil"></span>
+                  <span class="spring-value">6.5kg</span>
+                  <span class="spring-label">Dynamic</span>
+                </button>
+                <button class="spring is-active" data-kg="12" data-color="red" type="button" aria-label="12kg red spring">
+                  <span class="coil"></span>
+                  <span class="spring-value">12kg</span>
+                  <span class="spring-label">Power</span>
+                </button>
+                <button class="spring is-active" data-kg="12" data-color="red" type="button" aria-label="12kg red spring">
+                  <span class="coil"></span>
+                  <span class="spring-value">12kg</span>
+                  <span class="spring-label">Power</span>
+                </button>
+              </div>
+
+              <div class="controls">
+                <button id="pilatesStartBtn" class="start-btn" type="button">Start</button>
+                <button id="pilatesEndBtn" class="end-btn" type="button">End</button>
+                <button id="pilatesFlipBtn" class="flip-btn" type="button">Flip Screen</button>
+              </div>
+            </article>
+          </div>
+
+          <div class="right">
+            <article class="panel chart-panel">
+              <div class="chart-panel-header">
+                <h2 class="panel-title">Range of Motion &amp; Power</h2>
+                <div class="chart-legend">
+                  <div class="legend-item">
+                    <span class="legend-color color-range"></span>
+                    <span>Range</span>
+                  </div>
+                  <div class="legend-item">
+                    <span class="legend-color color-power"></span>
+                    <span>Power</span>
+                  </div>
+                </div>
+              </div>
+              <div class="chart-wrap">
+                <canvas id="romPowerCanvas" aria-label="Real-time range and power chart"></canvas>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <footer class="footer">
+          <label>Current Resistance</label>
+          <strong id="pilatesCurrentResistance">42.0kg</strong>
+        </footer>
+      </div>
+    </div>
+  </main>
+  <script src="js/data/explore-library.js"></script>
+  <script src="js/plan-b-verify.js" defer></script>
+</body>
+</html>

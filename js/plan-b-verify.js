@@ -1,0 +1,2030 @@
+const { assetPaths, libraryData } = window.PlanBDemo;
+
+const PLAN_B_PAGE = document.body.dataset.planBPage || "full";
+const STORAGE_AD_META = "planBAdMetaV1";
+const STORAGE_REPORT_PAYLOAD = "planBReportPayloadV1";
+const STORAGE_JOINED_PLANS = "planBJoinedPlansV1";
+
+const grid = document.getElementById("exploreGrid");
+const title = document.getElementById("exploreTitle");
+const sideTabs = document.querySelectorAll(".side-tab");
+const filterTabs = document.querySelectorAll(".filter-tab");
+const modal = document.getElementById("trainingTypeModal");
+const startTrainingModalBtn = document.getElementById("startTrainingModalBtn");
+const closeTrainingTypeModal = document.getElementById("closeTrainingTypeModal");
+const allTrainingNavBtn = document.getElementById("allTrainingNavBtn");
+const shell = document.querySelector(".device-shell");
+const moveDetailScreen = document.getElementById("moveDetailScreen");
+const exitMoveDetailBtn = document.getElementById("exitMoveDetailBtn");
+const adActionName = document.getElementById("adActionName");
+const adActionIntro = document.getElementById("adActionIntro");
+const adIntensityValue = document.getElementById("adIntensityValue");
+const adSportValue = document.getElementById("adSportValue");
+const adEquipValue = document.getElementById("adEquipValue");
+const adTargetValue = document.getElementById("adTargetValue");
+const adActionHero = document.getElementById("adActionHero");
+const adInstallVisual = document.getElementById("adInstallVisual");
+const adVideoFallback = document.getElementById("adVideoFallback");
+const adInstallInlineMedia = document.getElementById("adInstallInlineMedia");
+const adInstallInlineImage = document.getElementById("adInstallInlineImage");
+const adInstallInlineVideo = document.getElementById("adInstallInlineVideo");
+const adInstallInlineVideoSource = document.getElementById("adInstallInlineVideoSource");
+const adStartTrainingBtn = document.getElementById("adStartTrainingBtn");
+const immersiveWorkoutScreen = document.getElementById("immersiveWorkoutScreen");
+const iwVideo = document.getElementById("iwVideo");
+const iwVideoSource = document.getElementById("iwVideoSource");
+const iwActionTitle = document.getElementById("iwActionTitle");
+const iwFlipBtn = document.getElementById("iwFlipBtn");
+const iwPlayBtn = document.getElementById("iwPlayBtn");
+const iwEndBtn = document.getElementById("iwEndBtn");
+const iwProgressFill = document.getElementById("iwProgressFill");
+const iwTimeText = document.getElementById("iwTimeText");
+const iwDrawer = document.getElementById("iwDrawer");
+const iwDrawerHandle = document.getElementById("iwDrawerHandle");
+const iwSummaryMode = document.getElementById("iwSummaryMode");
+const iwSummaryWeight = document.getElementById("iwSummaryWeight");
+const iwModeChip = document.getElementById("iwModeChip");
+const iwMetaChip = document.getElementById("iwMetaChip");
+const iwEquipBarbell = document.getElementById("iwEquipBarbell");
+const iwEquipOther = document.getElementById("iwEquipOther");
+const iwModeGroup = document.getElementById("iwModeGroup");
+const iwDecreaseBtn = document.getElementById("iwDecreaseBtn");
+const iwIncreaseBtn = document.getElementById("iwIncreaseBtn");
+const iwWeightValue = document.getElementById("iwWeightValue");
+const iwParamPanel = document.getElementById("iwParamPanel");
+const iwParamLabel = document.getElementById("iwParamLabel");
+const iwParamDisplay = document.getElementById("iwParamDisplay");
+const iwParamSlider = document.getElementById("iwParamSlider");
+const iwParamTip = document.getElementById("iwParamTip");
+const iwParamSubmit = document.getElementById("iwParamSubmit");
+const iwChartTabs = document.getElementById("iwChartTabs");
+const iwChartCanvas = document.getElementById("iwChartCanvas");
+const iwChartCtx = iwChartCanvas ? iwChartCanvas.getContext("2d") : null;
+const trainingReportScreen = document.getElementById("trainingReportScreen");
+const reportCloseBtn = document.getElementById("reportCloseBtn");
+const reportUserAvatar = document.getElementById("reportUserAvatar");
+const reportCongratsTitle = document.getElementById("reportCongratsTitle");
+const reportSessionMeta = document.getElementById("reportSessionMeta");
+const reportDurationValue = document.getElementById("reportDurationValue");
+const reportCapacityValue = document.getElementById("reportCapacityValue");
+const reportEnergyValue = document.getElementById("reportEnergyValue");
+const reportCaloriesValue = document.getElementById("reportCaloriesValue");
+const reportModeLabel = document.getElementById("reportModeLabel");
+const reportEquipmentLabel = document.getElementById("reportEquipmentLabel");
+const reportSceneLabel = document.getElementById("reportSceneLabel");
+const reportIntensityRange = document.getElementById("reportIntensityRange");
+const reportIntensityBar = document.getElementById("reportIntensityBar");
+const reportIntensityLegend = document.getElementById("reportIntensityLegend");
+const reportPeakResistance = document.getElementById("reportPeakResistance");
+const reportConsistency = document.getElementById("reportConsistency");
+const reportCoachNote = document.getElementById("reportCoachNote");
+const reportAgainBtn = document.getElementById("reportAgainBtn");
+const reportHomeBtn = document.getElementById("reportHomeBtn");
+
+const adMeta = {
+  name: "Workout Title",
+  intro: "Loading...",
+  intensity: "Intermediate",
+  sport: "Strength",
+  duration: "12 min",
+  equip: "Smart cable + dual handle",
+  target: "Chest",
+  thumb: assetPaths[0],
+  video: "assets/workout-demo.mp4",
+  keypoints: [
+    "Stable start position; engage pelvis and core first.",
+    "Keep primary muscles driving through the working phase; avoid momentum.",
+    "Return in a controlled tempo with consistent path."
+  ],
+  breathing: "Exhale on the concentric phase, inhale on the eccentric; keep ribcage and core coordinated and avoid breath-holding.",
+  mistakes: [
+    "Shrugging and neck compensation.",
+    "Moving too fast with poor control.",
+    "Unstable end position and joint path drift."
+  ],
+  installation: "Check anchor point, cable path, and handle direction before your first rep."
+};
+
+const videoPlayParamConfig = {
+  defaultMode: "standard",
+  defaultWeight: 50.0,
+  minWeight: 0,
+  maxWeight: 200,
+  weightStep: 0.5,
+  spring: { minLevel: 1, maxLevel: 10, rawSoft: 250, rawHard: 10 },
+  isokinetic: { minLevel: 1, maxLevel: 25, rawMultiplier: 10 }
+};
+
+const iwModeMap = { standard: "Standard", spring: "Spring", eccentric: "Eccentric", isokinetic: "Isokinetic" };
+const iwModeMapReport = { standard: "Standard", spring: "Spring", eccentric: "Eccentric", isokinetic: "Isokinetic" };
+const iwState = {
+  mode: videoPlayParamConfig.defaultMode,
+  equipment: "barbell",
+  weight: videoPlayParamConfig.defaultWeight,
+  springLevel: videoPlayParamConfig.spring.minLevel,
+  isokineticLevel: videoPlayParamConfig.isokinetic.minLevel,
+  tab: "rom",
+  playing: true,
+  mirrored: false,
+  chartTick: 0,
+  rafId: 0
+};
+const iwTrainingState = {
+  active: false,
+  startedAt: 0,
+  lastSecond: -1,
+  resistanceTimeline: []
+};
+const reportUser = {
+  name: "Alyona",
+  avatar: "A"
+};
+let reportFromScene = "";
+let pilatesEndTrainingFn = null;
+const adInstallPreviewAsset = {
+  image: "assets/show.jpg",
+  video: ""
+};
+
+let currentCategory = "plans";
+let currentFilter = "recommended";
+const featuredPlanBanner = document.getElementById("featuredPlanBanner");
+const featuredPlanType = document.getElementById("featuredPlanType");
+const featuredPlanTitle = document.getElementById("featuredPlanTitle");
+const todayPlanReminder = document.getElementById("todayPlanReminder");
+const todayPlanTitle = document.getElementById("todayPlanTitle");
+const todayPlanSubtitle = document.getElementById("todayPlanSubtitle");
+const todayPlanList = document.getElementById("todayPlanList");
+const todayPlanActionBtn = document.getElementById("todayPlanActionBtn");
+const dayChips = document.querySelectorAll(".week-strip .day-chip");
+const dailyCard = document.querySelector(".weekly-card");
+let selectedHomeDate = null;
+
+function exploreDataKey(category) {
+  return category === "aiMoves" ? "moves" : category;
+}
+
+function exploreGridItems(category, filter) {
+  const key = exploreDataKey(category);
+  const bucket = libraryData[key];
+  return bucket && bucket[filter] ? bucket[filter] : [];
+}
+
+function exploreGridTitle(category) {
+  if (category === "aiMoves") return "AI Moves";
+  const bucket = libraryData[category];
+  return bucket && bucket.title ? bucket.title : "";
+}
+
+function resolveFeaturedPlan() {
+  const plans = libraryData.plans && libraryData.plans.recommended ? libraryData.plans.recommended : [];
+  const targetIdx = plans.findIndex((item) => item && item[0] === "Lean Strength 21");
+  const idx = targetIdx >= 0 ? targetIdx : 0;
+  const plan = plans[idx] || ["Lean Strength 21", "", "21 days"];
+  const titleText = plan[0];
+  const typeText = /pilates/i.test(titleText) ? "Pilates" : "Strength Training";
+  const thumb = "assets/card3.jpg";
+  return { idx, plan, titleText, typeText, thumb };
+}
+
+function deriveJoinedPlansFromLibrary() {
+  const plans = libraryData.plans && libraryData.plans.recommended ? libraryData.plans.recommended : [];
+  if (!plans.length) return [];
+  const leanIndex = plans.findIndex((item) => item && item[0] === "Lean Strength 21");
+  const preferredOrder = [];
+  if (leanIndex >= 0) preferredOrder.push(leanIndex);
+  plans.forEach((_, index) => {
+    if (index !== leanIndex) preferredOrder.push(index);
+  });
+  return preferredOrder.slice(0, 4).map((index) => {
+    const item = plans[index];
+    return {
+      index,
+      item,
+      title: item[0] || "Untitled Plan",
+      summary: item[1] || "Training session",
+      duration: item[2] || "14 days"
+    };
+  });
+}
+
+function resolveJoinedPlansForToday(now = new Date()) {
+  const dayOfMonth = now.getDate();
+  // Demo rule: joined plans are active on these dates.
+  if (![12, 13, 14, 15, 17, 18].includes(dayOfMonth)) return [];
+  return deriveJoinedPlansFromLibrary();
+}
+
+function resolveHomeTrainingState(now = new Date(), joinedPlans = []) {
+  if (!joinedPlans.length) return "free_only";
+  const dayOfMonth = now.getDate();
+  if ([12, 14, 18].includes(dayOfMonth)) return "joined_training";
+  if ([13, 15, 17].includes(dayOfMonth)) return "joined_rest";
+  return "free_only";
+}
+
+function buildTodaySessions(joinedPlans, now = new Date()) {
+  const dayOfMonth = now.getDate();
+  const labels = ["Mobility", "Core", "Power", "Tempo", "Conditioning", "Recovery", "Technique"];
+  return joinedPlans
+    .map((plan) => {
+      const slotSeed = (plan.index * 37 + dayOfMonth * 17) % 5;
+      const hour = 7 + slotSeed * 2;
+      const minute = slotSeed % 2 ? "30" : "00";
+      return {
+        ...plan,
+        slot: `${String(hour).padStart(2, "0")}:${minute}`,
+        focus: labels[(dayOfMonth + plan.index) % labels.length]
+      };
+    })
+    .sort((a, b) => a.slot.localeCompare(b.slot))
+    .slice(0, 2);
+}
+
+function resolvePlanIdFromSelection(item, index) {
+  const allTraining = (libraryData && libraryData.allTraining) || {};
+  const plans = Array.isArray(allTraining.plans) ? allTraining.plans : [];
+  if (!plans.length) return "";
+  const objectItem = item && !Array.isArray(item) && typeof item === "object" ? item : null;
+  if (objectItem && typeof objectItem.id === "string") return objectItem.id;
+  const byIndex = plans[index];
+  if (byIndex && typeof byIndex.id === "string") return byIndex.id;
+  if (Array.isArray(item) && item[0]) {
+    const byName = plans.find((plan) => plan && String(plan.name).toLowerCase() === String(item[0]).toLowerCase());
+    if (byName && typeof byName.id === "string") return byName.id;
+  }
+  const first = plans[0];
+  return first && typeof first.id === "string" ? first.id : "";
+}
+
+function openPlanDetailFromSelection(item, index, from = "home") {
+  const params = new URLSearchParams({ from });
+  const planId = resolvePlanIdFromSelection(item, index);
+  if (planId) params.set("planId", planId);
+  window.location.href = `plan-b-plan-detail.html?${params.toString()}`;
+}
+
+function renderTodayPlanReminder(nowInput) {
+  const now = nowInput || selectedHomeDate || new Date();
+  const joinedPlans = resolveJoinedPlansForToday(now);
+  const homeState = resolveHomeTrainingState(now, joinedPlans);
+  if (featuredPlanBanner) featuredPlanBanner.classList.toggle("is-hidden", homeState !== "free_only");
+  if (todayPlanReminder) todayPlanReminder.classList.toggle("is-hidden", homeState === "free_only");
+  if (!todayPlanReminder || !todayPlanTitle || !todayPlanSubtitle || !todayPlanList || !todayPlanActionBtn) return;
+
+  todayPlanList.innerHTML = "";
+  todayPlanReminder.classList.remove("is-rest-clickable");
+  todayPlanReminder.removeAttribute("role");
+  todayPlanReminder.removeAttribute("tabindex");
+  todayPlanReminder.onkeydown = null;
+  todayPlanReminder.onclick = null;
+  if (homeState === "free_only") {
+    todayPlanActionBtn.hidden = true;
+    todayPlanActionBtn.onclick = null;
+    return;
+  }
+
+  if (homeState === "joined_rest") {
+    todayPlanReminder.classList.add("is-rest");
+    todayPlanTitle.textContent = "Today is Rest Day";
+    todayPlanSubtitle.textContent = "You can still choose free training today.";
+    todayPlanActionBtn.hidden = true;
+    todayPlanActionBtn.onclick = null;
+    const fallbackPlan = joinedPlans[0] || resolveFeaturedPlan();
+    const openRestDayPlanDetail = () => {
+      currentCategory = "plans";
+      currentFilter = "recommended";
+      if (Array.isArray(fallbackPlan.item)) openPlanDetailFromSelection(fallbackPlan.item, fallbackPlan.index, "home");
+      else openPlanDetailFromSelection(fallbackPlan.plan, fallbackPlan.idx, "home");
+    };
+    todayPlanReminder.classList.add("is-rest-clickable");
+    todayPlanReminder.setAttribute("role", "button");
+    todayPlanReminder.setAttribute("tabindex", "0");
+    todayPlanReminder.onclick = openRestDayPlanDetail;
+    todayPlanReminder.onkeydown = (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        openRestDayPlanDetail();
+      }
+    };
+    return;
+  }
+
+  const todaySessions = buildTodaySessions(joinedPlans, now);
+  todayPlanReminder.classList.remove("is-rest");
+  todayPlanTitle.textContent = todaySessions.length > 1 ? "Today has 2 planned sessions" : "Today has 1 planned session";
+  todayPlanSubtitle.textContent = "Based on plans you joined.";
+
+  const statusLabels = ["Not Finished", "Completed", "Incomplete", "Skipped"];
+  const isDay14WithTwoPlans = now.getDate() === 14 && todaySessions.length >= 2;
+  const day14StatusOverride = ["Skipped", "Incomplete"];
+  const progressSamples = ["30%", "70%"];
+  const progressToneClasses = [
+    "today-plan-item--tone-1",
+    "today-plan-item--tone-2",
+    "today-plan-item--tone-3"
+  ];
+  todaySessions.forEach((session, index) => {
+    const row = document.createElement("div");
+    row.className = "today-plan-item";
+    row.classList.add(progressToneClasses[index % progressToneClasses.length]);
+    row.style.setProperty("--plan-progress", progressSamples[index % progressSamples.length]);
+    const name = document.createElement("strong");
+    name.textContent = `${session.title} · ${session.focus}`;
+    const meta = document.createElement("span");
+    meta.className = "today-plan-status";
+    if (isDay14WithTwoPlans && index < day14StatusOverride.length) {
+      meta.textContent = day14StatusOverride[index];
+    } else {
+      meta.textContent = statusLabels[index % statusLabels.length];
+    }
+    row.append(name, meta);
+    todayPlanList.appendChild(row);
+  });
+
+  todayPlanActionBtn.hidden = false;
+  todayPlanActionBtn.textContent = "Start Training";
+  todayPlanActionBtn.onclick = () => {
+    currentCategory = "plans";
+    currentFilter = "recommended";
+    openPlanDetailFromSelection(todaySessions[0].item, todaySessions[0].index, "home");
+  };
+}
+
+function wireFeaturedPlanBanner() {
+  if (!featuredPlanBanner) return;
+  const featuredPlan = resolveFeaturedPlan();
+  if (featuredPlanTitle) featuredPlanTitle.textContent = featuredPlan.titleText;
+  if (featuredPlanType) featuredPlanType.textContent = featuredPlan.typeText;
+  featuredPlanBanner.setAttribute("aria-label", `Open plan detail for ${featuredPlan.titleText}`);
+  featuredPlanBanner.style.backgroundImage =
+    `linear-gradient(to top, rgba(2, 6, 23, 0.94), rgba(2, 6, 23, 0.52) 48%, rgba(2, 6, 23, 0.2)), url("${featuredPlan.thumb}")`;
+
+  const openFeaturedPlanDetail = () => {
+    openPlanDetailFromSelection(featuredPlan.plan, featuredPlan.idx, "home");
+  };
+
+  featuredPlanBanner.addEventListener("click", openFeaturedPlanDetail);
+  featuredPlanBanner.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      openFeaturedPlanDetail();
+    }
+  });
+}
+wireFeaturedPlanBanner();
+renderTodayPlanReminder();
+
+function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function metricTrendText(change) {
+  if (change === 0) return "Same as last day";
+  return `${change > 0 ? "+" : ""}${change}% vs last day`;
+}
+
+function updateDailySnapshot() {
+  if (!dailyCard) return;
+  const dial = dailyCard.querySelector(".dial");
+  const dialInner = dailyCard.querySelector(".dial-inner");
+  const dialLabel = dailyCard.querySelector(".dial-center span");
+  const dialValue = dailyCard.querySelector(".dial-center strong");
+  const metricValues = dailyCard.querySelectorAll(".weekly-metric .value");
+  const metricTrends = dailyCard.querySelectorAll(".weekly-metric p");
+  if (!dial || !dialInner || !dialValue || metricValues.length < 3 || metricTrends.length < 3) return;
+
+  if (dialLabel) dialLabel.textContent = "Daily";
+
+  const effort = randomInt(180, 520);
+  const time = randomInt(8, 45);
+  const freq = randomInt(1, 5);
+  const effortPct = (effort - 180) / (520 - 180);
+  const timePct = (time - 8) / (45 - 8);
+  const freqPct = (freq - 1) / (5 - 1);
+  const progressPct = Math.round(((effortPct + timePct + freqPct) / 3) * 100);
+
+  dialValue.textContent = `${progressPct}%`;
+  metricValues[0].innerHTML = `${effort}<small>cal</small>`;
+  metricValues[1].innerHTML = `${time}<small>min</small>`;
+  metricValues[2].innerHTML = `${freq}<small>days</small>`;
+
+  metricTrends[0].textContent = metricTrendText(randomInt(-18, 24));
+  metricTrends[1].textContent = metricTrendText(randomInt(-15, 20));
+  metricTrends[2].textContent = metricTrendText(randomInt(-12, 15));
+
+  const effortDeg = Math.round(45 + effortPct * 300);
+  const timeDeg = Math.round(40 + timePct * 300);
+  const freqDeg = Math.round(35 + freqPct * 300);
+  dial.style.setProperty("--effort-deg", `${effortDeg}deg`);
+  dialInner.style.setProperty("--time-deg", `${timeDeg}deg`);
+  dialInner.style.setProperty("--freq-deg", `${freqDeg}deg`);
+}
+
+function wireDailyCalendarInteraction() {
+  if (!dayChips.length || !dailyCard) return;
+  const buildDateFromChip = (chip) => {
+    const dayText = chip.querySelector("strong");
+    const dayNum = dayText ? parseInt(dayText.textContent || "", 10) : NaN;
+    if (!Number.isFinite(dayNum)) return new Date();
+    const base = new Date();
+    return new Date(base.getFullYear(), base.getMonth(), dayNum);
+  };
+
+  const activeChip = Array.from(dayChips).find((chip) => chip.classList.contains("day-chip--active"));
+  if (activeChip) {
+    selectedHomeDate = buildDateFromChip(activeChip);
+    renderTodayPlanReminder(selectedHomeDate);
+  }
+
+  dayChips.forEach((chip) => {
+    chip.setAttribute("role", "button");
+    chip.setAttribute("tabindex", "0");
+    const onSelect = () => {
+      dayChips.forEach((item) => item.classList.toggle("day-chip--active", item === chip));
+      updateDailySnapshot();
+      selectedHomeDate = buildDateFromChip(chip);
+      renderTodayPlanReminder(selectedHomeDate);
+    };
+    chip.addEventListener("click", onSelect);
+    chip.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        onSelect();
+      }
+    });
+  });
+}
+wireDailyCalendarInteraction();
+
+function syncAccordionVisibility() {
+  const elKeypoints = document.getElementById("adAccordionKeypoints");
+  if (elKeypoints) {
+    elKeypoints.style.display = adMeta.keypoints && adMeta.keypoints.length ? "" : "none";
+    const content = document.getElementById("adKeypointsContent");
+    if (content && adMeta.keypoints && Array.isArray(adMeta.keypoints)) {
+      let ul = content.querySelector("ul");
+      if (!ul) {
+        ul = document.createElement("ul");
+        content.prepend(ul);
+      }
+      ul.innerHTML = adMeta.keypoints.map(m => `<li>${m}</li>`).join("");
+    }
+  }
+
+  const elBreathing = document.getElementById("adAccordionBreathing");
+  if (elBreathing) {
+    elBreathing.style.display = adMeta.breathing ? "" : "none";
+    const content = document.getElementById("adBreathingContent");
+    if (content && adMeta.breathing) content.innerHTML = `<p>${adMeta.breathing}</p>`;
+  }
+
+  const elMistakes = document.getElementById("adAccordionMistakes");
+  if (elMistakes) {
+    elMistakes.style.display = adMeta.mistakes && adMeta.mistakes.length ? "" : "none";
+    const content = document.getElementById("adMistakesContent");
+    if (content && adMeta.mistakes && Array.isArray(adMeta.mistakes)) {
+      content.innerHTML = `<ul>${adMeta.mistakes.map(m => `<li>${m}</li>`).join("")}</ul>`;
+    }
+  }
+
+  const elInstallation = document.getElementById("adAccordionInstallation");
+  if (elInstallation) {
+    elInstallation.style.display = adMeta.installation ? "" : "none";
+    const contentP = document.querySelector("#adInstallationContent p");
+    if (contentP && adMeta.installation) {
+      contentP.textContent = adMeta.installation;
+    }
+  }
+}
+
+function syncActionDetail() {
+  if (adActionName) adActionName.textContent = adMeta.name;
+  if (adActionIntro) adActionIntro.textContent = adMeta.intro;
+  if (adIntensityValue) adIntensityValue.textContent = adMeta.intensity;
+  if (adSportValue) adSportValue.textContent = adMeta.sport;
+  if (adEquipValue) adEquipValue.textContent = adMeta.equip;
+  if (adTargetValue) adTargetValue.textContent = adMeta.target;
+  if (adActionHero) {
+    adActionHero.src = adMeta.thumb;
+    adActionHero.alt = `Illustration for ${adMeta.name}`;
+  }
+  if (adInstallVisual) {
+    adInstallVisual.src = adInstallPreviewAsset.image;
+    adInstallVisual.alt = `Equipment setup illustration for ${adMeta.name}`;
+  }
+  if (adVideoFallback) adVideoFallback.textContent = "";
+  
+  syncAccordionVisibility();
+  syncInstallInlineType();
+}
+
+function syncInstallInlineType() {
+  if (!adInstallInlineImage || !adInstallInlineVideo || !adInstallInlineVideoSource || !adInstallInlineMedia) return;
+  const hasVideo = Boolean(adInstallPreviewAsset.video);
+  const hasMedia = Boolean(adInstallPreviewAsset.video || adInstallPreviewAsset.image);
+  
+  adInstallInlineMedia.classList.toggle("hidden", !hasMedia);
+  adInstallInlineImage.classList.toggle("hidden", hasVideo || !adInstallPreviewAsset.image);
+  adInstallInlineVideo.classList.toggle("hidden", !hasVideo);
+  
+  if (hasVideo) {
+    adInstallInlineVideoSource.src = adInstallPreviewAsset.video;
+    adInstallInlineVideo.load();
+  } else if (adInstallPreviewAsset.image) {
+    adInstallInlineImage.src = adInstallPreviewAsset.image;
+  } else {
+    adInstallInlineVideo.pause();
+    adInstallInlineVideoSource.src = "";
+  }
+}
+
+function openMoveDetail(item, index) {
+  if (currentCategory === "plans") {
+    openPlanDetailFromSelection(item, index, PLAN_B_PAGE === "home" ? "home" : "full");
+    return;
+  }
+  if (PLAN_B_PAGE === "home") {
+    const params = new URLSearchParams({
+      idx: String(index),
+      cat: currentCategory,
+      filter: currentFilter
+    });
+    window.location.href = `plan-b-move-detail.html?${params.toString()}`;
+    return;
+  }
+  const objectItem = item && !Array.isArray(item) && typeof item === "object" ? item : null;
+  const [nameFromArray, descFromArray, tagFromArray] = Array.isArray(item) ? item : [];
+  const safeAssetLength = Math.max(1, assetPaths.length);
+  adMeta.name = (objectItem && objectItem.name) || nameFromArray || "Workout Title";
+  adMeta.intro = (objectItem && (objectItem.summary || objectItem.intro)) || descFromArray || "Training session";
+  adMeta.intensity = (objectItem && objectItem.difficulty) || tagFromArray || "Intermediate";
+  adMeta.sport = (objectItem && objectItem.scene) || "Strength";
+  adMeta.duration = (objectItem && objectItem.cycleWeeks) || "12 min";
+  adMeta.equip = (objectItem && objectItem.equipment) || "Smart cable + dual handle";
+  adMeta.target = (objectItem && objectItem.target) || "Chest";
+  adMeta.thumb = (objectItem && objectItem.thumb) || assetPaths[index % safeAssetLength];
+  adMeta.keypoints = (objectItem && objectItem.keypoints) || [
+    "Stable start position; engage pelvis and core first.",
+    "Keep primary muscles driving through the working phase; avoid momentum.",
+    "Return in a controlled tempo with consistent path."
+  ];
+  adMeta.breathing = objectItem && objectItem.breathing !== undefined ? objectItem.breathing : "Exhale on the concentric phase, inhale on the eccentric; keep ribcage and core coordinated and avoid breath-holding.";
+  adMeta.mistakes = objectItem && objectItem.mistakes !== undefined ? objectItem.mistakes : [
+    "Shrugging and neck compensation.",
+    "Moving too fast with poor control.",
+    "Unstable end position and joint path drift."
+  ];
+  adMeta.installation = objectItem && objectItem.installation !== undefined ? objectItem.installation : "Check anchor point, cable path, and handle direction before your first rep.";
+  adMeta.video = "assets/workout-demo.mp4";
+  syncActionDetail();
+  if (modal) hideTrainingTypeModal();
+  if (shell) shell.classList.add("app-detail-active");
+  if (moveDetailScreen) {
+    moveDetailScreen.classList.add("active");
+    moveDetailScreen.setAttribute("aria-hidden", "false");
+  }
+}
+
+function closeMoveDetailScreen() {
+  if (PLAN_B_PAGE === "move-detail") {
+    window.location.href = "index-plan-b-home.html";
+    return;
+  }
+  if (!moveDetailScreen) return;
+  moveDetailScreen.classList.remove("active");
+  moveDetailScreen.setAttribute("aria-hidden", "true");
+  if (shell) shell.classList.remove("app-detail-active");
+  if (immersiveWorkoutScreen) {
+    immersiveWorkoutScreen.classList.remove("active");
+    immersiveWorkoutScreen.setAttribute("aria-hidden", "true");
+  }
+  if (shell) shell.classList.remove("app-immersive-active");
+  if (iwVideo) iwVideo.pause();
+  if (iwState.rafId) {
+    cancelAnimationFrame(iwState.rafId);
+    iwState.rafId = 0;
+  }
+}
+
+function formatTime(seconds) {
+  const safe = Math.max(0, Number.isFinite(seconds) ? seconds : 0);
+  const m = Math.floor(safe / 60);
+  const s = Math.floor(safe % 60);
+  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function buildSyntheticTimeline(durationSeconds, baseResistance, mode) {
+  const total = Math.max(1, Math.floor(durationSeconds));
+  const modeBias = mode === "spring" ? 6 : mode === "isokinetic" ? 5 : mode === "eccentric" ? 4 : 2;
+  const result = [];
+  for (let i = 0; i < total; i += 1) {
+    const swing = Math.sin(i / 2.6) * 4.2 + Math.cos(i / 6.8) * 2.1;
+    result.push(Math.round(clamp(baseResistance + modeBias + swing, 0, 120) * 10) / 10);
+  }
+  return result;
+}
+
+function computeDistribution(timeline, maxResistance) {
+  const safeTimeline = timeline.length ? timeline : [0];
+  const zoneStep = maxResistance / 5;
+  const zones = [
+    { className: "tr-intensity-z1", from: 0, to: zoneStep, label: `0-${zoneStep.toFixed(0)}kg`, seconds: 0 },
+    { className: "tr-intensity-z2", from: zoneStep, to: zoneStep * 2, label: `${zoneStep.toFixed(0)}-${(zoneStep * 2).toFixed(0)}kg`, seconds: 0 },
+    { className: "tr-intensity-z3", from: zoneStep * 2, to: zoneStep * 3, label: `${(zoneStep * 2).toFixed(0)}-${(zoneStep * 3).toFixed(0)}kg`, seconds: 0 },
+    { className: "tr-intensity-z4", from: zoneStep * 3, to: zoneStep * 4, label: `${(zoneStep * 3).toFixed(0)}-${(zoneStep * 4).toFixed(0)}kg`, seconds: 0 },
+    { className: "tr-intensity-z5", from: zoneStep * 4, to: maxResistance + 0.0001, label: `${(zoneStep * 4).toFixed(0)}-${maxResistance.toFixed(0)}kg`, seconds: 0 }
+  ];
+  safeTimeline.forEach((value) => {
+    const v = clamp(value, 0, maxResistance);
+    const idx = Math.min(4, Math.floor(v / zoneStep));
+    zones[idx].seconds += 1;
+  });
+  const total = safeTimeline.length;
+  zones.forEach((zone) => {
+    zone.ratio = zone.seconds / total;
+  });
+  return zones;
+}
+
+function calcConsistency(timeline, maxResistance) {
+  if (!timeline.length) return 0;
+  const avg = timeline.reduce((sum, item) => sum + item, 0) / timeline.length;
+  const variance = timeline.reduce((sum, item) => sum + (item - avg) ** 2, 0) / timeline.length;
+  const std = Math.sqrt(variance);
+  return Math.round(clamp(100 - (std / Math.max(1, maxResistance)) * 180, 0, 100));
+}
+
+function getCoachNote(consistency, peakResistance, maxResistance) {
+  const peakRatio = peakResistance / Math.max(1, maxResistance);
+  if (consistency >= 86 && peakRatio >= 0.7) return "Excellent pacing. Keep this output profile and increase peak resistance by 2-5kg next session.";
+  if (consistency >= 72) return "Great control overall. Try extending your high-intensity phase to improve total work capacity.";
+  return "Your intensity fluctuated more than expected. Focus on smoother tempo and steady force application next round.";
+}
+
+function sumResistanceTimeline(timeline) {
+  return timeline.reduce((sum, value) => sum + Number(value || 0), 0);
+}
+
+function resetIwTrainingCapture() {
+  iwTrainingState.active = true;
+  iwTrainingState.startedAt = performance.now();
+  iwTrainingState.lastSecond = -1;
+  iwTrainingState.resistanceTimeline = [];
+}
+
+function stopIwTrainingCapture() {
+  const elapsedMs = Math.max(0, performance.now() - (iwTrainingState.startedAt || performance.now()));
+  const durationSeconds = Math.max(0, Math.round(elapsedMs / 1000));
+  const timeline = iwTrainingState.resistanceTimeline.slice();
+  iwTrainingState.active = false;
+  iwTrainingState.startedAt = 0;
+  iwTrainingState.lastSecond = -1;
+  iwTrainingState.resistanceTimeline = [];
+  return { durationSeconds, timeline };
+}
+
+function openReportFromIwTraining() {
+  const { durationSeconds: measuredDuration, timeline: measuredTimeline } = stopIwTrainingCapture();
+  const timeline = measuredTimeline.length
+    ? measuredTimeline
+    : buildSyntheticTimeline(Math.max(18, measuredDuration || Math.round(iwVideo.currentTime || 0)), iwState.weight, iwState.mode);
+  const durationSeconds = Math.max(1, measuredDuration || timeline.length);
+  const capacityKg = sumResistanceTimeline(timeline);
+  const energyKj = capacityKg * 0.38;
+  const caloriesKcal = energyKj * 0.24;
+  const reportPayload = {
+    reportFromScene: "immersive",
+    userName: reportUser.name,
+    userAvatar: reportUser.avatar,
+    sceneLabel: "Action Training",
+    durationSeconds,
+    capacityKg,
+    energyKj,
+    caloriesKcal,
+    modeLabel: iwModeMapReport[iwState.mode] || "Standard",
+    equipmentLabel: iwState.equipment === "barbell" ? "Barbell" : "No Barbell",
+    maxResistance: 120,
+    timeline
+  };
+  if (PLAN_B_PAGE === "immersive") {
+    try {
+      sessionStorage.setItem(STORAGE_REPORT_PAYLOAD, JSON.stringify(reportPayload));
+    } catch (e) {
+      /* ignore */
+    }
+    window.location.href = "plan-b-training-report.html";
+    return;
+  }
+  closeImmersiveWorkout();
+  reportFromScene = "immersive";
+  showTrainingReport(reportPayload);
+}
+
+function hideTrainingReport() {
+  if (!trainingReportScreen) return;
+  trainingReportScreen.classList.remove("active");
+  trainingReportScreen.setAttribute("aria-hidden", "true");
+}
+
+function showTrainingReport(payload) {
+  if (payload && payload.reportFromScene) reportFromScene = payload.reportFromScene;
+  const {
+    userName,
+    userAvatar,
+    sceneLabel,
+    durationSeconds,
+    capacityKg,
+    energyKj,
+    caloriesKcal,
+    modeLabel,
+    equipmentLabel,
+    maxResistance,
+    timeline
+  } = payload;
+  const safeTimeline = Array.isArray(timeline) ? timeline : [];
+  const peak = safeTimeline.length ? Math.max(...safeTimeline) : 0;
+  const consistency = calcConsistency(safeTimeline, maxResistance);
+  const reportIntensityDistribution = [
+    { className: "tr-intensity-z1", label: "0-24kg", ratio: 0.6 },
+    { className: "tr-intensity-z2", label: "24-48kg", ratio: 0.2 },
+    { className: "tr-intensity-z3", label: "48-72kg", ratio: 0.2 }
+  ];
+  if (reportUserAvatar) reportUserAvatar.textContent = "A";
+  if (reportCongratsTitle) reportCongratsTitle.textContent = `Great Job, ${userName}`;
+  if (reportSessionMeta) reportSessionMeta.textContent = `Session complete • ${sceneLabel}`;
+  if (reportDurationValue) reportDurationValue.textContent = formatTime(durationSeconds);
+  if (reportCapacityValue) reportCapacityValue.textContent = Number(capacityKg).toFixed(1);
+  if (reportEnergyValue) reportEnergyValue.textContent = String(Math.max(0, Math.round(energyKj)));
+  if (reportCaloriesValue) reportCaloriesValue.textContent = String(Math.max(0, Math.round(caloriesKcal)));
+  if (reportModeLabel) reportModeLabel.textContent = modeLabel;
+  if (reportEquipmentLabel) reportEquipmentLabel.textContent = equipmentLabel;
+  if (reportSceneLabel) reportSceneLabel.textContent = sceneLabel;
+  if (reportIntensityRange) reportIntensityRange.textContent = `Max Resistance ${Math.round(maxResistance)}kg`;
+  if (reportIntensityBar) reportIntensityBar.innerHTML = reportIntensityDistribution
+    .map((zone) => `<span class="tr-intensity-segment ${zone.className}" style="width:${(zone.ratio * 100).toFixed(2)}%"></span>`)
+    .join("");
+  if (reportIntensityLegend) reportIntensityLegend.innerHTML = reportIntensityDistribution
+    .map((zone) => `<div class="tr-legend-item"><span class="tr-legend-dot ${zone.className}"></span><span>${zone.label} · ${Math.round(zone.ratio * 100)}%</span></div>`)
+    .join("");
+  if (reportPeakResistance) reportPeakResistance.textContent = `${peak.toFixed(1)}kg`;
+  if (reportConsistency) reportConsistency.textContent = `${consistency}%`;
+  if (reportCoachNote) reportCoachNote.textContent = getCoachNote(consistency, peak, maxResistance);
+  if (trainingReportScreen) {
+    trainingReportScreen.classList.add("active");
+    trainingReportScreen.setAttribute("aria-hidden", "false");
+  }
+}
+
+function sampleIwTraining(currentSeconds) {
+  if (!iwTrainingState.active) return;
+  const second = Math.floor(currentSeconds);
+  if (second === iwTrainingState.lastSecond) return;
+  iwTrainingState.lastSecond = second;
+  const modeOffset = iwState.mode === "spring" ? 6 : iwState.mode === "isokinetic" ? 5 : iwState.mode === "eccentric" ? 4 : 2;
+  const equipOffset = iwState.equipment === "barbell" ? 2 : -1;
+  const sway = Math.sin(second / 2.4) * 4 + Math.cos(second / 5.4) * 2.2;
+  const resistance = clamp(iwState.weight + modeOffset + equipOffset + sway, 0, 120);
+  iwTrainingState.resistanceTimeline.push(Math.round(resistance * 10) / 10);
+  if (iwTrainingState.resistanceTimeline.length > 7200) iwTrainingState.resistanceTimeline.shift();
+}
+
+function updateIwTimeUI() {
+  if (!iwVideo || !iwProgressFill || !iwTimeText) return;
+  const current = iwVideo.currentTime || 0;
+  const total = Number.isFinite(iwVideo.duration) && iwVideo.duration > 0 ? iwVideo.duration : 600;
+  const progress = Math.min(100, (current / total) * 100);
+  iwProgressFill.style.width = `${progress}%`;
+  iwTimeText.textContent = `${formatTime(current)} / ${formatTime(total)}`;
+  sampleIwTraining(current);
+}
+
+function syncIwWeightUI() {
+  if (!iwWeightValue || !iwSummaryWeight) return;
+  const clamped = Math.min(videoPlayParamConfig.maxWeight, Math.max(videoPlayParamConfig.minWeight, iwState.weight));
+  iwState.weight = Math.round(clamped * 10) / 10;
+  const v = iwState.weight.toFixed(1);
+  iwWeightValue.textContent = v;
+  iwSummaryWeight.textContent = v;
+  
+  const iwDialProgress = document.getElementById("iwDialProgress");
+  if (iwDialProgress) {
+    const percent = (iwState.weight - videoPlayParamConfig.minWeight) / (videoPlayParamConfig.maxWeight - videoPlayParamConfig.minWeight);
+    const dasharray = 339.29; // 2 * PI * 54
+    const offset = dasharray - (dasharray * percent);
+    iwDialProgress.style.strokeDashoffset = offset;
+  }
+}
+
+function springLevelToRaw(level) {
+  const ratio = (level - videoPlayParamConfig.spring.minLevel) / (videoPlayParamConfig.spring.maxLevel - videoPlayParamConfig.spring.minLevel);
+  return Math.round(videoPlayParamConfig.spring.rawSoft + ratio * (videoPlayParamConfig.spring.rawHard - videoPlayParamConfig.spring.rawSoft));
+}
+
+function isokineticLevelToRaw(level) {
+  return level * videoPlayParamConfig.isokinetic.rawMultiplier;
+}
+
+function getIsoTip(level) {
+  if (level <= 5) return "Slow / stability — strong speed limit, good for peak-force work.";
+  if (level <= 15) return "Standard / hypertrophy — simulates typical gym tempo.";
+  return "Power / sport — allows fast start, minimal speed limit.";
+}
+
+function updateIwParamPanel() {
+  if (!iwParamPanel || !iwMetaChip || !iwParamLabel || !iwParamSlider || !iwParamDisplay || !iwParamTip || !iwParamSubmit) return;
+  if (iwState.mode === "spring") {
+    iwParamPanel.classList.add("show");
+    iwParamLabel.textContent = "Spring level";
+    iwParamSlider.min = String(videoPlayParamConfig.spring.minLevel);
+    iwParamSlider.max = String(videoPlayParamConfig.spring.maxLevel);
+    iwParamSlider.value = String(iwState.springLevel);
+    iwParamDisplay.textContent = `Level ${iwState.springLevel}`;
+    iwParamTip.textContent = "Higher level = stiffer spring, resistance rises more with range.";
+    iwParamSubmit.textContent = `Submit springCoefficient = ${springLevelToRaw(iwState.springLevel)}`;
+    iwMetaChip.textContent = "Spring resistance";
+  } else if (iwState.mode === "isokinetic") {
+    iwParamPanel.classList.add("show");
+    iwParamLabel.textContent = "Isokinetic level";
+    iwParamSlider.min = String(videoPlayParamConfig.isokinetic.minLevel);
+    iwParamSlider.max = String(videoPlayParamConfig.isokinetic.maxLevel);
+    iwParamSlider.value = String(iwState.isokineticLevel);
+    iwParamDisplay.textContent = `Level ${iwState.isokineticLevel}`;
+    iwParamTip.textContent = getIsoTip(iwState.isokineticLevel);
+    iwParamSubmit.textContent = `Submit isokineticRaw = ${isokineticLevelToRaw(iwState.isokineticLevel)}`;
+    iwMetaChip.textContent = "Speed limit";
+  } else {
+    iwParamPanel.classList.remove("show");
+    iwMetaChip.textContent = "Power stable";
+  }
+}
+
+function setIwMode(mode) {
+  if (!iwModeGroup || !iwSummaryMode || !iwModeChip) return;
+  iwState.mode = mode;
+  iwSummaryMode.textContent = iwModeMap[mode] || "Standard";
+  iwModeChip.textContent = iwModeMap[mode] || "Standard";
+  iwModeGroup.querySelectorAll(".iw-mode-btn").forEach((btn) => btn.classList.toggle("active", btn.dataset.mode === mode));
+  updateIwParamPanel();
+}
+
+function setIwEquipment(kind) {
+  if (!iwEquipBarbell || !iwEquipOther) return;
+  iwState.equipment = kind;
+  iwEquipBarbell.classList.toggle("active", kind === "barbell");
+  iwEquipOther.classList.toggle("active", kind === "other");
+}
+
+function drawIwChartFrame() {
+  if (!iwChartCtx || !iwChartCanvas) return;
+  const { width, height } = iwChartCanvas;
+  iwChartCtx.clearRect(0, 0, width, height);
+  iwChartCtx.strokeStyle = "rgba(148,163,184,0.28)";
+  iwChartCtx.lineWidth = 1;
+  const rowGap = height / 4;
+  for (let i = 1; i <= 3; i += 1) {
+    const y = i * rowGap;
+    iwChartCtx.beginPath();
+    iwChartCtx.moveTo(0, y);
+    iwChartCtx.lineTo(width, y);
+    iwChartCtx.stroke();
+  }
+  if (iwState.tab === "rom") {
+    const baseY = height * 0.55;
+    const amp = height * 0.26;
+    const waveLen = width / 3.8;
+    iwChartCtx.lineWidth = 6;
+    const romGradient = iwChartCtx.createLinearGradient(0, 0, width, 0);
+    romGradient.addColorStop(0, "rgba(94, 234, 255, 0.96)");
+    romGradient.addColorStop(0.5, "rgba(170, 221, 255, 0.95)");
+    romGradient.addColorStop(1, "rgba(104, 163, 255, 0.92)");
+    iwChartCtx.strokeStyle = romGradient;
+    iwChartCtx.shadowBlur = 26;
+    iwChartCtx.shadowColor = "rgba(102, 220, 255, 0.78)";
+    iwChartCtx.beginPath();
+    for (let x = 0; x <= width; x += 8) {
+      const y = baseY - Math.sin((x + iwState.chartTick * 12) / waveLen) * amp;
+      if (x === 0) iwChartCtx.moveTo(x, y);
+      else iwChartCtx.lineTo(x, y);
+    }
+    iwChartCtx.stroke();
+    iwChartCtx.shadowBlur = 0;
+    const powerGradient = iwChartCtx.createLinearGradient(0, 0, width, 0);
+    powerGradient.addColorStop(0, "rgba(255, 188, 123, 0.94)");
+    powerGradient.addColorStop(0.5, "rgba(255, 171, 99, 0.96)");
+    powerGradient.addColorStop(1, "rgba(255, 124, 70, 0.92)");
+    iwChartCtx.strokeStyle = powerGradient;
+    iwChartCtx.shadowBlur = 22;
+    iwChartCtx.shadowColor = "rgba(255, 156, 90, 0.76)";
+    iwChartCtx.beginPath();
+    for (let x = 0; x <= width; x += 8) {
+      const y = baseY - Math.sin((x + iwState.chartTick * 12 + 60) / waveLen) * amp * 0.95;
+      if (x === 0) iwChartCtx.moveTo(x, y);
+      else iwChartCtx.lineTo(x, y);
+    }
+    iwChartCtx.stroke();
+    iwChartCtx.shadowBlur = 0;
+  } else {
+    const bars = 36;
+    const barGap = 10;
+    const barW = (width - barGap * (bars + 1)) / bars;
+    
+    // Slow down the animation speed significantly
+    const slowTick = iwState.chartTick * 0.15;
+    
+    for (let i = 0; i < bars; i += 1) {
+      const x = barGap + i * (barW + barGap);
+      // Smoother and slower wave generation
+      const noise = Math.sin((i * 0.5 + slowTick)) * 0.24 + Math.cos((i * 0.3 + slowTick * 0.8)) * 0.2;
+      const h = Math.max(24, height * 0.28 + (noise + 0.5) * height * 0.48);
+      const y = height - h - 8;
+      
+      // Use colors matching the ROM chart legend (cyan and orange theme)
+      const isCyan = (i % 2 === 0);
+      
+      if (isCyan) {
+        const grad = iwChartCtx.createLinearGradient(0, y, 0, y + h);
+        grad.addColorStop(0, "rgba(94, 234, 255, 0.96)");
+        grad.addColorStop(1, "rgba(104, 163, 255, 0.4)");
+        iwChartCtx.fillStyle = grad;
+      } else {
+        const grad = iwChartCtx.createLinearGradient(0, y, 0, y + h);
+        grad.addColorStop(0, "rgba(255, 188, 123, 0.94)");
+        grad.addColorStop(1, "rgba(255, 124, 70, 0.4)");
+        iwChartCtx.fillStyle = grad;
+      }
+      
+      // Add subtle glow
+      iwChartCtx.shadowBlur = 8;
+      iwChartCtx.shadowColor = isCyan ? "rgba(94, 234, 255, 0.5)" : "rgba(255, 188, 123, 0.5)";
+      
+      // Draw rounded bar
+      const radius = Math.min(barW / 2, h / 2);
+      iwChartCtx.beginPath();
+      iwChartCtx.moveTo(x + radius, y);
+      iwChartCtx.lineTo(x + barW - radius, y);
+      iwChartCtx.quadraticCurveTo(x + barW, y, x + barW, y + radius);
+      iwChartCtx.lineTo(x + barW, y + h - radius);
+      iwChartCtx.quadraticCurveTo(x + barW, y + h, x + barW - radius, y + h);
+      iwChartCtx.lineTo(x + radius, y + h);
+      iwChartCtx.quadraticCurveTo(x, y + h, x, y + h - radius);
+      iwChartCtx.lineTo(x, y + radius);
+      iwChartCtx.quadraticCurveTo(x, y, x + radius, y);
+      iwChartCtx.closePath();
+      iwChartCtx.fill();
+    }
+    iwChartCtx.shadowBlur = 0;
+  }
+  iwState.chartTick += 1;
+  iwState.rafId = requestAnimationFrame(drawIwChartFrame);
+}
+
+function openImmersiveWorkout() {
+  if (PLAN_B_PAGE === "move-detail") {
+    try {
+      sessionStorage.setItem(STORAGE_AD_META, JSON.stringify(adMeta));
+    } catch (e) {
+      /* ignore */
+    }
+    window.location.href = "plan-b-immersive-workout.html";
+    return;
+  }
+  if (!iwActionTitle || !iwVideo || !iwVideoSource || !iwPlayBtn || !immersiveWorkoutScreen) return;
+  iwActionTitle.textContent = adMeta.name;
+  iwVideo.poster = adMeta.thumb;
+  iwVideoSource.src = adMeta.video;
+  iwVideo.load();
+  iwVideo.play().catch(() => {});
+  iwPlayBtn.textContent = "Pause";
+  iwState.playing = true;
+  if (shell) shell.classList.add("app-immersive-active");
+  immersiveWorkoutScreen.classList.add("active");
+  immersiveWorkoutScreen.setAttribute("aria-hidden", "false");
+  resetIwTrainingCapture();
+  if (!iwState.rafId && iwChartCtx) drawIwChartFrame();
+  
+  // Default to drawer open
+  const iwDrawer = document.getElementById("iwDrawer");
+  if (iwDrawer) {
+    iwDrawer.classList.add("open");
+  }
+}
+
+function closeImmersiveWorkout() {
+  if (immersiveWorkoutScreen) {
+    immersiveWorkoutScreen.classList.remove("active");
+    immersiveWorkoutScreen.setAttribute("aria-hidden", "true");
+  }
+  if (shell) shell.classList.remove("app-immersive-active");
+  if (iwVideo) iwVideo.pause();
+  if (iwState.rafId) {
+    cancelAnimationFrame(iwState.rafId);
+    iwState.rafId = 0;
+  }
+  iwTrainingState.active = false;
+}
+
+function createCard(item, index) {
+  const [name, desc, tag] = item;
+  const card = document.createElement("article");
+  card.className = "item";
+  card.innerHTML = `
+    <div class="thumb" style="background-image:url('${assetPaths[index % assetPaths.length]}')"></div>
+    <div class="overlay"></div>
+    <div class="meta">
+      <h4>${name}</h4>
+      <p>${desc}</p>
+      <span class="tag">${tag}</span>
+    </div>
+  `;
+  card.setAttribute("role", "button");
+  card.setAttribute("tabindex", "0");
+  card.setAttribute("aria-label", `${name} detail`);
+  card.addEventListener("click", () => openMoveDetail(item, index));
+  card.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      openMoveDetail(item, index);
+    }
+  });
+  return card;
+}
+
+function renderGrid() {
+  if (!grid || !title) return;
+  const items = exploreGridItems(currentCategory, currentFilter);
+  title.textContent = exploreGridTitle(currentCategory);
+  grid.innerHTML = "";
+  items.forEach((item, index) => grid.appendChild(createCard(item, index)));
+}
+
+if (sideTabs.length) {
+  sideTabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      currentCategory = tab.dataset.category;
+      sideTabs.forEach((item) => item.classList.toggle("active", item === tab));
+      renderGrid();
+    });
+  });
+}
+
+if (filterTabs.length) {
+  filterTabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      currentFilter = tab.dataset.filter;
+      filterTabs.forEach((item) => item.classList.toggle("active", item === tab));
+      renderGrid();
+    });
+  });
+}
+
+function openTrainingTypeModal() {
+  closeMoveDetailScreen();
+  if (!modal) return;
+  modal.classList.add("active");
+  modal.setAttribute("aria-hidden", "false");
+}
+
+function hideTrainingTypeModal() {
+  if (!modal) return;
+  modal.classList.remove("active");
+  modal.setAttribute("aria-hidden", "true");
+}
+
+if (startTrainingModalBtn) startTrainingModalBtn.addEventListener("click", openTrainingTypeModal);
+if (closeTrainingTypeModal) closeTrainingTypeModal.addEventListener("click", hideTrainingTypeModal);
+if (modal) {
+  modal.addEventListener("click", (event) => {
+    if (event.target === modal) hideTrainingTypeModal();
+  });
+}
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && moveDetailScreen && moveDetailScreen.classList.contains("active")) {
+    closeMoveDetailScreen();
+  }
+  if (event.key === "Escape" && modal && modal.classList.contains("active")) {
+    hideTrainingTypeModal();
+  }
+  if (event.key === "Escape" && trainingReportScreen && trainingReportScreen.classList.contains("active")) {
+    hideTrainingReport();
+  }
+});
+
+if (exitMoveDetailBtn) exitMoveDetailBtn.addEventListener("click", closeMoveDetailScreen);
+if (adStartTrainingBtn) adStartTrainingBtn.addEventListener("click", openImmersiveWorkout);
+
+if (adActionHero && adVideoFallback) {
+  adActionHero.addEventListener("error", () => {
+    adVideoFallback.textContent = "Preview image unavailable.";
+  });
+}
+
+if (iwEndBtn) iwEndBtn.addEventListener("click", openReportFromIwTraining);
+if (iwFlipBtn && iwVideo) {
+  iwFlipBtn.addEventListener("click", () => {
+    iwState.mirrored = !iwState.mirrored;
+    iwVideo.style.transform = iwState.mirrored ? "scaleX(-1)" : "scaleX(1)";
+    iwFlipBtn.classList.toggle("iw-btn--active", iwState.mirrored);
+  });
+}
+if (iwPlayBtn && iwVideo) {
+  iwPlayBtn.addEventListener("click", () => {
+    if (iwVideo.paused) {
+      iwVideo.play().catch(() => {});
+      iwState.playing = true;
+      iwPlayBtn.textContent = "Pause";
+    } else {
+      iwVideo.pause();
+      iwState.playing = false;
+      iwPlayBtn.textContent = "Play";
+    }
+  });
+}
+if (iwVideo) {
+  iwVideo.addEventListener("timeupdate", updateIwTimeUI);
+  iwVideo.addEventListener("loadedmetadata", updateIwTimeUI);
+  iwVideo.addEventListener("error", updateIwTimeUI);
+}
+if (iwDecreaseBtn) {
+  iwDecreaseBtn.addEventListener("click", () => {
+    iwState.weight -= videoPlayParamConfig.weightStep;
+    syncIwWeightUI();
+  });
+}
+if (iwIncreaseBtn) {
+  iwIncreaseBtn.addEventListener("click", () => {
+    iwState.weight += videoPlayParamConfig.weightStep;
+    syncIwWeightUI();
+  });
+}
+if (iwModeGroup) {
+  iwModeGroup.addEventListener("click", (event) => {
+    const btn = event.target.closest(".iw-mode-btn");
+    if (btn) setIwMode(btn.dataset.mode || "standard");
+  });
+}
+if (iwParamSlider) {
+  iwParamSlider.addEventListener("input", () => {
+    const level = Number(iwParamSlider.value);
+    if (iwState.mode === "spring") iwState.springLevel = level;
+    if (iwState.mode === "isokinetic") iwState.isokineticLevel = level;
+    updateIwParamPanel();
+  });
+}
+if (iwChartTabs) {
+  iwChartTabs.addEventListener("click", (event) => {
+    const btn = event.target.closest(".iw-chart-tab");
+    if (!btn) return;
+    iwState.tab = btn.dataset.tab || "rom";
+    iwChartTabs.querySelectorAll(".iw-chart-tab").forEach((item) => item.classList.toggle("active", item === btn));
+  });
+}
+if (iwEquipBarbell) iwEquipBarbell.addEventListener("click", () => setIwEquipment("barbell"));
+if (iwEquipOther) iwEquipOther.addEventListener("click", () => setIwEquipment("other"));
+if (reportCloseBtn) {
+  reportCloseBtn.addEventListener("click", () => {
+    if (PLAN_B_PAGE === "report") {
+      window.location.href = "index-plan-b-home.html";
+      return;
+    }
+    hideTrainingReport();
+  });
+}
+if (reportHomeBtn) {
+  reportHomeBtn.addEventListener("click", () => {
+    hideTrainingReport();
+    if (PLAN_B_PAGE === "report") {
+      window.location.href = "index-plan-b-home.html";
+      return;
+    }
+    closeMoveDetailScreen();
+    hidePilatesView();
+  });
+}
+if (reportAgainBtn) {
+  reportAgainBtn.addEventListener("click", () => {
+    hideTrainingReport();
+    if (PLAN_B_PAGE === "report") {
+      if (reportFromScene === "immersive") window.location.href = "plan-b-immersive-workout.html";
+      else if (reportFromScene === "pilates") window.location.href = "plan-b-free-training-pilates.html";
+      else window.location.href = "index-plan-b-home.html";
+      return;
+    }
+    if (reportFromScene === "immersive") {
+      openImmersiveWorkout();
+    }
+  });
+}
+
+let iwDragStartY = 0;
+let iwDragging = false;
+let iwHasMoved = false;
+function setIwDrawerOpen(open) {
+  if (!iwDrawer) return;
+  iwDrawer.classList.toggle("open", open);
+}
+
+// Add close overlay capability
+const iwMask = document.querySelector(".iw-mask");
+const iwTop = document.querySelector(".iw-top");
+
+function closeIwDrawer() {
+  setIwDrawerOpen(false);
+}
+
+if (iwMask) {
+  iwMask.addEventListener("click", closeIwDrawer);
+}
+if (iwTop) {
+  iwTop.addEventListener("click", (e) => {
+    // Prevent closing if clicking on buttons inside the top header
+    if(e.target.closest('.iw-btn')) return;
+    closeIwDrawer();
+  });
+}
+
+function onIwDragStart(clientY) {
+  iwDragStartY = clientY;
+  iwDragging = true;
+  iwHasMoved = false;
+}
+function onIwDragMove(clientY) {
+  if (!iwDragging) return;
+  const delta = clientY - iwDragStartY;
+  if (Math.abs(delta) < 18) return;
+  iwHasMoved = true;
+  setIwDrawerOpen(delta < 0);
+}
+function onIwDragEnd() {
+  iwDragging = false;
+  iwDragStartY = 0;
+  setTimeout(() => { iwHasMoved = false; }, 0);
+}
+if (iwDrawerHandle && iwDrawer) {
+  iwDrawerHandle.addEventListener("click", () => {
+    if (iwHasMoved) return;
+    setIwDrawerOpen(!iwDrawer.classList.contains("open"));
+  });
+  if (typeof PointerEvent !== "undefined") {
+    iwDrawerHandle.addEventListener("pointerdown", (e) => {
+      onIwDragStart(e.clientY);
+      iwDrawerHandle.setPointerCapture(e.pointerId);
+    });
+    iwDrawerHandle.addEventListener("pointermove", (e) => onIwDragMove(e.clientY));
+    iwDrawerHandle.addEventListener("pointerup", (e) => {
+      if (iwDrawerHandle.hasPointerCapture(e.pointerId)) iwDrawerHandle.releasePointerCapture(e.pointerId);
+      onIwDragEnd();
+    });
+    iwDrawerHandle.addEventListener("pointercancel", (e) => {
+      if (iwDrawerHandle.hasPointerCapture(e.pointerId)) iwDrawerHandle.releasePointerCapture(e.pointerId);
+      onIwDragEnd();
+    });
+  } else {
+    iwDrawerHandle.addEventListener("touchstart", (e) => { if (e.touches[0]) onIwDragStart(e.touches[0].clientY); }, { passive: true });
+    iwDrawerHandle.addEventListener("touchmove", (e) => { if (e.touches[0]) onIwDragMove(e.touches[0].clientY); }, { passive: true });
+    iwDrawerHandle.addEventListener("touchend", onIwDragEnd);
+    iwDrawerHandle.addEventListener("mousedown", (e) => onIwDragStart(e.clientY));
+    window.addEventListener("mousemove", (e) => onIwDragMove(e.clientY));
+    window.addEventListener("mouseup", onIwDragEnd);
+  }
+}
+
+if (iwWeightValue && iwSummaryWeight) syncIwWeightUI();
+if (iwModeGroup && iwSummaryMode && iwModeChip) setIwMode(videoPlayParamConfig.defaultMode);
+if (iwEquipBarbell && iwEquipOther) setIwEquipment(iwState.equipment);
+syncActionDetail();
+
+const strengthTrainingBtn = document.getElementById("strengthTrainingBtn");
+if (strengthTrainingBtn) {
+  strengthTrainingBtn.addEventListener("click", () => {
+    hideTrainingTypeModal();
+    window.location.href = "free-training-strength-temp.html";
+  });
+}
+const cardioFatBurnBtn = document.getElementById("cardioFatBurnBtn");
+if (cardioFatBurnBtn) {
+  cardioFatBurnBtn.addEventListener("click", () => {
+    hideTrainingTypeModal();
+    window.location.href = "free-training-strength-temp.html?type=cardio";
+  });
+}
+
+const pilatesView = document.getElementById("pilatesView");
+const pilatesBackBtn = document.getElementById("pilatesBackBtn");
+const contentSection = document.querySelector(".content");
+const bottomNav = document.querySelector(".bottom-nav");
+
+function showPilatesView() {
+  if (!pilatesView) return;
+  hideTrainingTypeModal();
+  if (contentSection) contentSection.style.display = "none";
+  if (bottomNav) bottomNav.style.display = "none";
+  pilatesView.classList.add("is-active");
+  pilatesView.setAttribute("aria-hidden", "false");
+  if (typeof initPilatesDashboard === "function") initPilatesDashboard();
+}
+
+function hidePilatesView() {
+  if (!pilatesView) return;
+  pilatesView.classList.remove("is-active");
+  pilatesView.setAttribute("aria-hidden", "true");
+  if (contentSection) contentSection.style.display = "";
+  if (bottomNav) bottomNav.style.display = "";
+}
+
+const pilatesTrainingBtn = document.getElementById("pilatesTrainingBtn");
+if (pilatesTrainingBtn) {
+  pilatesTrainingBtn.addEventListener("click", () => {
+    if (PLAN_B_PAGE === "home" || PLAN_B_PAGE === "profile") {
+      hideTrainingTypeModal();
+      window.location.href = "plan-b-free-training-pilates.html";
+      return;
+    }
+    showPilatesView();
+  });
+}
+if (pilatesBackBtn) {
+  pilatesBackBtn.addEventListener("click", () => {
+    if (PLAN_B_PAGE === "pilates") {
+      window.location.href = "index-plan-b-home.html";
+      return;
+    }
+    if (typeof pilatesEndTrainingFn === "function") pilatesEndTrainingFn();
+    hidePilatesView();
+  });
+}
+
+function initPilatesDashboard() {
+  const root = document.getElementById("pilatesView");
+  if (!root || !root.classList.contains("is-active")) return;
+  const springs = Array.from(root.querySelectorAll(".spring"));
+  const dashboard = root.querySelector("#pilatesDashboard");
+  const durationValue = document.getElementById("pilatesDurationValue");
+  const resistanceValue = document.getElementById("pilatesResistanceValue");
+  const currentResistance = document.getElementById("pilatesCurrentResistance");
+  const energyValue = document.getElementById("pilatesEnergyValue");
+  const calorieValue = document.getElementById("pilatesCalorieValue");
+  const startBtn = document.getElementById("pilatesStartBtn");
+  const endBtn = document.getElementById("pilatesEndBtn");
+  const flipBtn = document.getElementById("pilatesFlipBtn");
+  const canvas = document.getElementById("romPowerCanvas");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  let elapsedSeconds = 0;
+  let outputEnergy = 0;
+  let calories = 0;
+  let isRunning = false;
+  let timerId = null;
+  let frameId = null;
+  let phase = 0;
+  let targetPowerPercent = 26;
+  let currentPowerPercent = 26;
+  let baseNoiseSeed = Math.random() * 1000;
+  let dpr = 1;
+  let resistanceTimeline = [];
+
+  function formatDuration(totalSeconds) {
+    const min = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
+    const sec = String(totalSeconds % 60).padStart(2, "0");
+    return `${min}:${sec}`;
+  }
+
+  function getResistanceSum() {
+    return springs
+      .filter((item) => item.classList.contains("is-active"))
+      .reduce((sum, item) => sum + Number(item.dataset.kg), 0);
+  }
+
+  function renderResistance() {
+    const total = getResistanceSum();
+    if (resistanceValue) resistanceValue.textContent = total.toFixed(1);
+    if (currentResistance) currentResistance.textContent = `${total.toFixed(1)}kg`;
+    return total;
+  }
+
+  function valueNoise(x) {
+    const x0 = Math.floor(x);
+    const x1 = x0 + 1;
+    const t = x - x0;
+    const fade = t * t * (3 - 2 * t);
+    const n0 = fractSin(x0);
+    const n1 = fractSin(x1);
+    return n0 * (1 - fade) + n1 * fade;
+  }
+
+  function fractSin(x) {
+    const raw = Math.sin(x * 127.1 + baseNoiseSeed) * 43758.5453;
+    return raw - Math.floor(raw);
+  }
+
+  const staticAmplitudeROM = 1.2;
+  const staticAmplitudePower = 0.9;
+
+  function generateWaveY(x, width, lineType) {
+    const normalizedX = x / width;
+    const noise = valueNoise(normalizedX * 12 + phase * 0.26);
+    const smoothNoise = (noise - 0.5) * 2;
+    const speedOffset = phase * 0.4;
+    if (lineType === "rom") {
+      const slow = Math.sin(normalizedX * 7.2 - speedOffset * 1.25);
+      const mid = Math.sin(normalizedX * 13.8 - speedOffset * 1.88 + 1.4);
+      return slow * staticAmplitudeROM * 42 + mid * staticAmplitudeROM * 14 + smoothNoise * staticAmplitudeROM * 10;
+    }
+    const slow = Math.sin(normalizedX * 8.4 - speedOffset * 1.5 + 0.8);
+    const mid = Math.sin(normalizedX * 16.2 - speedOffset * 2.05 + 2.3);
+    return slow * staticAmplitudePower * 34 + mid * staticAmplitudePower * 12 + smoothNoise * staticAmplitudePower * 8;
+  }
+
+  function resizeCanvas() {
+    if (!root.classList.contains("is-active")) return;
+    dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    const fallbackWidth = Math.max(320, Math.floor(rect.width));
+    const fallbackHeight = Math.max(200, Math.floor(rect.height));
+    const cssWidth = Math.max(1, Math.floor(rect.width)) || fallbackWidth;
+    const cssHeight = Math.max(1, Math.floor(rect.height)) || fallbackHeight;
+    canvas.width = Math.max(1, Math.floor(cssWidth * dpr));
+    canvas.height = Math.max(1, Math.floor(cssHeight * dpr));
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (reducedMotion) drawChart();
+  }
+
+  function drawChart() {
+    if (!root.classList.contains("is-active")) return;
+    const width = canvas.width / dpr;
+    const height = canvas.height / dpr;
+    if (width < 2 || height < 2) {
+      if (!reducedMotion) frameId = requestAnimationFrame(drawChart);
+      return;
+    }
+    ctx.clearRect(0, 0, width, height);
+    const centerROM = height * 0.4;
+    const centerPower = height * 0.64;
+    currentPowerPercent += (targetPowerPercent - currentPowerPercent) * 0.06;
+    document.documentElement.style.setProperty("--power-level", (currentPowerPercent / 100).toFixed(2));
+    phase += 0.028;
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "rgba(182, 203, 228, 0.12)";
+    for (let i = 1; i <= 4; i += 1) {
+      const y = (height / 5) * i;
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(width, y);
+      ctx.stroke();
+    }
+    drawWaveLine(width, height, centerROM, "rom");
+    drawWaveLine(width, height, centerPower, "power");
+    if (!reducedMotion) frameId = requestAnimationFrame(drawChart);
+  }
+
+  function drawWaveLine(width, height, centerY, lineType) {
+    const gradient = ctx.createLinearGradient(0, 0, width, 0);
+    if (lineType === "rom") {
+      gradient.addColorStop(0, "rgba(94, 234, 255, 0.96)");
+      gradient.addColorStop(0.5, "rgba(170, 221, 255, 0.95)");
+      gradient.addColorStop(1, "rgba(104, 163, 255, 0.92)");
+    } else {
+      gradient.addColorStop(0, "rgba(255, 188, 123, 0.94)");
+      gradient.addColorStop(0.5, "rgba(255, 171, 99, 0.96)");
+      gradient.addColorStop(1, "rgba(255, 124, 70, 0.92)");
+    }
+    const area = ctx.createLinearGradient(0, centerY - 30, 0, height);
+    if (lineType === "rom") {
+      area.addColorStop(0, "rgba(94, 234, 255, 0.2)");
+      area.addColorStop(1, "rgba(94, 234, 255, 0)");
+    } else {
+      area.addColorStop(0, "rgba(255, 160, 96, 0.16)");
+      area.addColorStop(1, "rgba(255, 160, 96, 0)");
+    }
+    ctx.beginPath();
+    for (let x = 0; x <= width; x += 2) {
+      const y = centerY + generateWaveY(x, width, lineType);
+      if (x === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.lineTo(width, height);
+    ctx.lineTo(0, height);
+    ctx.closePath();
+    ctx.fillStyle = area;
+    ctx.fill();
+    ctx.beginPath();
+    for (let x = 0; x <= width; x += 2) {
+      const y = centerY + generateWaveY(x, width, lineType);
+      if (x === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = gradient;
+    ctx.lineWidth = lineType === "rom" ? 4 : 3.4;
+    ctx.shadowBlur = lineType === "rom" ? 26 : 22;
+    ctx.shadowColor = lineType === "rom" ? "rgba(102, 220, 255, 0.78)" : "rgba(255, 156, 90, 0.76)";
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+
+  function tickTraining() {
+    if (!isRunning) return;
+    elapsedSeconds += 1;
+    const resistance = renderResistance();
+    resistanceTimeline.push(Math.round(resistance * 10) / 10);
+    if (resistanceTimeline.length > 7200) resistanceTimeline.shift();
+    targetPowerPercent = Math.max(20, Math.min(100, 20 + resistance * 1.15 + Math.random() * 26));
+    const energyStep = resistance * (0.42 + targetPowerPercent / 188);
+    outputEnergy += energyStep;
+    calories += energyStep * 0.24;
+    if (energyValue) energyValue.textContent = outputEnergy.toFixed(0);
+    if (calorieValue) calorieValue.textContent = calories.toFixed(0);
+    if (durationValue) durationValue.textContent = formatDuration(elapsedSeconds);
+  }
+
+  function setIdleWave() {
+    targetPowerPercent = 8;
+  }
+
+  function startTraining() {
+    if (isRunning) return;
+    isRunning = true;
+    resistanceTimeline = [];
+    if (startBtn) { startBtn.disabled = true; startBtn.style.opacity = "0.55"; }
+    timerId = setInterval(tickTraining, 1000);
+    const resistance = renderResistance();
+    targetPowerPercent = Math.max(24, Math.min(100, 24 + resistance * 1.1));
+  }
+
+  function endTraining() {
+    isRunning = false;
+    clearInterval(timerId);
+    timerId = null;
+    if (startBtn) { startBtn.disabled = false; startBtn.style.opacity = "1"; }
+    setIdleWave();
+    const timeline = resistanceTimeline.length
+      ? resistanceTimeline.slice()
+      : buildSyntheticTimeline(Math.max(12, elapsedSeconds), renderResistance(), "spring");
+    const capacityKg = sumResistanceTimeline(timeline);
+    const pilatesReportPayload = {
+      reportFromScene: "pilates",
+      userName: reportUser.name,
+      userAvatar: reportUser.avatar,
+      sceneLabel: "Free Training",
+      durationSeconds: Math.max(1, elapsedSeconds || timeline.length),
+      capacityKg,
+      energyKj: outputEnergy,
+      caloriesKcal: calories,
+      modeLabel: "Spring",
+      equipmentLabel: "No Barbell",
+      maxResistance: 120,
+      timeline
+    };
+    if (PLAN_B_PAGE === "pilates") {
+      try {
+        sessionStorage.setItem(STORAGE_REPORT_PAYLOAD, JSON.stringify(pilatesReportPayload));
+      } catch (e) {
+        /* ignore */
+      }
+      window.location.href = "plan-b-training-report.html";
+      return;
+    }
+    reportFromScene = "pilates";
+    showTrainingReport(pilatesReportPayload);
+  }
+
+  springs.forEach((spring) => {
+    spring.addEventListener("click", () => {
+      spring.classList.toggle("is-active");
+      renderResistance();
+    });
+  });
+  if (startBtn) startBtn.addEventListener("click", startTraining);
+  if (endBtn) {
+    endBtn.addEventListener("click", () => {
+      endTraining();
+      if (PLAN_B_PAGE !== "pilates") hidePilatesView();
+    });
+  }
+  pilatesEndTrainingFn = endTraining;
+  if (flipBtn && dashboard) {
+    flipBtn.addEventListener("click", () => {
+      dashboard.style.transform = dashboard.style.transform === "rotate(180deg)" ? "rotate(0deg)" : "rotate(180deg)";
+      dashboard.style.transition = "transform 480ms ease";
+    });
+  }
+
+  renderResistance();
+  if (durationValue) durationValue.textContent = formatDuration(elapsedSeconds);
+  setIdleWave();
+  resizeCanvas();
+  setTimeout(resizeCanvas, 80);
+  if (reducedMotion) drawChart();
+  else frameId = requestAnimationFrame(drawChart);
+}
+
+if (grid) renderGrid();
+
+function initPlanDetailPage() {
+  if (PLAN_B_PAGE !== "plan-detail") return;
+  const allTraining = (libraryData && libraryData.allTraining) || {};
+  const plans = Array.isArray(allTraining.plans) ? allTraining.plans : [];
+  const planDetails = allTraining.planDetails && typeof allTraining.planDetails === "object" ? allTraining.planDetails : {};
+  const movePool = Array.isArray(allTraining.moves) ? allTraining.moves : [];
+  if (!plans.length) return;
+
+  const backBtn = document.getElementById("planDetailBackBtn");
+  const coverEl = document.getElementById("planDetailCover");
+  const titleEl = document.getElementById("planDetailTitle");
+  const introEl = document.getElementById("planDetailIntro");
+  const sceneEl = document.getElementById("planDetailScene");
+  const cycleEl = document.getElementById("planDetailCycle");
+  const sessionsEl = document.getElementById("planDetailSessions");
+  const difficultyEl = document.getElementById("planDetailDifficulty");
+  const sceneChipEl = document.getElementById("planDetailSceneChip");
+  const cycleChipEl = document.getElementById("planDetailCycleChip");
+  const sessionsChipEl = document.getElementById("planDetailSessionsChip");
+  const difficultyChipEl = document.getElementById("planDetailDifficultyChip");
+  const hintEl = document.getElementById("planDetailScheduleHint");
+  const weekTabsEl = document.getElementById("planDetailWeekTabs");
+  const dayTabsEl = document.getElementById("planDetailDayTabs");
+  const movesListEl = document.getElementById("planDetailMovesList");
+  const emptyEl = document.getElementById("planDetailMovesEmpty");
+  const joinBtn = document.getElementById("planDetailJoinBtn");
+  if (!coverEl || !titleEl || !introEl || !sceneEl || !cycleEl || !sessionsEl || !difficultyEl || !hintEl || !weekTabsEl || !dayTabsEl || !movesListEl || !emptyEl) return;
+
+  const params = new URLSearchParams(window.location.search);
+  const requestedPlanId = params.get("planId") || "";
+  const fallbackPlan = plans[0];
+  const overview = plans.find((item) => item && item.id === requestedPlanId) || fallbackPlan;
+  if (!overview) return;
+  const pickedDetail = planDetails[overview.id] || null;
+
+  const parseLeadingInt = (value, fallbackValue) => {
+    const matched = String(value || "").match(/\d+/);
+    const numeric = matched ? parseInt(matched[0], 10) : NaN;
+    return Number.isFinite(numeric) && numeric > 0 ? numeric : fallbackValue;
+  };
+  const cycleWeeksCount = parseLeadingInt(overview.cycleWeeks, 2);
+  const sessionsPerWeekCount = parseLeadingInt(overview.sessionsPerWeek, 3);
+
+  function buildFallbackSchedule() {
+    const safePool = movePool.length ? movePool : [{ name: "Base Move", equipment: "Bodyweight", difficulty: "Beginner" }];
+    const weeks = [];
+    for (let w = 1; w <= cycleWeeksCount; w += 1) {
+      const days = [];
+      for (let d = 1; d <= sessionsPerWeekCount; d += 1) {
+        const seed = (w - 1) * sessionsPerWeekCount + (d - 1);
+        const first = safePool[seed % safePool.length];
+        const second = safePool[(seed + 2) % safePool.length];
+        const third = safePool[(seed + 5) % safePool.length];
+        const makeMove = (item, idx) => {
+          const reps = 8 + ((seed + idx) % 6);
+          const sets = 3 + ((seed + idx) % 2);
+          const rest = 30 + ((seed + idx) % 4) * 10;
+          const hasWeight = !/bodyweight/i.test(String(item.equipment || ""));
+          return {
+            name: item.name || "Move",
+            sets,
+            repsOrDuration: `${reps} reps`,
+            restSeconds: rest,
+            weightKg: hasWeight ? 10 + ((seed + idx) % 8) * 2 : undefined
+          };
+        };
+        days.push({
+          day: d,
+          moves: [makeMove(first, 0), makeMove(second, 1), makeMove(third, 2)]
+        });
+      }
+      weeks.push({ week: w, days });
+    }
+    return weeks;
+  }
+
+  const mergedPlan = {
+    id: overview.id,
+    name: (pickedDetail && pickedDetail.name) || overview.name || "Plan Name",
+    intro: (pickedDetail && pickedDetail.intro) || overview.summary || "Plan description is coming soon.",
+    scene: (pickedDetail && pickedDetail.scene) || overview.scene || "Strength Training",
+    cycleWeeks: (pickedDetail && pickedDetail.cycleWeeks) || overview.cycleWeeks || `${cycleWeeksCount} Weeks`,
+    sessionsPerWeek: (pickedDetail && pickedDetail.sessionsPerWeek) || overview.sessionsPerWeek || `${sessionsPerWeekCount} Sessions`,
+    difficulty: (pickedDetail && pickedDetail.difficulty) || overview.difficulty || "Beginner",
+    cover: (pickedDetail && pickedDetail.cover) || overview.cover || assetPaths[(plans.indexOf(overview) + 1) % Math.max(1, assetPaths.length)],
+    schedule: Array.isArray(pickedDetail && pickedDetail.schedule) && pickedDetail.schedule.length ? pickedDetail.schedule : buildFallbackSchedule()
+  };
+
+  titleEl.textContent = mergedPlan.name;
+  introEl.textContent = mergedPlan.intro;
+  sceneEl.textContent = mergedPlan.scene;
+  cycleEl.textContent = mergedPlan.cycleWeeks;
+  sessionsEl.textContent = mergedPlan.sessionsPerWeek;
+  difficultyEl.textContent = mergedPlan.difficulty;
+  coverEl.src = mergedPlan.cover || assetPaths[0] || "";
+  coverEl.alt = `${mergedPlan.name} cover image`;
+
+  const slugifyMetaValue = (value) => String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  function syncMetaChipClass(chipEl, category, value) {
+    if (!chipEl) return;
+    const valueSlug = slugifyMetaValue(value);
+    chipEl.className = `plan-detail-meta-chip plan-detail-meta-chip--category-${category} plan-detail-meta-chip--value-${category}-${valueSlug}`;
+  }
+
+  syncMetaChipClass(sceneChipEl, "scene", mergedPlan.scene);
+  syncMetaChipClass(cycleChipEl, "cycle", mergedPlan.cycleWeeks);
+  syncMetaChipClass(sessionsChipEl, "sessions", mergedPlan.sessionsPerWeek);
+  syncMetaChipClass(difficultyChipEl, "difficulty", mergedPlan.difficulty);
+
+  const schedule = mergedPlan.schedule;
+  const initialWeek = Math.max(1, parseInt(params.get("week") || "1", 10) || 1);
+  const initialDay = Math.max(1, parseInt(params.get("day") || "1", 10) || 1);
+  const state = {
+    weekIndex: Math.min(schedule.length, initialWeek) - 1,
+    dayIndex: 0
+  };
+  const initialDays = Array.isArray(schedule[state.weekIndex] && schedule[state.weekIndex].days)
+    ? schedule[state.weekIndex].days
+    : [];
+  state.dayIndex = Math.min(initialDays.length || 1, initialDay) - 1;
+
+  function renderMoves() {
+    const weekNode = schedule[state.weekIndex] || { week: state.weekIndex + 1, days: [] };
+    const dayNode = Array.isArray(weekNode.days) ? weekNode.days[state.dayIndex] : null;
+    const moves = Array.isArray(dayNode && dayNode.moves) ? dayNode.moves : [];
+    const weekLabel = String(weekNode.week || state.weekIndex + 1);
+    const dayLabel = String((dayNode && dayNode.day) || state.dayIndex + 1).padStart(2, "0");
+    hintEl.textContent = `Week ${weekLabel} · Day ${dayLabel}`;
+    movesListEl.innerHTML = "";
+    emptyEl.hidden = moves.length > 0;
+    moves.forEach((move) => {
+      const card = document.createElement("article");
+      card.className = "plan-detail-move-card";
+      const top = document.createElement("div");
+      top.className = "plan-detail-move-top";
+      const name = document.createElement("h4");
+      name.textContent = move.name || "Move";
+      top.appendChild(name);
+      card.appendChild(top);
+      const tags = document.createElement("div");
+      tags.className = "plan-detail-move-tags";
+      const setsChip = document.createElement("span");
+      setsChip.className = "plan-detail-tag";
+      setsChip.textContent = `${Number(move.sets || 3)} sets`;
+      const repsChip = document.createElement("span");
+      repsChip.className = "plan-detail-tag";
+      repsChip.textContent = move.repsOrDuration || "10 reps";
+      const restChip = document.createElement("span");
+      restChip.className = "plan-detail-tag";
+      restChip.textContent = `${Number(move.restSeconds || 30)}s rest`;
+      tags.append(setsChip, repsChip, restChip);
+      if (Number.isFinite(Number(move.weightKg))) {
+        const weightChip = document.createElement("span");
+        weightChip.className = "plan-detail-tag plan-detail-tag--weight";
+        weightChip.textContent = `${Number(move.weightKg)}kg`;
+        tags.appendChild(weightChip);
+      }
+      card.appendChild(tags);
+      movesListEl.appendChild(card);
+    });
+  }
+
+  function renderDayTabs() {
+    const weekNode = schedule[state.weekIndex] || { days: [] };
+    const days = Array.isArray(weekNode.days) ? weekNode.days : [];
+    if (!days.length) {
+      dayTabsEl.innerHTML = "";
+      renderMoves();
+      return;
+    }
+    state.dayIndex = Math.min(state.dayIndex, days.length - 1);
+    dayTabsEl.innerHTML = "";
+    days.forEach((dayItem, idx) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "plan-detail-tab-btn";
+      if (idx === state.dayIndex) btn.classList.add("is-active");
+      btn.textContent = `Day ${String(dayItem.day || idx + 1).padStart(2, "0")}`;
+      btn.setAttribute("role", "tab");
+      btn.setAttribute("aria-selected", String(idx === state.dayIndex));
+      btn.addEventListener("click", () => {
+        state.dayIndex = idx;
+        renderDayTabs();
+      });
+      dayTabsEl.appendChild(btn);
+    });
+    renderMoves();
+  }
+
+  function renderWeekTabs() {
+    weekTabsEl.innerHTML = "";
+    schedule.forEach((weekItem, idx) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "plan-detail-tab-btn";
+      if (idx === state.weekIndex) btn.classList.add("is-active");
+      btn.textContent = `W${weekItem.week || idx + 1}`;
+      btn.setAttribute("role", "tab");
+      btn.setAttribute("aria-selected", String(idx === state.weekIndex));
+      btn.addEventListener("click", () => {
+        state.weekIndex = idx;
+        state.dayIndex = 0;
+        renderWeekTabs();
+        renderDayTabs();
+      });
+      weekTabsEl.appendChild(btn);
+    });
+  }
+
+  renderWeekTabs();
+  renderDayTabs();
+
+  if (backBtn) {
+    backBtn.addEventListener("click", () => {
+      const from = params.get("from");
+      if (from === "all-training") {
+        window.location.href = "plan-b-all-training.html?tab=plans";
+      } else {
+        window.location.href = "index-plan-b-home.html";
+      }
+    });
+  }
+
+  if (joinBtn) {
+    const readJoinedIds = () => {
+      try {
+        const raw = sessionStorage.getItem(STORAGE_JOINED_PLANS);
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed.filter((item) => typeof item === "string") : [];
+      } catch (e) {
+        return [];
+      }
+    };
+    const writeJoinedIds = (ids) => {
+      try {
+        sessionStorage.setItem(STORAGE_JOINED_PLANS, JSON.stringify(ids));
+      } catch (e) {
+        /* ignore */
+      }
+    };
+    const syncJoinBtn = () => {
+      const joined = readJoinedIds().includes(mergedPlan.id);
+      joinBtn.textContent = joined ? "Joined" : "Join Plan";
+      joinBtn.classList.toggle("is-joined", joined);
+      joinBtn.setAttribute("aria-pressed", String(joined));
+    };
+    joinBtn.addEventListener("click", () => {
+      const ids = new Set(readJoinedIds());
+      ids.add(mergedPlan.id);
+      writeJoinedIds(Array.from(ids));
+      // Device-side demo: this only stores current-session join state.
+      // Historical snapshot behavior should be enforced by backend in real product.
+      syncJoinBtn();
+    });
+    syncJoinBtn();
+  }
+}
+initPlanDetailPage();
+
+function initMoveDetailPage() {
+  if (PLAN_B_PAGE !== "move-detail") return;
+  const params = new URLSearchParams(location.search);
+  if (params.get("from") === "all-training") {
+    try {
+      const raw = sessionStorage.getItem(STORAGE_AD_META);
+      if (raw) {
+        const selected = JSON.parse(raw);
+        openMoveDetail(selected, parseInt(params.get("idx") || "0", 10) || 0);
+        return;
+      }
+    } catch (e) {
+      /* ignore */
+    }
+  }
+  const idx = Math.max(0, parseInt(params.get("idx") || "0", 10) || 0);
+  const cat = params.get("cat") || "plans";
+  const filter = params.get("filter") || "recommended";
+  currentCategory = cat;
+  currentFilter = filter;
+  const dataKey = exploreDataKey(cat);
+  const items = libraryData[dataKey] && libraryData[dataKey][filter];
+  if (items && items[idx] !== undefined) openMoveDetail(items[idx], idx);
+}
+initMoveDetailPage();
+
+function initImmersivePage() {
+  if (PLAN_B_PAGE !== "immersive") return;
+  try {
+    const raw = sessionStorage.getItem(STORAGE_AD_META);
+    if (raw) Object.assign(adMeta, JSON.parse(raw));
+  } catch (e) {
+    /* ignore */
+  }
+  syncActionDetail();
+  openImmersiveWorkout();
+}
+initImmersivePage();
+
+function initReportPage() {
+  if (PLAN_B_PAGE !== "report") return;
+  try {
+    const raw = sessionStorage.getItem(STORAGE_REPORT_PAYLOAD);
+    if (raw) showTrainingReport(JSON.parse(raw));
+  } catch (e) {
+    /* ignore */
+  }
+}
+initReportPage();
+
+if (PLAN_B_PAGE === "pilates" && pilatesView) {
+  pilatesView.classList.add("is-active");
+  pilatesView.setAttribute("aria-hidden", "false");
+  initPilatesDashboard();
+}
+
+// Accordion Interaction
+function wireAccordions() {
+  const headers = document.querySelectorAll(".ad-accordion-header");
+  headers.forEach(header => {
+    header.addEventListener("click", (e) => {
+      const accordion = header.closest(".ad-accordion");
+      if (accordion) {
+        const isOpen = accordion.classList.contains("is-open");
+        if (isOpen) {
+          accordion.classList.remove("is-open");
+          header.setAttribute("aria-expanded", "false");
+        } else {
+          accordion.classList.add("is-open");
+          header.setAttribute("aria-expanded", "true");
+        }
+      }
+    });
+  });
+}
+wireAccordions();
+
+const homeTabBtn = document.getElementById("homeTabBtn");
+const profileTabBtn = document.getElementById("profileTabBtn");
+const homeScreen = document.getElementById("homeScreen");
+const profileScreen = document.getElementById("profileScreen");
+
+if (homeTabBtn && profileTabBtn && homeScreen && profileScreen) {
+  homeTabBtn.addEventListener("click", () => {
+    homeTabBtn.classList.add("active");
+    profileTabBtn.classList.remove("active");
+    if (allTrainingNavBtn) allTrainingNavBtn.classList.remove("active");
+    homeScreen.style.display = "flex";
+    profileScreen.classList.remove("active");
+    profileScreen.setAttribute("aria-hidden", "true");
+    profileScreen.scrollTop = 0;
+  });
+
+  profileTabBtn.addEventListener("click", () => {
+    profileTabBtn.classList.add("active");
+    homeTabBtn.classList.remove("active");
+    if (allTrainingNavBtn) allTrainingNavBtn.classList.remove("active");
+    homeScreen.style.display = "none";
+    profileScreen.classList.add("active");
+    profileScreen.setAttribute("aria-hidden", "false");
+    profileScreen.scrollTop = 0;
+  });
+} else {
+  if (PLAN_B_PAGE === "home" && profileTabBtn) {
+    profileTabBtn.addEventListener("click", () => {
+      window.location.href = "plan-b-profile.html";
+    });
+  }
+  if (PLAN_B_PAGE === "profile" && homeTabBtn) {
+    homeTabBtn.addEventListener("click", () => {
+      window.location.href = "index-plan-b-home.html";
+    });
+  }
+}
+
+function wireAllTrainingNav() {
+  if (!allTrainingNavBtn) return;
+  allTrainingNavBtn.addEventListener("click", () => {
+    window.location.href = "plan-b-all-training.html";
+  });
+}
+
+if (PLAN_B_PAGE === "home" || PLAN_B_PAGE === "full" || PLAN_B_PAGE === "profile") {
+  wireAllTrainingNav();
+}
+
+if (PLAN_B_PAGE === "all-training") {
+  if (homeTabBtn) {
+    homeTabBtn.addEventListener("click", () => {
+      window.location.href = "index-plan-b-home.html";
+    });
+  }
+  if (profileTabBtn) {
+    profileTabBtn.addEventListener("click", () => {
+      window.location.href = "plan-b-profile.html";
+    });
+  }
+  wireAllTrainingNav();
+}

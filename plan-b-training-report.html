@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plan B · Training report</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/plan-b-base.css" />
+  <link rel="stylesheet" href="css/plan-b-modal-detail.css" />
+  <link rel="stylesheet" href="css/plan-b-profile.css" />
+  <link rel="stylesheet" href="css/plan-b-immersive.css" />
+  <link rel="stylesheet" href="css/plan-b-pilates-report.css" />
+</head>
+<body data-plan-b-page="report">
+  <main class="device-shell" aria-label="Plan B home verification">
+    <div class="particle-layer" aria-hidden="true"></div>
+    <div class="vignette" aria-hidden="true"></div>
+
+<section class="training-report-screen active" id="trainingReportScreen" aria-label="Training report" aria-hidden="false">
+      <div class="tr-shell">
+        <div class="tr-top">
+          <span class="tr-kicker">Training Report</span>
+          <button class="tr-close-btn" id="reportCloseBtn" type="button" aria-label="Close report">×</button>
+        </div>
+        <header class="tr-hero">
+          <div class="tr-avatar tr-avatar-initial" id="reportUserAvatar" aria-hidden="true">A</div>
+          <div class="tr-greet">
+            <h2 id="reportCongratsTitle">Great Job, Alyona</h2>
+            <p id="reportSessionMeta">Session complete • Free training</p>
+          </div>
+        </header>
+        <section class="tr-grid" aria-label="Core session metrics">
+          <article class="tr-stat">
+            <label>Total Duration</label>
+            <strong><span id="reportDurationValue">00:00</span></strong>
+          </article>
+          <article class="tr-stat">
+            <label>Capacity</label>
+            <strong><span id="reportCapacityValue">0.0</span><small>kg</small></strong>
+          </article>
+          <article class="tr-stat">
+            <label>Output Energy</label>
+            <strong><span id="reportEnergyValue">0</span><small>kJ</small></strong>
+          </article>
+          <article class="tr-stat">
+            <label>Calories</label>
+            <strong><span id="reportCaloriesValue">0</span><small>kcal</small></strong>
+          </article>
+        </section>
+        <section class="tr-block" aria-label="Mode settings">
+          <div class="tr-title-row">
+            <h3>Mode Setup</h3>
+            <span class="tr-note">View only</span>
+          </div>
+          <div class="tr-mode-group">
+            <span class="tr-mode-chip"><em>Mode</em><span id="reportModeLabel">Standard</span></span>
+            <span class="tr-mode-chip"><em>Equipment</em><span id="reportEquipmentLabel">Barbell</span></span>
+            <span class="tr-mode-chip"><em>Scene</em><span id="reportSceneLabel">Action Training</span></span>
+          </div>
+        </section>
+        <section class="tr-block" aria-label="Intensity distribution">
+          <div class="tr-title-row">
+            <h3>Intensity Distribution</h3>
+            <span class="tr-note" id="reportIntensityRange">Max Resistance 120kg</span>
+          </div>
+          <div class="tr-intensity-wrap" id="reportIntensityBar"></div>
+          <div class="tr-intensity-legend" id="reportIntensityLegend"></div>
+        </section>
+        <section class="tr-block" aria-label="Session insights">
+          <div class="tr-title-row">
+            <h3>Session Insights</h3>
+            <span class="tr-note">Auto generated</span>
+          </div>
+          <div class="tr-extra">
+            <article class="tr-extra-card">
+              <label>Peak Resistance</label>
+              <strong id="reportPeakResistance">0.0kg</strong>
+            </article>
+            <article class="tr-extra-card">
+              <label>Consistency</label>
+              <strong id="reportConsistency">0%</strong>
+            </article>
+          </div>
+          <p class="tr-coach-note" id="reportCoachNote">Keep a steady tempo and progress the resistance gradually.</p>
+        </section>
+        <footer class="tr-actions">
+          <button class="tr-btn tr-btn--ghost" id="reportAgainBtn" type="button">Train Again</button>
+          <button class="tr-btn tr-btn--primary" id="reportHomeBtn" type="button">Back Home</button>
+        </footer>
+      </div>
+    </section>
+  </main>
+  </main>
+  <script src="js/data/explore-library.js"></script>
+  <script src="js/plan-b-verify.js" defer></script>
+</body>
+</html>
