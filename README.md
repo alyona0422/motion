@@ -21,10 +21,6 @@ pm-prototype-demo/
 │  ├─ data/explore-library.js          # demo library data source
 │  └─ plan-b-verify.js                 # shared interaction + page bootstrap
 ├─ index-plan-b-home.html              # home (split-page mode)
-├─ index-plan-b-rich-home-uxpro-verify.html
-│                                      # full experience page (single entry for verification)
-├─ index-plan-b-rich-home-uxpro-verify.monolith.html
-│                                      # monolith snapshot/backup style page
 ├─ plan-b-all-training.html            # all training list page
 ├─ plan-b-plan-detail.html             # plan detail page
 ├─ plan-b-move-detail.html             # move detail page
@@ -40,7 +36,6 @@ pm-prototype-demo/
 ### 3.1 Page Identity (`data-plan-b-page`)
 
 - `index-plan-b-home.html` -> `home`
-- `index-plan-b-rich-home-uxpro-verify.html` -> `full`
 - `plan-b-profile.html` -> `profile`
 - `plan-b-all-training.html` -> `all-training`
 - `plan-b-plan-detail.html` -> `plan-detail`
@@ -67,11 +62,6 @@ Parallel entrances:
 - Home/Profile -> All Training (`all-training`)
 - All Training(Plans) -> Plan Detail (`plan-detail`)
 - Home/Profile -> Pilates (`pilates`)
-
-### 3.3 Full Verify Mode
-
-- `index-plan-b-rich-home-uxpro-verify.html` (`full`) is the integrated verification entry.
-- Suitable for reviewing complete interaction chain in one page context.
 
 ## 4) CSS Responsibility Map
 
@@ -205,7 +195,7 @@ Use this section to keep iteration records in one place.
 - **Owner**: Alyona
 - **Type**: docs
 - **Summary**: Added a maintainable global structure map for pages, styles, scripts, and key contracts.
-- **Impacted pages**: `index-plan-b-home.html`, `index-plan-b-rich-home-uxpro-verify.html`, `plan-b-*.html` (referenced only)
+- **Impacted pages**: `index-plan-b-home.html`, `plan-b-*.html` (referenced only)
 - **Impacted styles**: `css/plan-b-*.css` (referenced only)
 - **Impacted scripts**: `js/plan-b-verify.js`, `js/data/explore-library.js` (referenced only)
 - **Route/state impact**:
