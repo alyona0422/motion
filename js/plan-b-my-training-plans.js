@@ -96,8 +96,10 @@
            </div>`
         : `<div class="plan-date">${item.date || ""}</div>`;
 
+      const cardClass = activeTab === "history" ? "my-plan-card is-history-card" : "my-plan-card";
+
       return `
-        <div class="my-plan-card">
+        <div class="${cardClass}">
           <div class="plan-card-main">
             <div class="plan-header">
               <h3 class="plan-title">${item.title}</h3>

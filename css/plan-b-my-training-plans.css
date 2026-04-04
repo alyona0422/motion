@@ -131,6 +131,11 @@
   box-shadow: 0 8px 24px rgba(0,0,0,0.2);
 }
 
+.is-history-card .plan-action-btn {
+  align-self: flex-start;
+  margin-top: 1px;
+}
+
 .plan-card-main {
   flex: 1;
   min-width: 0;
@@ -163,6 +168,9 @@
 }
 
 .plan-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
