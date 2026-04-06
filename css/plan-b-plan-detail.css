@@ -209,6 +209,11 @@
   background: linear-gradient(180deg, rgba(30, 185, 84, 0.24), rgba(30, 185, 84, 0.12));
 }
 
+.plan-detail-tab-btn.is-skipped {
+  border-color: rgba(245, 158, 11, 0.5);
+  background: linear-gradient(180deg, rgba(245, 158, 11, 0.26), rgba(245, 158, 11, 0.12));
+}
+
 .plan-detail-moves-list {
   display: grid;
   gap: 10px;

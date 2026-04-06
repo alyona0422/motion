@@ -1787,14 +1787,36 @@ function initPlanDetailPage() {
       /* ignore */
     }
   };
-  const readCompletedDayKeys = (planId) => {
+  const readPlanDayStatusMap = (planId) => {
     const mapValue = readPlanProgressMap();
-    const keys = mapValue && mapValue[planId];
-    return Array.isArray(keys) ? keys.filter((item) => typeof item === "string") : [];
+    const rawValue = mapValue && mapValue[planId];
+    if (Array.isArray(rawValue)) {
+      // Backward compatibility with previous array-only finished status.
+      return rawValue
+        .filter((item) => typeof item === "string")
+        .reduce((acc, key) => {
+          acc[key] = "finished";
+          return acc;
+        }, {});
+    }
+    if (!rawValue || typeof rawValue !== "object") return {};
+    const nextValue = {};
+    Object.entries(rawValue).forEach(([dayKey, dayStatus]) => {
+      if (dayStatus === "finished" || dayStatus === "skipped") {
+        nextValue[String(dayKey)] = dayStatus;
+      }
+    });
+    return nextValue;
   };
-  const writeCompletedDayKeys = (planId, keys) => {
+  const writePlanDayStatusMap = (planId, statusMap) => {
     const mapValue = readPlanProgressMap();
-    mapValue[planId] = Array.from(new Set(Array.isArray(keys) ? keys : []));
+    const safeMap = {};
+    Object.entries(statusMap || {}).forEach(([dayKey, dayStatus]) => {
+      if (dayStatus === "finished" || dayStatus === "skipped") {
+        safeMap[String(dayKey)] = dayStatus;
+      }
+    });
+    mapValue[planId] = safeMap;
     writePlanProgressMap(mapValue);
   };
   const clearPlanProgress = (planId) => {
@@ -1813,15 +1835,24 @@ function initPlanDetailPage() {
       orderedDayKeys.push(toDayKey(weekValue, dayValue));
     });
   });
-  const requestedCompletedDays = Math.max(0, parseInt(params.get("completedDays") || "0", 10) || 0);
+  const requestedCurrentDay = Math.max(0, parseInt(params.get("currentDay") || "0", 10) || 0);
   const isJoinedFromParams = params.get("joined") === "1";
   if (isJoinedFromParams) {
     const ids = new Set(readJoinedIds());
     ids.add(mergedPlan.id);
     writeJoinedIds(Array.from(ids));
-    const currentKeys = readCompletedDayKeys(mergedPlan.id);
-    if (currentKeys.length === 0 && requestedCompletedDays > 0) {
-      writeCompletedDayKeys(mergedPlan.id, orderedDayKeys.slice(0, requestedCompletedDays));
+    const currentStatusMap = readPlanDayStatusMap(mergedPlan.id);
+    if (Object.keys(currentStatusMap).length === 0 && orderedDayKeys.length) {
+      const finishedTarget = Math.max(1, Math.min(orderedDayKeys.length - 2, requestedCurrentDay - 1));
+      const seedMap = {};
+      orderedDayKeys.slice(0, Math.max(0, finishedTarget)).forEach((dayKey) => {
+        seedMap[dayKey] = "finished";
+      });
+      const skippedIndex = Math.min(orderedDayKeys.length - 1, Math.max(1, finishedTarget));
+      if (orderedDayKeys[skippedIndex]) {
+        seedMap[orderedDayKeys[skippedIndex]] = "skipped";
+      }
+      writePlanDayStatusMap(mergedPlan.id, seedMap);
     }
   }
 
@@ -1869,7 +1900,7 @@ function initPlanDetailPage() {
   function renderDayTabs() {
     const weekNode = schedule[state.weekIndex] || { days: [] };
     const days = Array.isArray(weekNode.days) ? weekNode.days : [];
-    const completedKeySet = isJoinedPlan() ? new Set(readCompletedDayKeys(mergedPlan.id)) : new Set();
+    const dayStatusMap = isJoinedPlan() ? readPlanDayStatusMap(mergedPlan.id) : {};
     if (!days.length) {
       dayTabsEl.innerHTML = "";
       renderMoves();
@@ -1885,9 +1916,12 @@ function initPlanDetailPage() {
       const weekValue = Number(weekNode.week || state.weekIndex + 1);
       const dayValue = Number(dayItem.day || idx + 1);
       const dayKey = toDayKey(weekValue, dayValue);
-      const isFinished = completedKeySet.has(dayKey);
-      btn.textContent = isFinished ? "Finished" : `Day ${String(dayValue).padStart(2, "0")}`;
+      const dayStatus = dayStatusMap[dayKey];
+      const isFinished = dayStatus === "finished";
+      const isSkipped = dayStatus === "skipped";
+      btn.textContent = isFinished ? "Finished" : isSkipped ? "Skip" : `Day ${String(dayValue).padStart(2, "0")}`;
       btn.classList.toggle("is-finished", isFinished);
+      btn.classList.toggle("is-skipped", isSkipped);
       btn.setAttribute("role", "tab");
       btn.setAttribute("aria-selected", String(idx === state.dayIndex));
       btn.addEventListener("click", () => {
@@ -1927,6 +1961,16 @@ function initPlanDetailPage() {
       const from = params.get("from");
       if (from === "all-training") {
         window.location.href = "plan-b-all-training.html?tab=plans";
+      } else if (from === "my-training-plans") {
+        const sourceTab = params.get("tab");
+        const nextParams = new URLSearchParams();
+        if (sourceTab === "ongoing" || sourceTab === "history") {
+          nextParams.set("tab", sourceTab);
+        }
+        const queryString = nextParams.toString();
+        window.location.href = queryString
+          ? `plan-b-my-training-plans.html?${queryString}`
+          : "plan-b-my-training-plans.html";
       } else {
         window.location.href = "index-plan-b-home.html";
       }
@@ -1949,8 +1993,8 @@ function initPlanDetailPage() {
       const ids = new Set(readJoinedIds());
       ids.add(mergedPlan.id);
       writeJoinedIds(Array.from(ids));
-      if (readCompletedDayKeys(mergedPlan.id).length === 0) {
-        writeCompletedDayKeys(mergedPlan.id, []);
+      if (Object.keys(readPlanDayStatusMap(mergedPlan.id)).length === 0) {
+        writePlanDayStatusMap(mergedPlan.id, {});
       }
       syncPlanActionButtons();
       renderDayTabs();
@@ -1972,7 +2016,7 @@ function initPlanDetailPage() {
       resetBtn.addEventListener("click", () => {
         const shouldReset = window.confirm("Do you want to reset this plan? After reset, training will restart from Day 01.");
         if (!shouldReset) return;
-        writeCompletedDayKeys(mergedPlan.id, []);
+        writePlanDayStatusMap(mergedPlan.id, {});
         state.weekIndex = 0;
         state.dayIndex = 0;
         renderWeekTabs();

@@ -10,7 +10,7 @@
   const myPlansData = {
     ongoing: [
       {
-        id: "plan-1",
+        id: "plan-lean-lower-3w-4x",
         title: "Spring Cut Plan",
         duration: "30 days",
         progress: 40, // percentage
@@ -19,7 +19,7 @@
         status: "Active"
       },
       {
-        id: "plan-2",
+        id: "plan-strength-2w-3x",
         title: "Core First Plan",
         duration: "14 days",
         progress: 14,
@@ -30,7 +30,7 @@
     ],
     history: [
       {
-        id: "plan-3",
+        id: "plan-pilates-core-4w-5x",
         title: "Starter Week",
         duration: "7 days",
         progress: 100,
@@ -40,7 +40,7 @@
         date: "Mar 15, 2026"
       },
       {
-        id: "plan-4",
+        id: "plan-cardio-burn-4w-4x",
         title: "Lean Strength 21",
         duration: "21 days",
         progress: 30,
@@ -50,7 +50,7 @@
         date: "Feb 20, 2026"
       },
       {
-        id: "plan-5",
+        id: "plan-upper-control-2w-3x",
         title: "Weekend Athlete",
         duration: "8 days",
         progress: 0,
@@ -99,7 +99,15 @@
       const cardClass = activeTab === "history" ? "my-plan-card is-history-card" : "my-plan-card";
 
       return `
-        <div class="${cardClass}">
+        <div
+          class="${cardClass}"
+          role="button"
+          tabindex="0"
+          aria-label="View plan details"
+          data-tab="${activeTab}"
+          data-plan-id="${item.id}"
+          data-current-day="${Number(item.currentDay || 0)}"
+        >
           <div class="plan-card-main">
             <div class="plan-header">
               <h3 class="plan-title">${item.title}</h3>
@@ -112,9 +120,6 @@
             class="plan-action-btn"
             type="button"
             aria-label="View plan details"
-            data-tab="${activeTab}"
-            data-plan-id="${item.id}"
-            data-current-day="${Number(item.currentDay || 0)}"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
           </button>
@@ -140,25 +145,44 @@
 
   tabButtons.forEach(btn => btn.addEventListener("click", handleTabClick));
 
-  listEl.addEventListener("click", (event) => {
-    const actionBtn = event.target.closest(".plan-action-btn");
-    if (!actionBtn) return;
-
-    const sourceTab = String(actionBtn.dataset.tab || "");
+  const openPlanDetail = (sourceTab, planId, currentDay) => {
     if (sourceTab === "ongoing") {
-      const completedDays = Math.max(0, Number(actionBtn.dataset.currentDay || 0) - 1);
       const query = new URLSearchParams({
         from: "my-training-plans",
         joined: "1",
-        completedDays: String(completedDays)
+        tab: sourceTab,
+        currentDay: String(Math.max(0, Number(currentDay || 0)))
       });
-      const planId = String(actionBtn.dataset.planId || "").trim();
-      if (planId) query.set("planId", planId);
+      const safePlanId = String(planId || "").trim();
+      if (safePlanId) query.set("planId", safePlanId);
       window.location.href = `plan-b-plan-detail.html?${query.toString()}`;
       return;
     }
 
-    window.location.href = "plan-b-plan-detail.html?from=my-training-plans";
+    const query = new URLSearchParams({ from: "my-training-plans", tab: sourceTab || "history" });
+    const safePlanId = String(planId || "").trim();
+    if (safePlanId) query.set("planId", safePlanId);
+    window.location.href = `plan-b-plan-detail.html?${query.toString()}`;
+  };
+
+  listEl.addEventListener("click", (event) => {
+    const cardEl = event.target.closest(".my-plan-card");
+    if (!cardEl) return;
+    const sourceTab = String(cardEl.dataset.tab || "");
+    const planId = String(cardEl.dataset.planId || "");
+    const currentDay = Number(cardEl.dataset.currentDay || 0);
+    openPlanDetail(sourceTab, planId, currentDay);
+  });
+
+  listEl.addEventListener("keydown", (event) => {
+    const cardEl = event.target.closest(".my-plan-card");
+    if (!cardEl) return;
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    const sourceTab = String(cardEl.dataset.tab || "");
+    const planId = String(cardEl.dataset.planId || "");
+    const currentDay = Number(cardEl.dataset.currentDay || 0);
+    openPlanDetail(sourceTab, planId, currentDay);
   });
 
   // Initial render
