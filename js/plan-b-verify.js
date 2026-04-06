@@ -4,6 +4,7 @@ const PLAN_B_PAGE = document.body.dataset.planBPage || "full";
 const STORAGE_AD_META = "planBAdMetaV1";
 const STORAGE_REPORT_PAYLOAD = "planBReportPayloadV1";
 const STORAGE_JOINED_PLANS = "planBJoinedPlansV1";
+const STORAGE_PLAN_PROGRESS = "planBPlanProgressV1";
 
 const grid = document.getElementById("exploreGrid");
 const title = document.getElementById("exploreTitle");
@@ -1650,7 +1651,10 @@ function initPlanDetailPage() {
   const dayTabsEl = document.getElementById("planDetailDayTabs");
   const movesListEl = document.getElementById("planDetailMovesList");
   const emptyEl = document.getElementById("planDetailMovesEmpty");
+  const actionsEl = document.getElementById("planDetailActions");
   const joinBtn = document.getElementById("planDetailJoinBtn");
+  const quitBtn = document.getElementById("planDetailQuitBtn");
+  const resetBtn = document.getElementById("planDetailResetBtn");
   if (!coverEl || !titleEl || !introEl || !sceneEl || !cycleEl || !sessionsEl || !difficultyEl || !hintEl || !weekTabsEl || !dayTabsEl || !movesListEl || !emptyEl) return;
 
   const params = new URLSearchParams(window.location.search);
@@ -1751,6 +1755,76 @@ function initPlanDetailPage() {
     : [];
   state.dayIndex = Math.min(initialDays.length || 1, initialDay) - 1;
 
+  const readJoinedIds = () => {
+    try {
+      const raw = sessionStorage.getItem(STORAGE_JOINED_PLANS);
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed.filter((item) => typeof item === "string") : [];
+    } catch (e) {
+      return [];
+    }
+  };
+  const writeJoinedIds = (ids) => {
+    try {
+      sessionStorage.setItem(STORAGE_JOINED_PLANS, JSON.stringify(ids));
+    } catch (e) {
+      /* ignore */
+    }
+  };
+  const readPlanProgressMap = () => {
+    try {
+      const raw = sessionStorage.getItem(STORAGE_PLAN_PROGRESS);
+      const parsed = raw ? JSON.parse(raw) : {};
+      return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+    } catch (e) {
+      return {};
+    }
+  };
+  const writePlanProgressMap = (mapValue) => {
+    try {
+      sessionStorage.setItem(STORAGE_PLAN_PROGRESS, JSON.stringify(mapValue));
+    } catch (e) {
+      /* ignore */
+    }
+  };
+  const readCompletedDayKeys = (planId) => {
+    const mapValue = readPlanProgressMap();
+    const keys = mapValue && mapValue[planId];
+    return Array.isArray(keys) ? keys.filter((item) => typeof item === "string") : [];
+  };
+  const writeCompletedDayKeys = (planId, keys) => {
+    const mapValue = readPlanProgressMap();
+    mapValue[planId] = Array.from(new Set(Array.isArray(keys) ? keys : []));
+    writePlanProgressMap(mapValue);
+  };
+  const clearPlanProgress = (planId) => {
+    const mapValue = readPlanProgressMap();
+    delete mapValue[planId];
+    writePlanProgressMap(mapValue);
+  };
+  const isJoinedPlan = () => readJoinedIds().includes(mergedPlan.id);
+  const toDayKey = (weekValue, dayValue) => `${Number(weekValue)}-${Number(dayValue)}`;
+  const orderedDayKeys = [];
+  schedule.forEach((weekItem, weekIndex) => {
+    const weekValue = Number(weekItem && weekItem.week) || weekIndex + 1;
+    const days = Array.isArray(weekItem && weekItem.days) ? weekItem.days : [];
+    days.forEach((dayItem, dayIndex) => {
+      const dayValue = Number(dayItem && dayItem.day) || dayIndex + 1;
+      orderedDayKeys.push(toDayKey(weekValue, dayValue));
+    });
+  });
+  const requestedCompletedDays = Math.max(0, parseInt(params.get("completedDays") || "0", 10) || 0);
+  const isJoinedFromParams = params.get("joined") === "1";
+  if (isJoinedFromParams) {
+    const ids = new Set(readJoinedIds());
+    ids.add(mergedPlan.id);
+    writeJoinedIds(Array.from(ids));
+    const currentKeys = readCompletedDayKeys(mergedPlan.id);
+    if (currentKeys.length === 0 && requestedCompletedDays > 0) {
+      writeCompletedDayKeys(mergedPlan.id, orderedDayKeys.slice(0, requestedCompletedDays));
+    }
+  }
+
   function renderMoves() {
     const weekNode = schedule[state.weekIndex] || { week: state.weekIndex + 1, days: [] };
     const dayNode = Array.isArray(weekNode.days) ? weekNode.days[state.dayIndex] : null;
@@ -1795,6 +1869,7 @@ function initPlanDetailPage() {
   function renderDayTabs() {
     const weekNode = schedule[state.weekIndex] || { days: [] };
     const days = Array.isArray(weekNode.days) ? weekNode.days : [];
+    const completedKeySet = isJoinedPlan() ? new Set(readCompletedDayKeys(mergedPlan.id)) : new Set();
     if (!days.length) {
       dayTabsEl.innerHTML = "";
       renderMoves();
@@ -1807,7 +1882,12 @@ function initPlanDetailPage() {
       btn.type = "button";
       btn.className = "plan-detail-tab-btn";
       if (idx === state.dayIndex) btn.classList.add("is-active");
-      btn.textContent = `Day ${String(dayItem.day || idx + 1).padStart(2, "0")}`;
+      const weekValue = Number(weekNode.week || state.weekIndex + 1);
+      const dayValue = Number(dayItem.day || idx + 1);
+      const dayKey = toDayKey(weekValue, dayValue);
+      const isFinished = completedKeySet.has(dayKey);
+      btn.textContent = isFinished ? "Finished" : `Day ${String(dayValue).padStart(2, "0")}`;
+      btn.classList.toggle("is-finished", isFinished);
       btn.setAttribute("role", "tab");
       btn.setAttribute("aria-selected", String(idx === state.dayIndex));
       btn.addEventListener("click", () => {
@@ -1854,37 +1934,54 @@ function initPlanDetailPage() {
   }
 
   if (joinBtn) {
-    const readJoinedIds = () => {
-      try {
-        const raw = sessionStorage.getItem(STORAGE_JOINED_PLANS);
-        const parsed = raw ? JSON.parse(raw) : [];
-        return Array.isArray(parsed) ? parsed.filter((item) => typeof item === "string") : [];
-      } catch (e) {
-        return [];
-      }
-    };
-    const writeJoinedIds = (ids) => {
-      try {
-        sessionStorage.setItem(STORAGE_JOINED_PLANS, JSON.stringify(ids));
-      } catch (e) {
-        /* ignore */
-      }
-    };
-    const syncJoinBtn = () => {
-      const joined = readJoinedIds().includes(mergedPlan.id);
-      joinBtn.textContent = joined ? "Joined" : "Join Plan";
+    const syncPlanActionButtons = () => {
+      const joined = isJoinedPlan();
+      joinBtn.hidden = joined;
+      joinBtn.textContent = "Join Plan";
       joinBtn.classList.toggle("is-joined", joined);
       joinBtn.setAttribute("aria-pressed", String(joined));
+      if (quitBtn) quitBtn.hidden = !joined;
+      if (resetBtn) resetBtn.hidden = !joined;
+      if (actionsEl) actionsEl.classList.toggle("is-joined", joined);
     };
+
     joinBtn.addEventListener("click", () => {
       const ids = new Set(readJoinedIds());
       ids.add(mergedPlan.id);
       writeJoinedIds(Array.from(ids));
-      // Device-side demo: this only stores current-session join state.
-      // Historical snapshot behavior should be enforced by backend in real product.
-      syncJoinBtn();
+      if (readCompletedDayKeys(mergedPlan.id).length === 0) {
+        writeCompletedDayKeys(mergedPlan.id, []);
+      }
+      syncPlanActionButtons();
+      renderDayTabs();
     });
-    syncJoinBtn();
+
+    if (quitBtn) {
+      quitBtn.addEventListener("click", () => {
+        const shouldQuit = window.confirm("Do you want to quit this plan? You need to join again after quitting.");
+        if (!shouldQuit) return;
+        const ids = readJoinedIds().filter((id) => id !== mergedPlan.id);
+        writeJoinedIds(ids);
+        clearPlanProgress(mergedPlan.id);
+        syncPlanActionButtons();
+        renderDayTabs();
+      });
+    }
+
+    if (resetBtn) {
+      resetBtn.addEventListener("click", () => {
+        const shouldReset = window.confirm("Do you want to reset this plan? After reset, training will restart from Day 01.");
+        if (!shouldReset) return;
+        writeCompletedDayKeys(mergedPlan.id, []);
+        state.weekIndex = 0;
+        state.dayIndex = 0;
+        renderWeekTabs();
+        renderDayTabs();
+        syncPlanActionButtons();
+      });
+    }
+
+    syncPlanActionButtons();
   }
 }
 initPlanDetailPage();

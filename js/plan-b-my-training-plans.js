@@ -108,7 +108,14 @@
             <p class="plan-duration">${item.duration}</p>
             ${progressBar}
           </div>
-          <button class="plan-action-btn" type="button" aria-label="View plan details">
+          <button
+            class="plan-action-btn"
+            type="button"
+            aria-label="View plan details"
+            data-tab="${activeTab}"
+            data-plan-id="${item.id}"
+            data-current-day="${Number(item.currentDay || 0)}"
+          >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
           </button>
         </div>
@@ -132,6 +139,27 @@
   }
 
   tabButtons.forEach(btn => btn.addEventListener("click", handleTabClick));
+
+  listEl.addEventListener("click", (event) => {
+    const actionBtn = event.target.closest(".plan-action-btn");
+    if (!actionBtn) return;
+
+    const sourceTab = String(actionBtn.dataset.tab || "");
+    if (sourceTab === "ongoing") {
+      const completedDays = Math.max(0, Number(actionBtn.dataset.currentDay || 0) - 1);
+      const query = new URLSearchParams({
+        from: "my-training-plans",
+        joined: "1",
+        completedDays: String(completedDays)
+      });
+      const planId = String(actionBtn.dataset.planId || "").trim();
+      if (planId) query.set("planId", planId);
+      window.location.href = `plan-b-plan-detail.html?${query.toString()}`;
+      return;
+    }
+
+    window.location.href = "plan-b-plan-detail.html?from=my-training-plans";
+  });
 
   // Initial render
   renderList();

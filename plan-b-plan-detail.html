@@ -79,7 +79,11 @@
         <p class="plan-detail-empty" id="planDetailMovesEmpty" hidden>No moves configured for this training day yet.</p>
       </section>
 
-      <button class="plan-detail-join-btn" id="planDetailJoinBtn" type="button">Join Plan</button>
+      <div class="plan-detail-actions" id="planDetailActions">
+        <button class="plan-detail-join-btn" id="planDetailJoinBtn" type="button">Join Plan</button>
+        <button class="plan-detail-action-btn plan-detail-quit-btn" id="planDetailQuitBtn" type="button" hidden>Quit Plan</button>
+        <button class="plan-detail-action-btn plan-detail-reset-btn" id="planDetailResetBtn" type="button" hidden>Reset Plan</button>
+      </div>
     </section>
   </main>
   <script src="js/data/explore-library.js"></script>

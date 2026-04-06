@@ -204,6 +204,11 @@
   box-shadow: 0 0 0 1px rgba(0, 122, 255, 0.2) inset;
 }
 
+.plan-detail-tab-btn.is-finished {
+  border-color: rgba(30, 185, 84, 0.45);
+  background: linear-gradient(180deg, rgba(30, 185, 84, 0.24), rgba(30, 185, 84, 0.12));
+}
+
 .plan-detail-moves-list {
   display: grid;
   gap: 10px;
@@ -258,14 +263,35 @@
   padding: 8px 0;
 }
 
-.plan-detail-join-btn {
+.plan-detail-actions {
   margin-top: 14px;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr;
+}
+
+.plan-detail-actions.is-joined {
+  grid-template-columns: 1fr 1fr;
+}
+
+.plan-detail-join-btn {
   width: 100%;
   min-height: 46px;
   border-radius: 14px;
   border: 1px solid rgba(0, 122, 255, 0.48);
   background: linear-gradient(135deg, rgba(0, 122, 255, 0.9), rgba(0, 212, 255, 0.72));
   color: #f8fafc;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+}
+
+.plan-detail-action-btn {
+  width: 100%;
+  min-height: 46px;
+  border-radius: 14px;
   font-size: 15px;
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -281,4 +307,24 @@
 .plan-detail-join-btn.is-joined {
   border-color: rgba(30, 185, 84, 0.4);
   background: linear-gradient(135deg, rgba(30, 185, 84, 0.78), rgba(16, 133, 67, 0.7));
+}
+
+.plan-detail-quit-btn {
+  border: 1px solid rgba(255, 59, 48, 0.48);
+  background: linear-gradient(135deg, rgba(255, 59, 48, 0.8), rgba(200, 30, 20, 0.72));
+  color: #f8fafc;
+}
+
+.plan-detail-quit-btn:hover {
+  filter: brightness(1.05);
+}
+
+.plan-detail-reset-btn {
+  border: 1px solid rgba(148, 163, 184, 0.48);
+  background: linear-gradient(135deg, rgba(148, 163, 184, 0.3), rgba(100, 116, 139, 0.2));
+  color: #e2e8f0;
+}
+
+.plan-detail-reset-btn:hover {
+  filter: brightness(1.05);
 }
