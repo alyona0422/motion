@@ -337,6 +337,14 @@
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.6fr);
 }
 
+.plan-detail-actions.is-single-action {
+  grid-template-columns: 1fr;
+}
+
+.plan-detail-actions.is-single-action .plan-detail-join-btn {
+  grid-column: 1 / -1;
+}
+
 .plan-detail-join-btn {
   width: 100%;
   min-height: 46px;

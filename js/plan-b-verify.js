@@ -7,6 +7,7 @@ const STORAGE_JOINED_PLANS = "planBJoinedPlansV1";
 const STORAGE_PLAN_PROGRESS = "planBPlanProgressV1";
 const STORAGE_PLAN_TRAINING_DAYS = "planBPlanTrainingDaysV1";
 const STORAGE_PLAN_DAY_RESCHEDULE = "planBPlanDayRescheduleV1";
+const STORAGE_PLAN_TRAINING_SESSION = "planBPlanTrainingSessionV1";
 
 const grid = document.getElementById("exploreGrid");
 const title = document.getElementById("exploreTitle");
@@ -63,6 +64,18 @@ const iwParamSubmit = document.getElementById("iwParamSubmit");
 const iwChartTabs = document.getElementById("iwChartTabs");
 const iwChartCanvas = document.getElementById("iwChartCanvas");
 const iwChartCtx = iwChartCanvas ? iwChartCanvas.getContext("2d") : null;
+const ptProgressTrack = document.getElementById("ptProgressTrack");
+const ptCurrentMoveName = document.getElementById("ptCurrentMoveName");
+const ptCurrentMoveMeta = document.getElementById("ptCurrentMoveMeta");
+const ptNextMovePreview = document.getElementById("ptNextMovePreview");
+const ptSkipMoveBtn = document.getElementById("ptSkipMoveBtn");
+const ptRunningControls = document.getElementById("ptRunningControls");
+const ptPauseTrainingBtn = document.getElementById("ptPauseTrainingBtn");
+const ptEndTrainingBtn = document.getElementById("ptEndTrainingBtn");
+const ptRestOverlay = document.getElementById("ptRestOverlay");
+const ptRestCountdown = document.getElementById("ptRestCountdown");
+const ptRestNextMove = document.getElementById("ptRestNextMove");
+const ptSkipRestBtn = document.getElementById("ptSkipRestBtn");
 const trainingReportScreen = document.getElementById("trainingReportScreen");
 const reportCloseBtn = document.getElementById("reportCloseBtn");
 const reportUserAvatar = document.getElementById("reportUserAvatar");
@@ -137,6 +150,22 @@ const iwTrainingState = {
   startedAt: 0,
   lastSecond: -1,
   resistanceTimeline: []
+};
+const ptState = {
+  active: false,
+  paused: false,
+  inRest: false,
+  moveIndex: 0,
+  moveStartAt: 0,
+  moveProgress: [],
+  repsCompleted: 0,
+  repTimerId: 0,
+  restTimerId: 0,
+  restRemaining: 30,
+  sessionElapsedSeconds: 0,
+  sessionName: "Plan Training",
+  sessionMoves: [],
+  sessionTotalSeconds: 0
 };
 const reportUser = {
   name: "Alyona",
@@ -823,12 +852,12 @@ function updateIwTimeUI() {
 }
 
 function syncIwWeightUI() {
-  if (!iwWeightValue || !iwSummaryWeight) return;
+  if (!iwWeightValue) return;
   const clamped = Math.min(videoPlayParamConfig.maxWeight, Math.max(videoPlayParamConfig.minWeight, iwState.weight));
   iwState.weight = Math.round(clamped * 10) / 10;
   const v = iwState.weight.toFixed(1);
   iwWeightValue.textContent = v;
-  iwSummaryWeight.textContent = v;
+  if (iwSummaryWeight) iwSummaryWeight.textContent = v;
   
   const iwDialProgress = document.getElementById("iwDialProgress");
   if (iwDialProgress) {
@@ -1230,6 +1259,7 @@ if (reportAgainBtn) {
     if (PLAN_B_PAGE === "report") {
       if (reportFromScene === "immersive") window.location.href = "plan-b-immersive-workout.html";
       else if (reportFromScene === "pilates") window.location.href = "plan-b-free-training-pilates.html";
+      else if (reportFromScene === "plan-training") window.location.href = "plan-b-plan-training.html";
       else window.location.href = "index-plan-b-home.html";
       return;
     }
@@ -1244,6 +1274,7 @@ let iwDragging = false;
 let iwHasMoved = false;
 function setIwDrawerOpen(open) {
   if (!iwDrawer) return;
+  if (PLAN_B_PAGE === "plan-training" && !open) return;
   iwDrawer.classList.toggle("open", open);
 }
 
@@ -1673,6 +1704,7 @@ function initPlanDetailPage() {
   const daySkipBtn = document.getElementById("planDetailSkipDayBtn");
   const dayRescheduleBtn = document.getElementById("planDetailRescheduleDayBtn");
   const dayActionHintEl = document.getElementById("planDetailDayActionHint");
+  const actionWrapEl = document.getElementById("planDetailActions");
   const primaryBtn = document.getElementById("planDetailPrimaryBtn");
   const moreBtn = document.getElementById("planDetailMoreBtn");
   const quitBtn = document.getElementById("planDetailQuitBtn");
@@ -2121,6 +2153,7 @@ function initPlanDetailPage() {
       primaryBtn.classList.toggle("is-joined", false);
       primaryBtn.setAttribute("aria-pressed", String(joined));
       if (moreBtn) moreBtn.hidden = !joined;
+      if (actionWrapEl) actionWrapEl.classList.toggle("is-single-action", !joined);
       if (dayActionsEl) dayActionsEl.hidden = !joined;
       refreshDayActionControls();
     };
@@ -2238,7 +2271,7 @@ function initPlanDetailPage() {
         if (isSelected) btn.classList.add("is-selected");
         btn.textContent = String(date.getDate());
         btn.setAttribute("aria-pressed", String(isSelected));
-        btn.setAttribute("aria-label", `${date.getMonth() + 1}月${date.getDate()}日`);
+        btn.setAttribute("aria-label", `${date.getMonth() + 1}/${date.getDate()}`);
         btn.addEventListener("click", () => {
           rescheduleSelectedDateKey = dateKey;
           renderRescheduleCalendar();
@@ -2355,7 +2388,7 @@ function initPlanDetailPage() {
         const d = new Date(start);
         d.setDate(start.getDate() + i);
         const dateKey = formatLocalDateKey(d);
-        const weekdayText = d.toLocaleDateString("zh-CN", { weekday: "short" });
+        const weekdayText = d.toLocaleDateString("en-US", { weekday: "short" });
         const month = d.getMonth() + 1;
         const dayNum = d.getDate();
 
@@ -2364,7 +2397,7 @@ function initPlanDetailPage() {
         btn.className = "bottom-sheet-day-item";
         btn.dataset.dateKey = dateKey;
         btn.setAttribute("aria-pressed", "false");
-        btn.setAttribute("aria-label", `${weekdayText} ${month}月${dayNum}日`);
+        btn.setAttribute("aria-label", `${weekdayText} ${month}/${dayNum}`);
 
         const weekSpan = document.createElement("span");
         weekSpan.className = "day-week";
@@ -2425,7 +2458,7 @@ function initPlanDetailPage() {
         const { dayKey } = getCurrentDayMeta();
         const statusMap = readPlanDayStatusMap(mergedPlan.id);
         if (statusMap[dayKey] === "skipped") return;
-        openPlanDetailConfirm("是否跳过该日训练计划，跳过不会影响其他训练日的安排。", () => {
+        openPlanDetailConfirm("Skip this training day? This will not affect the schedule of other training days.", () => {
           statusMap[dayKey] = "skipped";
           writePlanDayStatusMap(mergedPlan.id, statusMap);
           renderDayTabs();
@@ -2522,7 +2555,22 @@ function initPlanDetailPage() {
         openJoinPlanBottomSheet();
         return;
       }
-      openImmersiveWorkout();
+      const weekNode = schedule[state.weekIndex] || { week: state.weekIndex + 1, days: [] };
+      const dayNode = Array.isArray(weekNode.days) ? weekNode.days[state.dayIndex] : null;
+      const dayMoves = Array.isArray(dayNode && dayNode.moves) ? dayNode.moves : [];
+      const payload = {
+        planId: mergedPlan.id,
+        planName: mergedPlan.name,
+        week: Number(weekNode.week || state.weekIndex + 1),
+        day: Number((dayNode && dayNode.day) || state.dayIndex + 1),
+        moves: dayMoves
+      };
+      try {
+        sessionStorage.setItem(STORAGE_PLAN_TRAINING_SESSION, JSON.stringify(payload));
+      } catch (e) {
+        /* ignore */
+      }
+      window.location.href = "plan-b-plan-training.html";
     });
 
     if (quitBtn) {
@@ -2624,6 +2672,339 @@ function initImmersivePage() {
   openImmersiveWorkout();
 }
 initImmersivePage();
+
+function initPlanTrainingPage() {
+  if (PLAN_B_PAGE !== "plan-training") return;
+  if (
+    !iwVideo ||
+    !iwVideoSource ||
+    !iwActionTitle ||
+    !iwTimeText ||
+    !ptProgressTrack ||
+    !ptCurrentMoveName ||
+    !ptCurrentMoveMeta ||
+    !ptNextMovePreview ||
+    !ptRunningControls ||
+    !ptPauseTrainingBtn ||
+    !ptEndTrainingBtn ||
+    !ptRestOverlay ||
+    !ptRestCountdown ||
+    !ptRestNextMove
+  ) return;
+
+  const allTraining = (libraryData && libraryData.allTraining) || {};
+  const planDetails = allTraining.planDetails && typeof allTraining.planDetails === "object" ? allTraining.planDetails : {};
+
+  const parseLeadingInt = (value, fallbackValue) => {
+    const matched = String(value || "").match(/\d+/);
+    const numeric = matched ? parseInt(matched[0], 10) : NaN;
+    return Number.isFinite(numeric) && numeric > 0 ? numeric : fallbackValue;
+  };
+  const normalizeMove = (move, idx) => {
+    const targetReps = parseLeadingInt(move && move.repsOrDuration, 10);
+    const sets = Math.max(1, Number(move && move.sets) || 3);
+    return {
+      name: (move && move.name) || `Move ${idx + 1}`,
+      targetReps,
+      sets,
+      restSeconds: Math.max(0, Number(move && move.restSeconds) || 30)
+    };
+  };
+  const buildFallbackSession = () => {
+    const detailKeys = Object.keys(planDetails);
+    const firstPlan = detailKeys.length ? planDetails[detailKeys[0]] : null;
+    const firstWeek = firstPlan && Array.isArray(firstPlan.schedule) ? firstPlan.schedule[0] : null;
+    const firstDay = firstWeek && Array.isArray(firstWeek.days) ? firstWeek.days[0] : null;
+    const moves = Array.isArray(firstDay && firstDay.moves) ? firstDay.moves : [];
+    return {
+      planName: (firstPlan && firstPlan.name) || "Plan Training",
+      week: Number((firstWeek && firstWeek.week) || 1),
+      day: Number((firstDay && firstDay.day) || 1),
+      moves: moves.length ? moves : [{ name: "Kettlebell Squat", sets: 3, repsOrDuration: "10 reps", restSeconds: 30 }]
+    };
+  };
+  const readSessionPayload = () => {
+    try {
+      const raw = sessionStorage.getItem(STORAGE_PLAN_TRAINING_SESSION);
+      if (!raw) return buildFallbackSession();
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== "object") return buildFallbackSession();
+      if (!Array.isArray(parsed.moves) || !parsed.moves.length) return buildFallbackSession();
+      return parsed;
+    } catch (e) {
+      return buildFallbackSession();
+    }
+  };
+
+  const payload = readSessionPayload();
+  const backToPlanDetail = () => {
+    const params = new URLSearchParams();
+    if (payload && payload.planId) params.set("planId", String(payload.planId));
+    if (payload && Number.isFinite(Number(payload.week))) params.set("week", String(Number(payload.week)));
+    if (payload && Number.isFinite(Number(payload.day))) params.set("day", String(Number(payload.day)));
+    const query = params.toString();
+    window.location.href = query ? `plan-b-plan-detail.html?${query}` : "plan-b-plan-detail.html";
+  };
+  ptState.sessionName = payload.planName || "Plan Training";
+  ptState.sessionMoves = payload.moves.map(normalizeMove);
+  ptState.moveProgress = ptState.sessionMoves.map(() => 0);
+  ptState.moveIndex = 0;
+  ptState.repsCompleted = 0;
+  ptState.sessionElapsedSeconds = 0;
+  ptState.sessionTotalSeconds = ptState.sessionMoves.reduce((sum, move, idx) => {
+    const moveSeconds = move.targetReps * 2;
+    const restSeconds = idx < ptState.sessionMoves.length - 1 ? 30 : 0;
+    return sum + moveSeconds + restSeconds;
+  }, 0);
+
+  if (shell) shell.classList.add("app-immersive-active");
+  if (immersiveWorkoutScreen) {
+    immersiveWorkoutScreen.classList.add("active");
+    immersiveWorkoutScreen.setAttribute("aria-hidden", "false");
+  }
+  iwVideo.poster = adMeta.thumb;
+  iwVideoSource.src = adMeta.video;
+  iwVideo.load();
+  iwVideo.pause();
+  iwState.playing = false;
+  setIwDrawerOpen(true);
+  syncIwWeightUI();
+  setIwMode("standard");
+  if (!iwState.rafId && iwChartCtx) drawIwChartFrame();
+
+  const clearRepTimer = () => {
+    if (ptState.repTimerId) {
+      clearInterval(ptState.repTimerId);
+      ptState.repTimerId = 0;
+    }
+  };
+  const clearRestTimer = () => {
+    if (ptState.restTimerId) {
+      clearInterval(ptState.restTimerId);
+      ptState.restTimerId = 0;
+    }
+  };
+  const stopAllTimers = () => {
+    clearRepTimer();
+    clearRestTimer();
+  };
+
+  const setControlState = (started) => {
+    ptRunningControls.hidden = false;
+    ptEndTrainingBtn.disabled = false;
+    ptEndTrainingBtn.textContent = started ? "End Training" : "Back";
+    if (!started) {
+      ptPauseTrainingBtn.textContent = "Start Training";
+      return;
+    }
+    ptPauseTrainingBtn.textContent = ptState.paused ? "Resume" : "Pause";
+  };
+  const updateTopTime = () => {
+    const total = Math.max(1, ptState.sessionTotalSeconds);
+    const elapsed = Math.min(total, Math.max(0, ptState.sessionElapsedSeconds));
+    iwTimeText.textContent = `${formatTime(elapsed)} / ${formatTime(total)}`;
+  };
+  const renderProgressSegments = () => {
+    ptProgressTrack.innerHTML = "";
+    ptState.sessionMoves.forEach((_, idx) => {
+      const seg = document.createElement("span");
+      seg.className = "pt-progress-segment";
+      const fill = document.createElement("i");
+      fill.className = "pt-progress-segment-fill";
+      const progress = Math.max(0, Math.min(1, Number(ptState.moveProgress[idx] || 0)));
+      fill.style.width = `${(progress * 100).toFixed(2)}%`;
+      seg.appendChild(fill);
+      ptProgressTrack.appendChild(seg);
+    });
+  };
+  const updateCurrentMoveUI = () => {
+    const move = ptState.sessionMoves[ptState.moveIndex] || null;
+    if (!move) return;
+    const nextMove = ptState.sessionMoves[ptState.moveIndex + 1] || null;
+    iwActionTitle.textContent = `${ptState.sessionName} · ${move.name}`;
+    ptCurrentMoveName.textContent = move.name;
+    ptCurrentMoveMeta.textContent = `${ptState.repsCompleted} / ${move.targetReps} reps · Set 1 / ${move.sets}`;
+    ptNextMovePreview.textContent = nextMove ? `Next: ${nextMove.name}` : "Next: Last move";
+    updateTopTime();
+    renderProgressSegments();
+  };
+  const completePlanTraining = (forceReport) => {
+    ptState.active = false;
+    ptState.paused = false;
+    ptState.inRest = false;
+    ptRestOverlay.classList.remove("is-visible");
+    ptRestOverlay.setAttribute("aria-hidden", "true");
+    stopAllTimers();
+    iwVideo.pause();
+    if (forceReport) {
+      const { durationSeconds: measuredDuration, timeline: measuredTimeline } = stopIwTrainingCapture();
+      const timeline = measuredTimeline.length
+        ? measuredTimeline
+        : buildSyntheticTimeline(Math.max(18, measuredDuration || ptState.sessionElapsedSeconds || 30), iwState.weight, iwState.mode);
+      const durationSeconds = Math.max(1, measuredDuration || ptState.sessionElapsedSeconds || timeline.length);
+      const capacityKg = sumResistanceTimeline(timeline);
+      const energyKj = capacityKg * 0.38;
+      const caloriesKcal = energyKj * 0.24;
+      const reportPayload = {
+        reportFromScene: "plan-training",
+        userName: reportUser.name,
+        userAvatar: reportUser.avatar,
+        sceneLabel: "Plan Training",
+        durationSeconds,
+        capacityKg,
+        energyKj,
+        caloriesKcal,
+        modeLabel: iwModeMapReport[iwState.mode] || "Standard",
+        equipmentLabel: "Plan Flow",
+        maxResistance: 120,
+        timeline
+      };
+      try {
+        sessionStorage.setItem(STORAGE_REPORT_PAYLOAD, JSON.stringify(reportPayload));
+      } catch (e) {
+        /* ignore */
+      }
+      window.location.href = "plan-b-training-report.html";
+      return;
+    }
+    setControlState(false);
+  };
+  const openRestCountdown = () => {
+    ptState.inRest = true;
+    clearRepTimer();
+    iwVideo.pause();
+    const nextMove = ptState.sessionMoves[ptState.moveIndex + 1] || null;
+    ptState.restRemaining = 30;
+    ptRestCountdown.textContent = `${ptState.restRemaining}s`;
+    ptRestNextMove.textContent = nextMove ? `Up next: ${nextMove.name}` : "Next move is preparing";
+    ptRestOverlay.classList.add("is-visible");
+    ptRestOverlay.setAttribute("aria-hidden", "false");
+    clearRestTimer();
+    ptState.restTimerId = window.setInterval(() => {
+      if (!ptState.active || ptState.paused) return;
+      ptState.sessionElapsedSeconds += 1;
+      ptState.restRemaining -= 1;
+      updateTopTime();
+      ptRestCountdown.textContent = `${Math.max(0, ptState.restRemaining)}s`;
+      if (ptState.restRemaining <= 0) {
+        clearRestTimer();
+        ptState.inRest = false;
+        ptRestOverlay.classList.remove("is-visible");
+        ptRestOverlay.setAttribute("aria-hidden", "true");
+        ptState.moveIndex += 1;
+        ptState.repsCompleted = 0;
+        updateCurrentMoveUI();
+        if (!ptState.paused) iwVideo.play().catch(() => {});
+        startRepLoop();
+      }
+    }, 1000);
+  };
+  const finishCurrentMove = (skipped) => {
+    const move = ptState.sessionMoves[ptState.moveIndex];
+    if (!move) return;
+    ptState.moveProgress[ptState.moveIndex] = 1;
+    ptState.repsCompleted = skipped ? move.targetReps : Math.max(move.targetReps, ptState.repsCompleted);
+    updateCurrentMoveUI();
+    if (ptState.moveIndex >= ptState.sessionMoves.length - 1) {
+      completePlanTraining(true);
+      return;
+    }
+    openRestCountdown();
+  };
+  function startRepLoop() {
+    clearRepTimer();
+    ptState.moveStartAt = performance.now();
+    ptState.repTimerId = window.setInterval(() => {
+      if (!ptState.active || ptState.paused || ptState.inRest) return;
+      const move = ptState.sessionMoves[ptState.moveIndex];
+      if (!move) return;
+      ptState.sessionElapsedSeconds += 1;
+      sampleIwTraining(ptState.sessionElapsedSeconds);
+      if (ptState.sessionElapsedSeconds % 2 === 0) {
+        ptState.repsCompleted = Math.min(move.targetReps, ptState.repsCompleted + 1);
+      }
+      const progress = move.targetReps > 0 ? ptState.repsCompleted / move.targetReps : 1;
+      ptState.moveProgress[ptState.moveIndex] = Math.max(0, Math.min(1, progress));
+      updateCurrentMoveUI();
+      if (ptState.repsCompleted >= move.targetReps) finishCurrentMove(false);
+    }, 1000);
+  }
+  const startTraining = () => {
+    if (ptState.active && !ptState.paused) return;
+    if (!ptState.active) {
+      ptState.active = true;
+      ptState.paused = false;
+      ptState.sessionElapsedSeconds = 0;
+      ptState.repsCompleted = 0;
+      ptState.moveIndex = 0;
+      ptState.moveProgress = ptState.sessionMoves.map(() => 0);
+      resetIwTrainingCapture();
+      updateCurrentMoveUI();
+    } else {
+      ptState.paused = false;
+    }
+    setControlState(true);
+    if (!ptState.inRest) {
+      iwVideo.play().catch(() => {});
+      startRepLoop();
+    }
+  };
+  const togglePause = () => {
+    if (!ptState.active) {
+      startTraining();
+      return;
+    }
+    ptState.paused = !ptState.paused;
+    if (ptState.paused) {
+      iwVideo.pause();
+      clearRepTimer();
+    } else if (!ptState.inRest) {
+      iwVideo.play().catch(() => {});
+      startRepLoop();
+    }
+    setControlState(true);
+  };
+  const skipCurrentMove = () => {
+    if (!ptState.active || ptState.inRest) return;
+    finishCurrentMove(true);
+  };
+  const skipRest = () => {
+    if (!ptState.active || !ptState.inRest) return;
+    clearRestTimer();
+    ptState.inRest = false;
+    ptRestOverlay.classList.remove("is-visible");
+    ptRestOverlay.setAttribute("aria-hidden", "true");
+    ptState.moveIndex = Math.min(ptState.sessionMoves.length - 1, ptState.moveIndex + 1);
+    ptState.repsCompleted = 0;
+    updateCurrentMoveUI();
+    if (!ptState.paused) {
+      iwVideo.play().catch(() => {});
+      startRepLoop();
+    }
+  };
+
+  if (ptSkipMoveBtn) {
+    ptSkipMoveBtn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      skipCurrentMove();
+    });
+  }
+  ptPauseTrainingBtn.addEventListener("click", togglePause);
+  ptEndTrainingBtn.addEventListener("click", () => {
+    if (!ptState.active) {
+      backToPlanDetail();
+      return;
+    }
+    completePlanTraining(true);
+  });
+  if (ptSkipRestBtn) ptSkipRestBtn.addEventListener("click", skipRest);
+
+  ptRestOverlay.classList.remove("is-visible");
+  ptRestOverlay.setAttribute("aria-hidden", "true");
+  setControlState(false);
+  updateCurrentMoveUI();
+}
+initPlanTrainingPage();
 
 function initReportPage() {
   if (PLAN_B_PAGE !== "report") return;
