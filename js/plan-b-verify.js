@@ -6,6 +6,7 @@ const STORAGE_REPORT_PAYLOAD = "planBReportPayloadV1";
 const STORAGE_JOINED_PLANS = "planBJoinedPlansV1";
 const STORAGE_PLAN_PROGRESS = "planBPlanProgressV1";
 const STORAGE_PLAN_TRAINING_DAYS = "planBPlanTrainingDaysV1";
+const STORAGE_PLAN_DAY_RESCHEDULE = "planBPlanDayRescheduleV1";
 
 const grid = document.getElementById("exploreGrid");
 const title = document.getElementById("exploreTitle");
@@ -266,6 +267,19 @@ function openPlanDetailFromSelection(item, index, from = "home") {
   window.location.href = `plan-b-plan-detail.html?${params.toString()}`;
 }
 
+function hasSkippedDayStatus(planId) {
+  if (!planId) return false;
+  try {
+    const raw = sessionStorage.getItem(STORAGE_PLAN_PROGRESS);
+    const parsed = raw ? JSON.parse(raw) : {};
+    const statusMap = parsed && typeof parsed === "object" ? parsed[planId] : null;
+    if (!statusMap || typeof statusMap !== "object" || Array.isArray(statusMap)) return false;
+    return Object.values(statusMap).some((status) => status === "skipped");
+  } catch (e) {
+    return false;
+  }
+}
+
 function renderTodayPlanReminder(nowInput) {
   const now = nowInput || selectedHomeDate || new Date();
   const joinedPlans = resolveJoinedPlansForToday(now);
@@ -335,7 +349,10 @@ function renderTodayPlanReminder(nowInput) {
     name.textContent = `${session.title} · ${session.focus}`;
     const meta = document.createElement("span");
     meta.className = "today-plan-status";
-    if (isDay14WithTwoPlans && index < day14StatusOverride.length) {
+    const sessionPlanId = resolvePlanIdFromSelection(session.item, session.index);
+    if (hasSkippedDayStatus(sessionPlanId)) {
+      meta.textContent = "Skipped";
+    } else if (isDay14WithTwoPlans && index < day14StatusOverride.length) {
       meta.textContent = day14StatusOverride[index];
     } else {
       meta.textContent = statusLabels[index % statusLabels.length];
@@ -1652,8 +1669,12 @@ function initPlanDetailPage() {
   const dayTabsEl = document.getElementById("planDetailDayTabs");
   const movesListEl = document.getElementById("planDetailMovesList");
   const emptyEl = document.getElementById("planDetailMovesEmpty");
-  const actionsEl = document.getElementById("planDetailActions");
-  const joinBtn = document.getElementById("planDetailJoinBtn");
+  const dayActionsEl = document.getElementById("planDetailDayActions");
+  const daySkipBtn = document.getElementById("planDetailSkipDayBtn");
+  const dayRescheduleBtn = document.getElementById("planDetailRescheduleDayBtn");
+  const dayActionHintEl = document.getElementById("planDetailDayActionHint");
+  const primaryBtn = document.getElementById("planDetailPrimaryBtn");
+  const moreBtn = document.getElementById("planDetailMoreBtn");
   const quitBtn = document.getElementById("planDetailQuitBtn");
   const resetBtn = document.getElementById("planDetailResetBtn");
   if (!coverEl || !titleEl || !introEl || !sceneEl || !cycleEl || !sessionsEl || !difficultyEl || !hintEl || !weekTabsEl || !dayTabsEl || !movesListEl || !emptyEl) return;
@@ -1827,6 +1848,44 @@ function initPlanDetailPage() {
   };
   const isJoinedPlan = () => readJoinedIds().includes(mergedPlan.id);
   const toDayKey = (weekValue, dayValue) => `${Number(weekValue)}-${Number(dayValue)}`;
+  const getCurrentDayMeta = () => {
+    const weekNode = schedule[state.weekIndex] || { week: state.weekIndex + 1, days: [] };
+    const dayNode = Array.isArray(weekNode.days) ? weekNode.days[state.dayIndex] : null;
+    const weekValue = Number(weekNode.week || state.weekIndex + 1);
+    const dayValue = Number((dayNode && dayNode.day) || state.dayIndex + 1);
+    return { weekValue, dayValue, dayKey: toDayKey(weekValue, dayValue) };
+  };
+  const readPlanDayRescheduleMap = (planId) => {
+    try {
+      const raw = sessionStorage.getItem(STORAGE_PLAN_DAY_RESCHEDULE);
+      const parsed = raw ? JSON.parse(raw) : {};
+      const planValue = parsed && typeof parsed === "object" ? parsed[planId] : null;
+      if (!planValue || typeof planValue !== "object" || Array.isArray(planValue)) return {};
+      const safeMap = {};
+      Object.entries(planValue).forEach(([dayKey, dateKey]) => {
+        if (typeof dateKey === "string") safeMap[String(dayKey)] = dateKey;
+      });
+      return safeMap;
+    } catch (e) {
+      return {};
+    }
+  };
+  const writePlanDayReschedule = (planId, dayKey, dateKey) => {
+    try {
+      const raw = sessionStorage.getItem(STORAGE_PLAN_DAY_RESCHEDULE);
+      const parsed = raw ? JSON.parse(raw) : {};
+      const nextValue = parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+      const planValue =
+        nextValue[planId] && typeof nextValue[planId] === "object" && !Array.isArray(nextValue[planId])
+          ? nextValue[planId]
+          : {};
+      planValue[dayKey] = dateKey;
+      nextValue[planId] = planValue;
+      sessionStorage.setItem(STORAGE_PLAN_DAY_RESCHEDULE, JSON.stringify(nextValue));
+    } catch (e) {
+      /* ignore */
+    }
+  };
   const orderedDayKeys = [];
   schedule.forEach((weekItem, weekIndex) => {
     const weekValue = Number(weekItem && weekItem.week) || weekIndex + 1;
@@ -1836,7 +1895,12 @@ function initPlanDetailPage() {
       orderedDayKeys.push(toDayKey(weekValue, dayValue));
     });
   });
+  const dayOrderIndexMap = orderedDayKeys.reduce((acc, dayKey, idx) => {
+    acc[dayKey] = idx;
+    return acc;
+  }, {});
   const requestedCurrentDay = Math.max(0, parseInt(params.get("currentDay") || "0", 10) || 0);
+  const currentDayIndex = Math.max(0, requestedCurrentDay - 1);
   const isJoinedFromParams = params.get("joined") === "1";
   if (isJoinedFromParams) {
     const ids = new Set(readJoinedIds());
@@ -1898,6 +1962,8 @@ function initPlanDetailPage() {
     });
   }
 
+  let refreshDayActionControls = () => {};
+
   function renderDayTabs() {
     const weekNode = schedule[state.weekIndex] || { days: [] };
     const days = Array.isArray(weekNode.days) ? weekNode.days : [];
@@ -1932,6 +1998,7 @@ function initPlanDetailPage() {
       dayTabsEl.appendChild(btn);
     });
     renderMoves();
+    refreshDayActionControls();
   }
 
   function renderWeekTabs() {
@@ -1979,7 +2046,7 @@ function initPlanDetailPage() {
     });
   }
 
-  if (joinBtn) {
+  if (primaryBtn) {
     const bottomSheetEl = document.getElementById("planJoinBottomSheet");
     const planJoinBackdrop = document.getElementById("planJoinBackdrop");
     const planJoinCloseBtn = document.getElementById("planJoinCloseBtn");
@@ -1991,10 +2058,22 @@ function initPlanDetailPage() {
     const confirmTextEl = document.getElementById("planDetailConfirmText");
     const confirmCancelBtn = document.getElementById("planDetailConfirmCancel");
     const confirmOkBtn = document.getElementById("planDetailConfirmOk");
+    const rescheduleDialogEl = document.getElementById("planDayRescheduleDialog");
+    const rescheduleBackdropEl = document.getElementById("planDayRescheduleBackdrop");
+    const rescheduleCloseBtn = document.getElementById("planDayRescheduleCloseBtn");
+    const rescheduleCancelBtn = document.getElementById("planDayRescheduleCancel");
+    const rescheduleConfirmBtn = document.getElementById("planDayRescheduleConfirm");
+    const rescheduleWeekdaysEl = document.getElementById("planDayRescheduleWeekdays");
+    const rescheduleGridEl = document.getElementById("planDayRescheduleGrid");
+    const rescheduleHintEl = document.getElementById("planDayRescheduleHint");
+    const moreSheetEl = document.getElementById("planDetailMoreSheet");
+    const moreBackdropEl = document.getElementById("planDetailMoreBackdrop");
+    const moreCloseBtn = document.getElementById("planDetailMoreCloseBtn");
 
     let pendingConfirmAction = null;
     /** @type {Element | null} */
     let confirmFocusReturn = null;
+    let rescheduleSelectedDateKey = "";
 
     const maxSelectableDays = Math.min(7, Math.max(1, sessionsPerWeekCount));
 
@@ -2024,6 +2103,11 @@ function initPlanDetailPage() {
         /* ignore */
       }
     };
+    const readTrainingDaysForPlan = (planId) => {
+      const mapValue = readTrainingDaysMap();
+      const values = mapValue && mapValue[planId];
+      return Array.isArray(values) ? values.filter((k) => typeof k === "string") : [];
+    };
 
     /** @type {Set<string>} */
     let joinSheetSelectedKeys = new Set();
@@ -2032,14 +2116,13 @@ function initPlanDetailPage() {
 
     const syncPlanActionButtons = () => {
       const joined = isJoinedPlan();
-      joinBtn.hidden = joined;
-      joinBtn.disabled = false;
-      joinBtn.textContent = "Join Plan";
-      joinBtn.classList.remove("is-joined");
-      joinBtn.setAttribute("aria-pressed", "false");
-      if (quitBtn) quitBtn.hidden = !joined;
-      if (resetBtn) resetBtn.hidden = !joined;
-      if (actionsEl) actionsEl.classList.toggle("is-joined", joined);
+      primaryBtn.disabled = false;
+      primaryBtn.textContent = joined ? "Start Training" : "Join Plan";
+      primaryBtn.classList.toggle("is-joined", false);
+      primaryBtn.setAttribute("aria-pressed", String(joined));
+      if (moreBtn) moreBtn.hidden = !joined;
+      if (dayActionsEl) dayActionsEl.hidden = !joined;
+      refreshDayActionControls();
     };
 
     const updateJoinConfirmButton = () => {
@@ -2063,17 +2146,163 @@ function initPlanDetailPage() {
       updateJoinConfirmButton();
     };
 
+    const resolveTrainingWeekdaySet = () => {
+      const dayKeys = readTrainingDaysForPlan(mergedPlan.id);
+      const weekdaySet = new Set();
+      dayKeys.forEach((dayKey) => {
+        const date = new Date(dayKey);
+        if (!Number.isNaN(date.getTime())) weekdaySet.add(date.getDay());
+      });
+      if (weekdaySet.size) return weekdaySet;
+      for (let idx = 0; idx < sessionsPerWeekCount; idx += 1) {
+        weekdaySet.add((idx + 1) % 7);
+      }
+      return weekdaySet;
+    };
+
+    const isDateWithTraining = (date, weekdaySet) => weekdaySet.has(date.getDay());
+
+    const closeRescheduleDialog = () => {
+      if (!rescheduleDialogEl) return;
+      rescheduleDialogEl.setAttribute("aria-hidden", "true");
+      if (
+        (!confirmDialogEl || confirmDialogEl.getAttribute("aria-hidden") === "true") &&
+        (!bottomSheetEl || bottomSheetEl.getAttribute("aria-hidden") === "true") &&
+        (!moreSheetEl || moreSheetEl.getAttribute("aria-hidden") === "true")
+      ) {
+        document.body.style.overflow = "";
+      }
+    };
+
+    const closeMoreSheet = () => {
+      if (!moreSheetEl) return;
+      moreSheetEl.setAttribute("aria-hidden", "true");
+      if (
+        (!confirmDialogEl || confirmDialogEl.getAttribute("aria-hidden") === "true") &&
+        (!bottomSheetEl || bottomSheetEl.getAttribute("aria-hidden") === "true") &&
+        (!rescheduleDialogEl || rescheduleDialogEl.getAttribute("aria-hidden") === "true")
+      ) {
+        document.body.style.overflow = "";
+      }
+    };
+
+    const openMoreSheet = () => {
+      if (!moreSheetEl) return;
+      moreSheetEl.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+    };
+
+    const updateRescheduleHint = (selectedDate, weekdaySet) => {
+      if (!rescheduleHintEl) return;
+      const hasTraining = selectedDate ? isDateWithTraining(selectedDate, weekdaySet) : false;
+      rescheduleHintEl.hidden = !hasTraining;
+    };
+
+    const renderRescheduleCalendar = () => {
+      if (!rescheduleGridEl || !rescheduleWeekdaysEl || !rescheduleConfirmBtn) return;
+      const weekdaySet = resolveTrainingWeekdaySet();
+      const weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      rescheduleWeekdaysEl.innerHTML = "";
+      weekdayLabels.forEach((label) => {
+        const node = document.createElement("span");
+        node.className = "plan-detail-calendar-weekday";
+        node.textContent = label;
+        rescheduleWeekdaysEl.appendChild(node);
+      });
+
+      const startDate = new Date();
+      startDate.setHours(0, 0, 0, 0);
+      const spanDays = Math.min(28, Math.max(7, cycleWeeksCount * 7));
+      const leadingGap = startDate.getDay();
+      const selectedDate = rescheduleSelectedDateKey ? new Date(rescheduleSelectedDateKey) : null;
+
+      rescheduleGridEl.innerHTML = "";
+      for (let i = 0; i < leadingGap; i += 1) {
+        const blankCell = document.createElement("span");
+        blankCell.className = "plan-detail-calendar-day is-empty";
+        blankCell.setAttribute("aria-hidden", "true");
+        rescheduleGridEl.appendChild(blankCell);
+      }
+
+      for (let i = 0; i < spanDays; i += 1) {
+        const date = new Date(startDate);
+        date.setDate(startDate.getDate() + i);
+        const dateKey = formatLocalDateKey(date);
+        const hasTraining = isDateWithTraining(date, weekdaySet);
+        const isSelected = dateKey === rescheduleSelectedDateKey;
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "plan-detail-calendar-day";
+        if (hasTraining) btn.classList.add("is-training");
+        if (isSelected) btn.classList.add("is-selected");
+        btn.textContent = String(date.getDate());
+        btn.setAttribute("aria-pressed", String(isSelected));
+        btn.setAttribute("aria-label", `${date.getMonth() + 1}月${date.getDate()}日`);
+        btn.addEventListener("click", () => {
+          rescheduleSelectedDateKey = dateKey;
+          renderRescheduleCalendar();
+        });
+        rescheduleGridEl.appendChild(btn);
+      }
+
+      rescheduleConfirmBtn.disabled = !rescheduleSelectedDateKey;
+      updateRescheduleHint(selectedDate, weekdaySet);
+    };
+
+    refreshDayActionControls = () => {
+      if (!dayActionsEl || !daySkipBtn || !dayRescheduleBtn || !dayActionHintEl) return;
+      const joined = isJoinedPlan();
+      if (!joined) {
+        dayActionsEl.hidden = true;
+        return;
+      }
+      const { dayKey } = getCurrentDayMeta();
+      const statusMap = readPlanDayStatusMap(mergedPlan.id);
+      const dayOrderIndex = Number.isFinite(dayOrderIndexMap[dayKey]) ? dayOrderIndexMap[dayKey] : 0;
+      const isPastByProgress = dayOrderIndex < currentDayIndex;
+      const isFinished = statusMap[dayKey] === "finished";
+      if (isPastByProgress || isFinished) {
+        dayActionsEl.hidden = true;
+        return;
+      }
+      dayActionsEl.hidden = false;
+      const isSkipped = statusMap[dayKey] === "skipped";
+      daySkipBtn.disabled = isSkipped;
+      daySkipBtn.textContent = isSkipped ? "Skipped" : "Skip";
+      dayRescheduleBtn.disabled = false;
+      const rescheduleMap = readPlanDayRescheduleMap(mergedPlan.id);
+      if (rescheduleMap[dayKey]) {
+        const date = new Date(rescheduleMap[dayKey]);
+        if (!Number.isNaN(date.getTime())) {
+          dayActionHintEl.hidden = false;
+          dayActionHintEl.textContent = `Rescheduled to ${date.getMonth() + 1}/${date.getDate()}`;
+        } else {
+          dayActionHintEl.hidden = true;
+          dayActionHintEl.textContent = "";
+        }
+      } else {
+        dayActionHintEl.hidden = true;
+        dayActionHintEl.textContent = "";
+      }
+    };
+
     const closePlanDetailConfirm = () => {
       if (!confirmDialogEl) return;
       confirmDialogEl.setAttribute("aria-hidden", "true");
       pendingConfirmAction = null;
       const ret = confirmFocusReturn;
       confirmFocusReturn = null;
-      if (!bottomSheetEl || bottomSheetEl.getAttribute("aria-hidden") === "true") {
+      const joinSheetOpen = bottomSheetEl && bottomSheetEl.getAttribute("aria-hidden") === "false";
+      const rescheduleOpen = rescheduleDialogEl && rescheduleDialogEl.getAttribute("aria-hidden") === "false";
+      const moreSheetOpen = moreSheetEl && moreSheetEl.getAttribute("aria-hidden") === "false";
+      if (!joinSheetOpen && !rescheduleOpen && !moreSheetOpen) {
         document.body.style.overflow = "";
       }
-      if (bottomSheetEl && bottomSheetEl.getAttribute("aria-hidden") === "false") {
+      if (joinSheetOpen) {
         if (planJoinCloseBtn) planJoinCloseBtn.focus();
+      } else if (moreSheetOpen) {
+        if (moreCloseBtn) moreCloseBtn.focus();
       } else if (ret && typeof ret.focus === "function") {
         ret.focus();
       }
@@ -2089,10 +2318,26 @@ function initPlanDetailPage() {
       if (confirmOkBtn) confirmOkBtn.focus();
     };
 
+    const openRescheduleDialog = () => {
+      if (!rescheduleDialogEl) return;
+      const { dayKey } = getCurrentDayMeta();
+      const rescheduleMap = readPlanDayRescheduleMap(mergedPlan.id);
+      rescheduleSelectedDateKey = rescheduleMap[dayKey] || "";
+      renderRescheduleCalendar();
+      rescheduleDialogEl.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+      if (rescheduleConfirmBtn) rescheduleConfirmBtn.focus();
+    };
+
     const closeJoinPlanBottomSheet = () => {
       if (!bottomSheetEl) return;
       bottomSheetEl.setAttribute("aria-hidden", "true");
-      document.body.style.overflow = "";
+      const confirmOpen = confirmDialogEl && confirmDialogEl.getAttribute("aria-hidden") === "false";
+      const rescheduleOpen = rescheduleDialogEl && rescheduleDialogEl.getAttribute("aria-hidden") === "false";
+      const moreOpen = moreSheetEl && moreSheetEl.getAttribute("aria-hidden") === "false";
+      if (!confirmOpen && !rescheduleOpen && !moreOpen) {
+        document.body.style.overflow = "";
+      }
     };
 
     const openJoinPlanBottomSheet = () => {
@@ -2174,6 +2419,58 @@ function initPlanDetailPage() {
       planJoinCloseBtn.addEventListener("click", closeJoinPlanBottomSheet);
     }
 
+    if (daySkipBtn) {
+      daySkipBtn.addEventListener("click", () => {
+        if (!isJoinedPlan()) return;
+        const { dayKey } = getCurrentDayMeta();
+        const statusMap = readPlanDayStatusMap(mergedPlan.id);
+        if (statusMap[dayKey] === "skipped") return;
+        openPlanDetailConfirm("是否跳过该日训练计划，跳过不会影响其他训练日的安排。", () => {
+          statusMap[dayKey] = "skipped";
+          writePlanDayStatusMap(mergedPlan.id, statusMap);
+          renderDayTabs();
+        });
+      });
+    }
+
+    if (dayRescheduleBtn) {
+      dayRescheduleBtn.addEventListener("click", () => {
+        if (!isJoinedPlan()) return;
+        openRescheduleDialog();
+      });
+    }
+
+    if (rescheduleConfirmBtn) {
+      rescheduleConfirmBtn.addEventListener("click", () => {
+        if (!rescheduleSelectedDateKey) return;
+        const { dayKey } = getCurrentDayMeta();
+        writePlanDayReschedule(mergedPlan.id, dayKey, rescheduleSelectedDateKey);
+        closeRescheduleDialog();
+        refreshDayActionControls();
+      });
+    }
+    if (rescheduleCancelBtn) {
+      rescheduleCancelBtn.addEventListener("click", closeRescheduleDialog);
+    }
+    if (rescheduleCloseBtn) {
+      rescheduleCloseBtn.addEventListener("click", closeRescheduleDialog);
+    }
+    if (rescheduleBackdropEl) {
+      rescheduleBackdropEl.addEventListener("click", closeRescheduleDialog);
+    }
+    if (moreBtn) {
+      moreBtn.addEventListener("click", () => {
+        if (!isJoinedPlan()) return;
+        openMoreSheet();
+      });
+    }
+    if (moreBackdropEl) {
+      moreBackdropEl.addEventListener("click", closeMoreSheet);
+    }
+    if (moreCloseBtn) {
+      moreCloseBtn.addEventListener("click", closeMoreSheet);
+    }
+
     if (confirmOkBtn) {
       confirmOkBtn.addEventListener("click", () => {
         const fn = pendingConfirmAction;
@@ -2195,6 +2492,18 @@ function initPlanDetailPage() {
 
     const onPlanDetailOverlayKeydown = (event) => {
       if (event.key !== "Escape") return;
+      const moreOpen = moreSheetEl && moreSheetEl.getAttribute("aria-hidden") === "false";
+      if (moreOpen) {
+        event.preventDefault();
+        closeMoreSheet();
+        return;
+      }
+      const rescheduleOpen = rescheduleDialogEl && rescheduleDialogEl.getAttribute("aria-hidden") === "false";
+      if (rescheduleOpen) {
+        event.preventDefault();
+        closeRescheduleDialog();
+        return;
+      }
       const confirmOpen = confirmDialogEl && confirmDialogEl.getAttribute("aria-hidden") === "false";
       if (confirmOpen) {
         event.preventDefault();
@@ -2208,13 +2517,17 @@ function initPlanDetailPage() {
     };
     document.addEventListener("keydown", onPlanDetailOverlayKeydown);
 
-    joinBtn.addEventListener("click", () => {
-      if (isJoinedPlan()) return;
-      openJoinPlanBottomSheet();
+    primaryBtn.addEventListener("click", () => {
+      if (!isJoinedPlan()) {
+        openJoinPlanBottomSheet();
+        return;
+      }
+      openImmersiveWorkout();
     });
 
     if (quitBtn) {
       quitBtn.addEventListener("click", () => {
+        closeMoreSheet();
         openPlanDetailConfirm("Are you sure you want to quit this plan? You will need to join again before training.", () => {
           const ids = readJoinedIds().filter((id) => id !== mergedPlan.id);
           writeJoinedIds(ids);
@@ -2226,6 +2539,16 @@ function initPlanDetailPage() {
           } catch (e) {
             /* ignore */
           }
+          try {
+            const raw = sessionStorage.getItem(STORAGE_PLAN_DAY_RESCHEDULE);
+            const parsed = raw ? JSON.parse(raw) : {};
+            if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+              delete parsed[mergedPlan.id];
+              sessionStorage.setItem(STORAGE_PLAN_DAY_RESCHEDULE, JSON.stringify(parsed));
+            }
+          } catch (e) {
+            /* ignore */
+          }
           syncPlanActionButtons();
           renderDayTabs();
         });
@@ -2234,6 +2557,7 @@ function initPlanDetailPage() {
 
     if (resetBtn) {
       resetBtn.addEventListener("click", () => {
+        closeMoreSheet();
         openPlanDetailConfirm("Are you sure you want to reset this plan? Your progress will be recalculated.", () => {
           writePlanDayStatusMap(mergedPlan.id, {});
           state.weekIndex = 0;
@@ -2241,6 +2565,16 @@ function initPlanDetailPage() {
           renderWeekTabs();
           renderDayTabs();
           writeTrainingDaysForPlan(mergedPlan.id, []);
+          try {
+            const raw = sessionStorage.getItem(STORAGE_PLAN_DAY_RESCHEDULE);
+            const parsed = raw ? JSON.parse(raw) : {};
+            if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+              delete parsed[mergedPlan.id];
+              sessionStorage.setItem(STORAGE_PLAN_DAY_RESCHEDULE, JSON.stringify(parsed));
+            }
+          } catch (e) {
+            /* ignore */
+          }
           syncPlanActionButtons();
           openJoinPlanBottomSheet();
         });

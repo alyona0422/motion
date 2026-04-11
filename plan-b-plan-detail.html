@@ -68,6 +68,11 @@
         </div>
         <div class="plan-detail-week-tabs" id="planDetailWeekTabs" role="tablist" aria-label="Week tabs"></div>
         <div class="plan-detail-day-tabs" id="planDetailDayTabs" role="tablist" aria-label="Day tabs"></div>
+        <div class="plan-detail-day-actions" id="planDetailDayActions" hidden>
+          <button class="plan-detail-day-btn plan-detail-day-btn--skip" id="planDetailSkipDayBtn" type="button">Skip</button>
+          <button class="plan-detail-day-btn plan-detail-day-btn--reschedule" id="planDetailRescheduleDayBtn" type="button">Reschedule</button>
+          <p class="plan-detail-day-action-hint" id="planDetailDayActionHint" hidden></p>
+        </div>
       </section>
 
       <section class="plan-detail-moves" aria-label="Moves list">
@@ -80,9 +85,8 @@
       </section>
 
       <div class="plan-detail-actions" id="planDetailActions">
-        <button class="plan-detail-join-btn" id="planDetailJoinBtn" type="button">Join Plan</button>
-        <button class="plan-detail-action-btn plan-detail-quit-btn" id="planDetailQuitBtn" type="button" hidden>Quit Plan</button>
-        <button class="plan-detail-action-btn plan-detail-reset-btn" id="planDetailResetBtn" type="button" hidden>Reset Plan</button>
+        <button class="plan-detail-action-btn plan-detail-more-btn" id="planDetailMoreBtn" type="button" hidden>More</button>
+        <button class="plan-detail-join-btn plan-detail-primary-btn" id="planDetailPrimaryBtn" type="button">Join Plan</button>
       </div>
     </section>
 
@@ -101,6 +105,49 @@
         <div class="plan-detail-confirm-actions">
           <button type="button" class="plan-detail-confirm-btn plan-detail-confirm-btn--cancel" id="planDetailConfirmCancel">Cancel</button>
           <button type="button" class="plan-detail-confirm-btn plan-detail-confirm-btn--ok" id="planDetailConfirmOk">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="plan-detail-calendar-dialog"
+      id="planDayRescheduleDialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="planDayRescheduleTitle"
+      aria-hidden="true"
+    >
+      <div class="plan-detail-calendar-backdrop" id="planDayRescheduleBackdrop"></div>
+      <div class="plan-detail-calendar-panel">
+        <div class="plan-detail-calendar-head">
+          <h3 id="planDayRescheduleTitle">Reschedule Training Day</h3>
+          <button class="plan-detail-calendar-close" id="planDayRescheduleCloseBtn" type="button" aria-label="Close">
+            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+        <p class="plan-detail-calendar-desc">Select a new date for this training day.</p>
+        <div class="plan-detail-calendar-weekdays" id="planDayRescheduleWeekdays"></div>
+        <div class="plan-detail-calendar-grid" id="planDayRescheduleGrid"></div>
+        <p class="plan-detail-calendar-hint" id="planDayRescheduleHint" hidden>当日已存在训练计划</p>
+        <div class="plan-detail-calendar-actions">
+          <button type="button" class="plan-detail-confirm-btn plan-detail-confirm-btn--cancel" id="planDayRescheduleCancel">Cancel</button>
+          <button type="button" class="plan-detail-confirm-btn plan-detail-confirm-btn--ok" id="planDayRescheduleConfirm" disabled>OK</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="plan-detail-more-sheet" id="planDetailMoreSheet" aria-hidden="true">
+      <div class="plan-detail-more-backdrop" id="planDetailMoreBackdrop"></div>
+      <div class="plan-detail-more-panel">
+        <div class="plan-detail-more-head">
+          <h3>More Actions</h3>
+          <button class="plan-detail-more-close" id="planDetailMoreCloseBtn" type="button" aria-label="Close">
+            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+        <div class="plan-detail-more-actions">
+          <button class="plan-detail-action-btn plan-detail-quit-btn" id="planDetailQuitBtn" type="button">Quit Plan</button>
+          <button class="plan-detail-action-btn plan-detail-reset-btn" id="planDetailResetBtn" type="button">Reset Plan</button>
         </div>
       </div>
     </div>
