@@ -5,6 +5,7 @@ const STORAGE_AD_META = "planBAdMetaV1";
 const STORAGE_REPORT_PAYLOAD = "planBReportPayloadV1";
 const STORAGE_JOINED_PLANS = "planBJoinedPlansV1";
 const STORAGE_PLAN_PROGRESS = "planBPlanProgressV1";
+const STORAGE_PLAN_TRAINING_DAYS = "planBPlanTrainingDaysV1";
 
 const grid = document.getElementById("exploreGrid");
 const title = document.getElementById("exploreTitle");
@@ -1968,9 +1969,10 @@ function initPlanDetailPage() {
           nextParams.set("tab", sourceTab);
         }
         const queryString = nextParams.toString();
-        window.location.href = queryString
+        const listUrl = queryString
           ? `plan-b-my-training-plans.html?${queryString}`
           : "plan-b-my-training-plans.html";
+        window.location.replace(listUrl);
       } else {
         window.location.href = "index-plan-b-home.html";
       }
@@ -1978,50 +1980,270 @@ function initPlanDetailPage() {
   }
 
   if (joinBtn) {
+    const bottomSheetEl = document.getElementById("planJoinBottomSheet");
+    const planJoinBackdrop = document.getElementById("planJoinBackdrop");
+    const planJoinCloseBtn = document.getElementById("planJoinCloseBtn");
+    const planJoinDaysList = document.getElementById("planJoinDaysList");
+    const planJoinMaxDaysEl = document.getElementById("planJoinMaxDays");
+    const planJoinConfirmBtn = document.getElementById("planJoinConfirmBtn");
+    const confirmDialogEl = document.getElementById("planDetailConfirmDialog");
+    const confirmBackdropEl = document.getElementById("planDetailConfirmBackdrop");
+    const confirmTextEl = document.getElementById("planDetailConfirmText");
+    const confirmCancelBtn = document.getElementById("planDetailConfirmCancel");
+    const confirmOkBtn = document.getElementById("planDetailConfirmOk");
+
+    let pendingConfirmAction = null;
+    /** @type {Element | null} */
+    let confirmFocusReturn = null;
+
+    const maxSelectableDays = Math.min(7, Math.max(1, sessionsPerWeekCount));
+
+    const formatLocalDateKey = (d) => {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${y}-${m}-${day}`;
+    };
+
+    const readTrainingDaysMap = () => {
+      try {
+        const raw = sessionStorage.getItem(STORAGE_PLAN_TRAINING_DAYS);
+        const parsed = raw ? JSON.parse(raw) : {};
+        return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+      } catch (e) {
+        return {};
+      }
+    };
+
+    const writeTrainingDaysForPlan = (planId, dateKeys) => {
+      try {
+        const mapValue = readTrainingDaysMap();
+        mapValue[planId] = Array.isArray(dateKeys) ? dateKeys.filter((k) => typeof k === "string") : [];
+        sessionStorage.setItem(STORAGE_PLAN_TRAINING_DAYS, JSON.stringify(mapValue));
+      } catch (e) {
+        /* ignore */
+      }
+    };
+
+    /** @type {Set<string>} */
+    let joinSheetSelectedKeys = new Set();
+    /** @type {HTMLButtonElement[]} */
+    let joinSheetDayButtons = [];
+
     const syncPlanActionButtons = () => {
       const joined = isJoinedPlan();
       joinBtn.hidden = joined;
+      joinBtn.disabled = false;
       joinBtn.textContent = "Join Plan";
-      joinBtn.classList.toggle("is-joined", joined);
-      joinBtn.setAttribute("aria-pressed", String(joined));
+      joinBtn.classList.remove("is-joined");
+      joinBtn.setAttribute("aria-pressed", "false");
       if (quitBtn) quitBtn.hidden = !joined;
       if (resetBtn) resetBtn.hidden = !joined;
       if (actionsEl) actionsEl.classList.toggle("is-joined", joined);
     };
 
-    joinBtn.addEventListener("click", () => {
+    const updateJoinConfirmButton = () => {
+      if (!planJoinConfirmBtn) return;
+      const ready = joinSheetSelectedKeys.size === maxSelectableDays;
+      planJoinConfirmBtn.disabled = !ready;
+    };
+
+    const syncJoinDayItemsUI = () => {
+      const atCap = joinSheetSelectedKeys.size >= maxSelectableDays;
+      joinSheetDayButtons.forEach((btn) => {
+        const key = btn.dataset.dateKey || "";
+        const isSelected = joinSheetSelectedKeys.has(key);
+        const shouldDisable = atCap && !isSelected;
+        btn.classList.toggle("is-selected", isSelected);
+        btn.classList.toggle("is-disabled", shouldDisable);
+        btn.disabled = shouldDisable;
+        btn.setAttribute("aria-pressed", String(isSelected));
+        btn.setAttribute("aria-disabled", String(shouldDisable));
+      });
+      updateJoinConfirmButton();
+    };
+
+    const closePlanDetailConfirm = () => {
+      if (!confirmDialogEl) return;
+      confirmDialogEl.setAttribute("aria-hidden", "true");
+      pendingConfirmAction = null;
+      const ret = confirmFocusReturn;
+      confirmFocusReturn = null;
+      if (!bottomSheetEl || bottomSheetEl.getAttribute("aria-hidden") === "true") {
+        document.body.style.overflow = "";
+      }
+      if (bottomSheetEl && bottomSheetEl.getAttribute("aria-hidden") === "false") {
+        if (planJoinCloseBtn) planJoinCloseBtn.focus();
+      } else if (ret && typeof ret.focus === "function") {
+        ret.focus();
+      }
+    };
+
+    const openPlanDetailConfirm = (message, onConfirm) => {
+      if (!confirmDialogEl || !confirmTextEl) return;
+      pendingConfirmAction = onConfirm;
+      confirmTextEl.textContent = message;
+      confirmFocusReturn = document.activeElement;
+      confirmDialogEl.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+      if (confirmOkBtn) confirmOkBtn.focus();
+    };
+
+    const closeJoinPlanBottomSheet = () => {
+      if (!bottomSheetEl) return;
+      bottomSheetEl.setAttribute("aria-hidden", "true");
+      document.body.style.overflow = "";
+    };
+
+    const openJoinPlanBottomSheet = () => {
+      if (!bottomSheetEl || !planJoinDaysList) return;
+      joinSheetSelectedKeys = new Set();
+      if (planJoinMaxDaysEl) planJoinMaxDaysEl.textContent = String(maxSelectableDays);
+
+      planJoinDaysList.innerHTML = "";
+      joinSheetDayButtons = [];
+
+      const start = new Date();
+      start.setHours(0, 0, 0, 0);
+
+      for (let i = 0; i < 7; i += 1) {
+        const d = new Date(start);
+        d.setDate(start.getDate() + i);
+        const dateKey = formatLocalDateKey(d);
+        const weekdayText = d.toLocaleDateString("zh-CN", { weekday: "short" });
+        const month = d.getMonth() + 1;
+        const dayNum = d.getDate();
+
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "bottom-sheet-day-item";
+        btn.dataset.dateKey = dateKey;
+        btn.setAttribute("aria-pressed", "false");
+        btn.setAttribute("aria-label", `${weekdayText} ${month}月${dayNum}日`);
+
+        const weekSpan = document.createElement("span");
+        weekSpan.className = "day-week";
+        weekSpan.textContent = weekdayText;
+        const dateSpan = document.createElement("span");
+        dateSpan.className = "day-date";
+        dateSpan.textContent = `${month}/${dayNum}`;
+
+        btn.append(weekSpan, dateSpan);
+        btn.addEventListener("click", () => {
+          if (joinSheetSelectedKeys.has(dateKey)) {
+            joinSheetSelectedKeys.delete(dateKey);
+          } else if (joinSheetSelectedKeys.size < maxSelectableDays) {
+            joinSheetSelectedKeys.add(dateKey);
+          }
+          syncJoinDayItemsUI();
+        });
+
+        planJoinDaysList.appendChild(btn);
+        joinSheetDayButtons.push(btn);
+      }
+
+      syncJoinDayItemsUI();
+      bottomSheetEl.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+    };
+
+    const performJoinPlan = () => {
       const ids = new Set(readJoinedIds());
       ids.add(mergedPlan.id);
       writeJoinedIds(Array.from(ids));
       if (Object.keys(readPlanDayStatusMap(mergedPlan.id)).length === 0) {
         writePlanDayStatusMap(mergedPlan.id, {});
       }
+      writeTrainingDaysForPlan(mergedPlan.id, Array.from(joinSheetSelectedKeys).sort());
       syncPlanActionButtons();
       renderDayTabs();
+    };
+
+    if (planJoinConfirmBtn) {
+      planJoinConfirmBtn.addEventListener("click", () => {
+        if (joinSheetSelectedKeys.size !== maxSelectableDays) return;
+        performJoinPlan();
+        closeJoinPlanBottomSheet();
+      });
+    }
+
+    if (planJoinBackdrop) {
+      planJoinBackdrop.addEventListener("click", closeJoinPlanBottomSheet);
+    }
+    if (planJoinCloseBtn) {
+      planJoinCloseBtn.addEventListener("click", closeJoinPlanBottomSheet);
+    }
+
+    if (confirmOkBtn) {
+      confirmOkBtn.addEventListener("click", () => {
+        const fn = pendingConfirmAction;
+        pendingConfirmAction = null;
+        if (fn) fn();
+        closePlanDetailConfirm();
+      });
+    }
+    if (confirmCancelBtn) {
+      confirmCancelBtn.addEventListener("click", () => {
+        closePlanDetailConfirm();
+      });
+    }
+    if (confirmBackdropEl) {
+      confirmBackdropEl.addEventListener("click", () => {
+        closePlanDetailConfirm();
+      });
+    }
+
+    const onPlanDetailOverlayKeydown = (event) => {
+      if (event.key !== "Escape") return;
+      const confirmOpen = confirmDialogEl && confirmDialogEl.getAttribute("aria-hidden") === "false";
+      if (confirmOpen) {
+        event.preventDefault();
+        closePlanDetailConfirm();
+        return;
+      }
+      if (bottomSheetEl && bottomSheetEl.getAttribute("aria-hidden") === "false") {
+        event.preventDefault();
+        closeJoinPlanBottomSheet();
+      }
+    };
+    document.addEventListener("keydown", onPlanDetailOverlayKeydown);
+
+    joinBtn.addEventListener("click", () => {
+      if (isJoinedPlan()) return;
+      openJoinPlanBottomSheet();
     });
 
     if (quitBtn) {
       quitBtn.addEventListener("click", () => {
-        const shouldQuit = window.confirm("Do you want to quit this plan? You need to join again after quitting.");
-        if (!shouldQuit) return;
-        const ids = readJoinedIds().filter((id) => id !== mergedPlan.id);
-        writeJoinedIds(ids);
-        clearPlanProgress(mergedPlan.id);
-        syncPlanActionButtons();
-        renderDayTabs();
+        openPlanDetailConfirm("Are you sure you want to quit this plan? You will need to join again before training.", () => {
+          const ids = readJoinedIds().filter((id) => id !== mergedPlan.id);
+          writeJoinedIds(ids);
+          clearPlanProgress(mergedPlan.id);
+          try {
+            const tdMap = readTrainingDaysMap();
+            delete tdMap[mergedPlan.id];
+            sessionStorage.setItem(STORAGE_PLAN_TRAINING_DAYS, JSON.stringify(tdMap));
+          } catch (e) {
+            /* ignore */
+          }
+          syncPlanActionButtons();
+          renderDayTabs();
+        });
       });
     }
 
     if (resetBtn) {
       resetBtn.addEventListener("click", () => {
-        const shouldReset = window.confirm("Do you want to reset this plan? After reset, training will restart from Day 01.");
-        if (!shouldReset) return;
-        writePlanDayStatusMap(mergedPlan.id, {});
-        state.weekIndex = 0;
-        state.dayIndex = 0;
-        renderWeekTabs();
-        renderDayTabs();
-        syncPlanActionButtons();
+        openPlanDetailConfirm("Are you sure you want to reset this plan? Your progress will be recalculated.", () => {
+          writePlanDayStatusMap(mergedPlan.id, {});
+          state.weekIndex = 0;
+          state.dayIndex = 0;
+          renderWeekTabs();
+          renderDayTabs();
+          writeTrainingDaysForPlan(mergedPlan.id, []);
+          syncPlanActionButtons();
+          openJoinPlanBottomSheet();
+        });
       });
     }
 

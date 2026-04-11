@@ -85,6 +85,46 @@
         <button class="plan-detail-action-btn plan-detail-reset-btn" id="planDetailResetBtn" type="button" hidden>Reset Plan</button>
       </div>
     </section>
+
+    <!-- Quit / Reset confirm dialog -->
+    <div
+      class="plan-detail-confirm-dialog"
+      id="planDetailConfirmDialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="planDetailConfirmText"
+      aria-hidden="true"
+    >
+      <div class="plan-detail-confirm-backdrop" id="planDetailConfirmBackdrop"></div>
+      <div class="plan-detail-confirm-panel">
+        <p class="plan-detail-confirm-text" id="planDetailConfirmText"></p>
+        <div class="plan-detail-confirm-actions">
+          <button type="button" class="plan-detail-confirm-btn plan-detail-confirm-btn--cancel" id="planDetailConfirmCancel">Cancel</button>
+          <button type="button" class="plan-detail-confirm-btn plan-detail-confirm-btn--ok" id="planDetailConfirmOk">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Join Plan Bottom Sheet -->
+    <div class="plan-join-bottom-sheet" id="planJoinBottomSheet" aria-hidden="true">
+      <div class="bottom-sheet-backdrop" id="planJoinBackdrop"></div>
+      <div class="bottom-sheet-panel">
+        <div class="bottom-sheet-header">
+          <h3>Select Training Days</h3>
+          <button class="bottom-sheet-close" id="planJoinCloseBtn" type="button" aria-label="Close">
+            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+        <div class="bottom-sheet-body">
+          <p class="bottom-sheet-desc">Choose <strong id="planJoinMaxDays">3</strong> days for your training.</p>
+          <div class="bottom-sheet-days" id="planJoinDaysList"></div>
+          <p class="bottom-sheet-hint">Subsequent weeks will follow this week's training schedule.</p>
+        </div>
+        <div class="bottom-sheet-footer">
+          <button class="plan-detail-join-btn" id="planJoinConfirmBtn" type="button" disabled>Join Plan</button>
+        </div>
+      </div>
+    </div>
   </main>
   <script src="js/data/explore-library.js"></script>
   <script src="js/plan-b-verify.js" defer></script>
