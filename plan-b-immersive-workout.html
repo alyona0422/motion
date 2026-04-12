@@ -23,6 +23,14 @@
         <source id="iwVideoSource" src="assets/workout-demo.mp4" type="video/mp4" />
       </video>
       <div class="iw-mask"></div>
+      <div class="iw-ai-ready-overlay" id="iwAiReadyOverlay" aria-hidden="true">
+        <div class="iw-ai-ready-panel">
+          <h3>AI Assessment Ready</h3>
+          <p>This move supports AI evaluation. Before starting, stand on the footplate and ensure sufficient lighting.</p>
+          <button type="button" id="iwAiReadyBtn">I&apos;m Ready</button>
+        </div>
+      </div>
+      <div class="iw-combo-badge" id="iwComboBadge" hidden>Combo * 3</div>
       <div class="iw-overlay">
         <header class="iw-top iw-glass">
           <div class="iw-top-row">
@@ -37,6 +45,14 @@
             <div class="iw-progress-track"><i class="iw-progress-fill" id="iwProgressFill"></i></div>
             <div class="iw-time" id="iwTimeText">00:00 / 10:00</div>
           </div>
+            <div class="iw-ai-panel" id="iwAiPanel">
+              <div class="iw-ai-score-wrap">
+                <span class="iw-ai-label">Move Score</span>
+                <strong id="iwAiScoreValue">0</strong>
+                <span class="iw-ai-tier" id="iwAiTierValue">Better</span>
+                <p class="iw-ai-hint" id="iwAiHintText">腿可以抬高一点</p>
+              </div>
+            </div>
         </header>
         <section class="iw-drawer" id="iwDrawer">
           <div class="iw-handle" id="iwDrawerHandle">

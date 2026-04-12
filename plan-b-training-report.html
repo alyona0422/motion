@@ -31,6 +31,35 @@
             <p id="reportSessionMeta">Session complete • Free training</p>
           </div>
         </header>
+        <section class="tr-block" id="reportActionAnalysisBlock" aria-label="Action analysis" hidden>
+          <div class="tr-title-row">
+            <h3>Action Analysis</h3>
+            <span class="tr-note">AI supported</span>
+          </div>
+          <div class="tr-extra">
+            <article class="tr-extra-card tr-final-score tr-extra-card--score" id="reportFinalScoreWrap" hidden>
+              <label>Final Score</label>
+              <strong><span id="reportFinalScoreValue">93</span></strong>
+            </article>
+            <article class="tr-extra-card">
+              <label>Consistency</label>
+              <strong id="reportConsistency">0%</strong>
+            </article>
+          </div>
+          <div class="tr-accuracy-dist" id="reportAccuracyDistBlock" hidden>
+            <div class="tr-accuracy-track">
+              <i class="tr-accuracy-seg tr-accuracy-better" id="reportAccuracyBetter"></i>
+              <i class="tr-accuracy-seg tr-accuracy-good" id="reportAccuracyGood"></i>
+              <i class="tr-accuracy-seg tr-accuracy-perfect" id="reportAccuracyPerfect"></i>
+            </div>
+            <div class="tr-accuracy-legend">
+              <span id="reportAccuracyBetterLabel">Better 0%</span>
+              <span id="reportAccuracyGoodLabel">Good 0%</span>
+              <span id="reportAccuracyPerfectLabel">Perfect 0%</span>
+            </div>
+          </div>
+          <p class="tr-coach-note" id="reportCoachNote">Keep a steady tempo and progress the resistance gradually.</p>
+        </section>
         <section class="tr-grid" aria-label="Core session metrics">
           <article class="tr-stat">
             <label>Total Duration</label>
@@ -60,41 +89,24 @@
             <span class="tr-mode-chip"><em>Scene</em><span id="reportSceneLabel">Action Training</span></span>
           </div>
         </section>
-        <section class="tr-block" aria-label="Intensity distribution">
+        <section class="tr-block" id="reportStrengthPowerBlock" aria-label="Strength and power">
           <div class="tr-title-row">
-            <h3>Intensity Distribution</h3>
+            <h3>Strength &amp; Power</h3>
             <span class="tr-note" id="reportIntensityRange">Max Resistance 120kg</span>
           </div>
           <div class="tr-intensity-wrap" id="reportIntensityBar"></div>
           <div class="tr-intensity-legend" id="reportIntensityLegend"></div>
-        </section>
-        <section class="tr-block" id="reportPowerCurveBlock" aria-label="Power curve" hidden>
-          <div class="tr-title-row">
-            <h3>Power Curve</h3>
-            <span class="tr-note" id="reportPowerCurveMeta">Session</span>
+          <div id="reportPowerCurveBlock" aria-label="Power curve" hidden>
+            <div class="tr-title-row">
+              <h3>Power Curve</h3>
+              <span class="tr-note" id="reportPowerCurveMeta">Session</span>
+            </div>
+            <div class="tr-power-curve-tabs" id="reportPowerCurveTabs"></div>
+            <div class="tr-power-curve-canvas-wrap">
+              <svg class="tr-power-curve-svg" id="reportPowerCurveSvg" viewBox="0 0 320 140" preserveAspectRatio="none" aria-label="Power curve chart"></svg>
+            </div>
+            <div class="tr-power-curve-foot" id="reportPowerCurveFoot">Peak -- · Avg --</div>
           </div>
-          <div class="tr-power-curve-tabs" id="reportPowerCurveTabs"></div>
-          <div class="tr-power-curve-canvas-wrap">
-            <svg class="tr-power-curve-svg" id="reportPowerCurveSvg" viewBox="0 0 320 140" preserveAspectRatio="none" aria-label="Power curve chart"></svg>
-          </div>
-          <div class="tr-power-curve-foot" id="reportPowerCurveFoot">Peak -- · Avg --</div>
-        </section>
-        <section class="tr-block" id="reportSessionInsightsBlock" aria-label="Session insights">
-          <div class="tr-title-row">
-            <h3>Session Insights</h3>
-            <span class="tr-note">Auto generated</span>
-          </div>
-          <div class="tr-extra">
-            <article class="tr-extra-card">
-              <label>Peak Resistance</label>
-              <strong id="reportPeakResistance">0.0kg</strong>
-            </article>
-            <article class="tr-extra-card">
-              <label>Consistency</label>
-              <strong id="reportConsistency">0%</strong>
-            </article>
-          </div>
-          <p class="tr-coach-note" id="reportCoachNote">Keep a steady tempo and progress the resistance gradually.</p>
         </section>
         <section class="tr-block" id="reportActionCompletionBlock" aria-label="Action completion" hidden>
           <div class="tr-title-row">

@@ -64,6 +64,12 @@ const iwParamSubmit = document.getElementById("iwParamSubmit");
 const iwChartTabs = document.getElementById("iwChartTabs");
 const iwChartCanvas = document.getElementById("iwChartCanvas");
 const iwChartCtx = iwChartCanvas ? iwChartCanvas.getContext("2d") : null;
+const iwAiReadyOverlay = document.getElementById("iwAiReadyOverlay");
+const iwAiReadyBtn = document.getElementById("iwAiReadyBtn");
+const iwAiScoreValue = document.getElementById("iwAiScoreValue");
+const iwAiTierValue = document.getElementById("iwAiTierValue");
+const iwAiHintText = document.getElementById("iwAiHintText");
+const iwComboBadge = document.getElementById("iwComboBadge");
 const ptProgressTrack = document.getElementById("ptProgressTrack");
 const ptCurrentMoveName = document.getElementById("ptCurrentMoveName");
 const ptCurrentMoveMeta = document.getElementById("ptCurrentMoveMeta");
@@ -91,11 +97,11 @@ const reportSceneLabel = document.getElementById("reportSceneLabel");
 const reportIntensityRange = document.getElementById("reportIntensityRange");
 const reportIntensityBar = document.getElementById("reportIntensityBar");
 const reportIntensityLegend = document.getElementById("reportIntensityLegend");
-const reportPeakResistance = document.getElementById("reportPeakResistance");
 const reportConsistency = document.getElementById("reportConsistency");
 const reportCoachNote = document.getElementById("reportCoachNote");
+const reportActionAnalysisBlock = document.getElementById("reportActionAnalysisBlock");
 const reportModeSetupBlock = document.getElementById("reportModeSetupBlock");
-const reportSessionInsightsBlock = document.getElementById("reportSessionInsightsBlock");
+const reportStrengthPowerBlock = document.getElementById("reportStrengthPowerBlock");
 const reportActionCompletionBlock = document.getElementById("reportActionCompletionBlock");
 const reportActionList = document.getElementById("reportActionList");
 const reportPowerCurveBlock = document.getElementById("reportPowerCurveBlock");
@@ -103,6 +109,15 @@ const reportPowerCurveMeta = document.getElementById("reportPowerCurveMeta");
 const reportPowerCurveTabs = document.getElementById("reportPowerCurveTabs");
 const reportPowerCurveSvg = document.getElementById("reportPowerCurveSvg");
 const reportPowerCurveFoot = document.getElementById("reportPowerCurveFoot");
+const reportFinalScoreWrap = document.getElementById("reportFinalScoreWrap");
+const reportFinalScoreValue = document.getElementById("reportFinalScoreValue");
+const reportAccuracyDistBlock = document.getElementById("reportAccuracyDistBlock");
+const reportAccuracyBetter = document.getElementById("reportAccuracyBetter");
+const reportAccuracyGood = document.getElementById("reportAccuracyGood");
+const reportAccuracyPerfect = document.getElementById("reportAccuracyPerfect");
+const reportAccuracyBetterLabel = document.getElementById("reportAccuracyBetterLabel");
+const reportAccuracyGoodLabel = document.getElementById("reportAccuracyGoodLabel");
+const reportAccuracyPerfectLabel = document.getElementById("reportAccuracyPerfectLabel");
 const reportAgainBtn = document.getElementById("reportAgainBtn");
 const reportHomeBtn = document.getElementById("reportHomeBtn");
 
@@ -127,7 +142,8 @@ const adMeta = {
     "Moving too fast with poor control.",
     "Unstable end position and joint path drift."
   ],
-  installation: "Check anchor point, cable path, and handle direction before your first rep."
+  installation: "Check anchor point, cable path, and handle direction before your first rep.",
+  aiSupported: true
 };
 
 const videoPlayParamConfig = {
@@ -159,6 +175,17 @@ const iwTrainingState = {
   startedAt: 0,
   lastSecond: -1,
   resistanceTimeline: []
+};
+const iwAiState = {
+  ready: false,
+  score: 0,
+  tier: "Better",
+  combo: 0,
+  lastSecond: -1,
+  scoreSum: 0,
+  scoreSamples: 0,
+  tierCounts: { better: 0, good: 0, perfect: 0 },
+  comboHideTimer: 0
 };
 const ptState = {
   active: false,
@@ -636,6 +663,7 @@ function openMoveDetail(item, index) {
     "Unstable end position and joint path drift."
   ];
   adMeta.installation = objectItem && objectItem.installation !== undefined ? objectItem.installation : "Check anchor point, cable path, and handle direction before your first rep.";
+  adMeta.aiSupported = objectItem && Object.prototype.hasOwnProperty.call(objectItem, "supportsAi") ? Boolean(objectItem.supportsAi) : true;
   adMeta.video = "assets/workout-demo.mp4";
   syncActionDetail();
   if (modal) hideTrainingTypeModal();
@@ -748,6 +776,65 @@ function stopIwTrainingCapture() {
   return { durationSeconds, timeline };
 }
 
+function resetIwAiCapture() {
+  iwAiState.ready = false;
+  iwAiState.score = 0;
+  iwAiState.tier = "Better";
+  iwAiState.combo = 0;
+  iwAiState.lastSecond = -1;
+  iwAiState.scoreSum = 0;
+  iwAiState.scoreSamples = 0;
+  iwAiState.tierCounts = { better: 0, good: 0, perfect: 0 };
+  if (iwAiState.comboHideTimer) {
+    clearTimeout(iwAiState.comboHideTimer);
+    iwAiState.comboHideTimer = 0;
+  }
+  if (iwComboBadge) iwComboBadge.hidden = true;
+  if (iwAiScoreValue) iwAiScoreValue.textContent = "0";
+  if (iwAiTierValue) iwAiTierValue.textContent = "Better";
+  if (iwAiHintText) {
+    iwAiHintText.textContent = "腿可以抬高一点";
+  }
+}
+
+function resolveAiTier(score) {
+  if (score >= 90) return "Perfect";
+  if (score >= 75) return "Good";
+  return "Better";
+}
+
+function resolveAiHint(second, score) {
+  if (score >= 88) return "动作很稳定，继续保持";
+  const hints = [
+    "腿可以抬高一点",
+    "核心可以再收紧一点",
+    "回程速度可以稍微放慢一点"
+  ];
+  return hints[Math.abs(second) % hints.length];
+}
+
+function showIwComboBadge(comboCount) {
+  if (!iwComboBadge) return;
+  iwComboBadge.textContent = `Combo * ${comboCount}`;
+  iwComboBadge.hidden = false;
+  iwComboBadge.style.animation = "none";
+  // restart animation
+  void iwComboBadge.offsetWidth;
+  iwComboBadge.style.animation = "";
+  if (iwAiState.comboHideTimer) clearTimeout(iwAiState.comboHideTimer);
+  iwAiState.comboHideTimer = window.setTimeout(() => {
+    iwComboBadge.hidden = true;
+  }, 900);
+}
+
+function updateIwAiPanel(score, tier, hint) {
+  if (iwAiScoreValue) iwAiScoreValue.textContent = String(Math.round(score));
+  if (iwAiTierValue) iwAiTierValue.textContent = tier;
+  if (iwAiHintText) {
+    iwAiHintText.textContent = hint || "腿可以抬高一点";
+  }
+}
+
 function openReportFromIwTraining() {
   const { durationSeconds: measuredDuration, timeline: measuredTimeline } = stopIwTrainingCapture();
   const timeline = measuredTimeline.length
@@ -757,6 +844,24 @@ function openReportFromIwTraining() {
   const capacityKg = sumResistanceTimeline(timeline);
   const energyKj = capacityKg * 0.38;
   const caloriesKcal = energyKj * 0.24;
+  const scoreSamples = Math.max(0, Number(iwAiState.scoreSamples) || 0);
+  const finalAiScore = scoreSamples > 0
+    ? Math.round(iwAiState.scoreSum / scoreSamples)
+    : 93;
+  const totalTierSamples = Math.max(
+    1,
+    (iwAiState.tierCounts.better || 0) + (iwAiState.tierCounts.good || 0) + (iwAiState.tierCounts.perfect || 0)
+  );
+  const accuracyDistribution = {
+    better: Math.round(((iwAiState.tierCounts.better || 0) / totalTierSamples) * 100),
+    good: Math.round(((iwAiState.tierCounts.good || 0) / totalTierSamples) * 100),
+    perfect: Math.round(((iwAiState.tierCounts.perfect || 0) / totalTierSamples) * 100)
+  };
+  const distSum = accuracyDistribution.better + accuracyDistribution.good + accuracyDistribution.perfect;
+  if (distSum !== 100) {
+    accuracyDistribution.better = Math.max(0, accuracyDistribution.better + (100 - distSum));
+  }
+  const aiSummary = `Better ${accuracyDistribution.better}% · Good ${accuracyDistribution.good}% · Perfect ${accuracyDistribution.perfect}%`;
   const reportPayload = {
     reportFromScene: "immersive",
     userName: reportUser.name,
@@ -769,7 +874,10 @@ function openReportFromIwTraining() {
     modeLabel: iwModeMapReport[iwState.mode] || "Standard",
     equipmentLabel: iwState.equipment === "barbell" ? "Barbell" : "No Barbell",
     maxResistance: 120,
-    timeline
+    timeline,
+    finalAiScore,
+    accuracyDistribution,
+    aiSummary
   };
   if (PLAN_B_PAGE === "immersive") {
     try {
@@ -951,6 +1059,29 @@ function renderReportActionCompletion(planMovesData) {
   });
 }
 
+function renderReportAccuracyDistribution(distribution) {
+  if (!reportAccuracyDistBlock || !reportAccuracyBetter || !reportAccuracyGood || !reportAccuracyPerfect) return;
+  const safe = distribution && typeof distribution === "object" ? distribution : null;
+  if (!safe) {
+    reportAccuracyDistBlock.hidden = true;
+    return;
+  }
+  const better = Math.max(0, Math.min(100, Number(safe.better) || 0));
+  const good = Math.max(0, Math.min(100, Number(safe.good) || 0));
+  const perfect = Math.max(0, Math.min(100, Number(safe.perfect) || 0));
+  const total = Math.max(1, better + good + perfect);
+  const betterPct = Math.round((better / total) * 100);
+  const goodPct = Math.round((good / total) * 100);
+  const perfectPct = Math.max(0, 100 - betterPct - goodPct);
+  reportAccuracyBetter.style.width = `${betterPct}%`;
+  reportAccuracyGood.style.width = `${goodPct}%`;
+  reportAccuracyPerfect.style.width = `${perfectPct}%`;
+  if (reportAccuracyBetterLabel) reportAccuracyBetterLabel.textContent = `Better ${betterPct}%`;
+  if (reportAccuracyGoodLabel) reportAccuracyGoodLabel.textContent = `Good ${goodPct}%`;
+  if (reportAccuracyPerfectLabel) reportAccuracyPerfectLabel.textContent = `Perfect ${perfectPct}%`;
+  reportAccuracyDistBlock.hidden = false;
+}
+
 function showTrainingReport(payload) {
   if (payload && payload.reportFromScene) reportFromScene = payload.reportFromScene;
   const {
@@ -967,12 +1098,17 @@ function showTrainingReport(payload) {
     timeline,
     planName,
     planDayName,
-    planMovesData
+    planMovesData,
+    finalAiScore,
+    accuracyDistribution,
+    aiSummary
   } = payload;
   const safeTimeline = Array.isArray(timeline) ? timeline : [];
   const peak = safeTimeline.length ? Math.max(...safeTimeline) : 0;
   const consistency = calcConsistency(safeTimeline, maxResistance);
   const isPlanTrainingReport = reportFromScene === "plan-training";
+  const isCardioOrPilates = reportFromScene === "pilates"
+    || /cardio|aerobic|fat burn/i.test(`${sceneLabel || ""} ${modeLabel || ""} ${equipmentLabel || ""} ${planName || ""}`);
   const reportIntensityDistribution = [
     { className: "tr-intensity-z1", label: "0-24kg", ratio: 0.6 },
     { className: "tr-intensity-z2", label: "24-48kg", ratio: 0.2 },
@@ -985,6 +1121,10 @@ function showTrainingReport(payload) {
       ? `Training completed • ${planName || "Plan Training"} • ${planDayName || "Week 1, Day 1"}`
       : `Session complete • ${sceneLabel}`;
   }
+  const hasFinalAiScore = Number.isFinite(Number(finalAiScore));
+  if (reportActionAnalysisBlock) reportActionAnalysisBlock.hidden = !hasFinalAiScore;
+  if (reportFinalScoreWrap) reportFinalScoreWrap.hidden = !hasFinalAiScore;
+  if (reportFinalScoreValue && hasFinalAiScore) reportFinalScoreValue.textContent = `${Math.round(Number(finalAiScore))}`;
   if (reportDurationValue) reportDurationValue.textContent = formatTime(durationSeconds);
   if (reportCapacityValue) reportCapacityValue.textContent = Number(capacityKg).toFixed(1);
   if (reportEnergyValue) reportEnergyValue.textContent = String(Math.max(0, Math.round(energyKj)));
@@ -999,15 +1139,15 @@ function showTrainingReport(payload) {
   if (reportIntensityLegend) reportIntensityLegend.innerHTML = reportIntensityDistribution
     .map((zone) => `<div class="tr-legend-item"><span class="tr-legend-dot ${zone.className}"></span><span>${zone.label} · ${Math.round(zone.ratio * 100)}%</span></div>`)
     .join("");
-  if (reportModeSetupBlock) reportModeSetupBlock.hidden = isPlanTrainingReport;
-  if (reportSessionInsightsBlock) reportSessionInsightsBlock.hidden = isPlanTrainingReport;
+  if (reportModeSetupBlock) reportModeSetupBlock.hidden = isPlanTrainingReport || isCardioOrPilates;
+  if (reportStrengthPowerBlock) reportStrengthPowerBlock.hidden = isCardioOrPilates;
   if (reportActionCompletionBlock) reportActionCompletionBlock.hidden = !isPlanTrainingReport;
   if (isPlanTrainingReport) renderReportActionCompletion(planMovesData);
   else if (reportActionList) reportActionList.innerHTML = "";
   renderReportPowerCurve(payload);
-  if (reportPeakResistance) reportPeakResistance.textContent = `${peak.toFixed(1)}kg`;
   if (reportConsistency) reportConsistency.textContent = `${consistency}%`;
-  if (reportCoachNote) reportCoachNote.textContent = getCoachNote(consistency, peak, maxResistance);
+  if (reportCoachNote) reportCoachNote.textContent = aiSummary || getCoachNote(consistency, peak, maxResistance);
+  renderReportAccuracyDistribution(accuracyDistribution);
   if (trainingReportScreen) {
     trainingReportScreen.classList.add("active");
     trainingReportScreen.setAttribute("aria-hidden", "false");
@@ -1025,6 +1165,27 @@ function sampleIwTraining(currentSeconds) {
   const resistance = clamp(iwState.weight + modeOffset + equipOffset + sway, 0, 120);
   iwTrainingState.resistanceTimeline.push(Math.round(resistance * 10) / 10);
   if (iwTrainingState.resistanceTimeline.length > 7200) iwTrainingState.resistanceTimeline.shift();
+  if (iwAiState.ready && second !== iwAiState.lastSecond) {
+    iwAiState.lastSecond = second;
+    const base = 74 + Math.sin(second / 3.5) * 12 + Math.cos(second / 5.2) * 8 + (resistance / 120) * 6;
+    const score = Math.max(58, Math.min(99, Math.round(base)));
+    const tier = resolveAiTier(score);
+    const hint = resolveAiHint(second, score);
+    if (tier === "Good" || tier === "Perfect") {
+      iwAiState.combo += 1;
+      if (iwAiState.combo >= 3) showIwComboBadge(iwAiState.combo);
+    } else {
+      iwAiState.combo = 0;
+    }
+    iwAiState.score = score;
+    iwAiState.tier = tier;
+    iwAiState.scoreSum += score;
+    iwAiState.scoreSamples += 1;
+    if (tier === "Perfect") iwAiState.tierCounts.perfect += 1;
+    else if (tier === "Good") iwAiState.tierCounts.good += 1;
+    else iwAiState.tierCounts.better += 1;
+    updateIwAiPanel(score, tier, hint);
+  }
 }
 
 function updateIwTimeUI() {
@@ -1232,19 +1393,27 @@ function openImmersiveWorkout() {
   iwVideo.poster = adMeta.thumb;
   iwVideoSource.src = adMeta.video;
   iwVideo.load();
-  iwVideo.play().catch(() => {});
-  iwPlayBtn.textContent = "Pause";
-  iwState.playing = true;
+  iwVideo.pause();
+  iwPlayBtn.textContent = "Play";
+  iwState.playing = false;
   if (shell) shell.classList.add("app-immersive-active");
   immersiveWorkoutScreen.classList.add("active");
   immersiveWorkoutScreen.setAttribute("aria-hidden", "false");
-  resetIwTrainingCapture();
+  iwTrainingState.active = false;
+  iwTrainingState.startedAt = 0;
+  iwTrainingState.lastSecond = -1;
+  iwTrainingState.resistanceTimeline = [];
+  resetIwAiCapture();
   if (!iwState.rafId && iwChartCtx) drawIwChartFrame();
   
   // Default to drawer open
   const iwDrawer = document.getElementById("iwDrawer");
   if (iwDrawer) {
     iwDrawer.classList.add("open");
+  }
+  if (iwAiReadyOverlay) {
+    iwAiReadyOverlay.classList.add("is-visible");
+    iwAiReadyOverlay.setAttribute("aria-hidden", "false");
   }
 }
 
@@ -1260,6 +1429,24 @@ function closeImmersiveWorkout() {
     iwState.rafId = 0;
   }
   iwTrainingState.active = false;
+  resetIwAiCapture();
+  if (iwAiReadyOverlay) {
+    iwAiReadyOverlay.classList.remove("is-visible");
+    iwAiReadyOverlay.setAttribute("aria-hidden", "true");
+  }
+}
+
+function startIwTrainingAfterReady() {
+  if (!iwVideo || !iwPlayBtn) return;
+  if (iwAiReadyOverlay) {
+    iwAiReadyOverlay.classList.remove("is-visible");
+    iwAiReadyOverlay.setAttribute("aria-hidden", "true");
+  }
+  iwAiState.ready = true;
+  resetIwTrainingCapture();
+  iwVideo.play().catch(() => {});
+  iwPlayBtn.textContent = "Pause";
+  iwState.playing = true;
 }
 
 function createCard(item, index) {
@@ -1358,6 +1545,9 @@ if (adActionHero && adVideoFallback) {
 }
 
 if (iwEndBtn) iwEndBtn.addEventListener("click", openReportFromIwTraining);
+if (iwAiReadyBtn) {
+  iwAiReadyBtn.addEventListener("click", startIwTrainingAfterReady);
+}
 if (iwFlipBtn && iwVideo) {
   iwFlipBtn.addEventListener("click", () => {
     iwState.mirrored = !iwState.mirrored;
@@ -1367,6 +1557,10 @@ if (iwFlipBtn && iwVideo) {
 }
 if (iwPlayBtn && iwVideo) {
   iwPlayBtn.addEventListener("click", () => {
+    if (!iwAiState.ready) {
+      startIwTrainingAfterReady();
+      return;
+    }
     if (iwVideo.paused) {
       iwVideo.play().catch(() => {});
       iwState.playing = true;
