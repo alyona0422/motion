@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plan B · Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/plan-b-base.css" />
+  <link rel="stylesheet" href="css/plan-b-modal-detail.css" />
+  <link rel="stylesheet" href="css/plan-b-profile.css" />
+  <link rel="stylesheet" href="css/plan-b-immersive.css" />
+  <link rel="stylesheet" href="css/plan-b-pilates-report.css" />
+  <link rel="stylesheet" href="css/plan-b-auth.css" />
+</head>
+<body data-plan-b-page="login">
+  <main class="device-shell" aria-label="Plan B login page">
+    <div class="particle-layer" aria-hidden="true"></div>
+    <div class="vignette" aria-hidden="true"></div>
+
+    <section class="auth-screen" aria-label="Login">
+      <div class="auth-topbar">
+        <button class="auth-back-btn" data-auth-back="plan-b-profile.html" type="button" aria-label="Back">←</button>
+      </div>
+
+      <section class="auth-card">
+        <h1 class="auth-title">Welcome Back</h1>
+        <p class="auth-subtitle">Continue your progress with Plan B.</p>
+
+        <button class="quick-login-card" id="quickLoginBtn" type="button" aria-label="Quick login with last account">
+          <div class="quick-login-avatar">A</div>
+          <div class="quick-login-meta">
+            <strong>Alyona</strong>
+            <span>Tap to quick login</span>
+          </div>
+        </button>
+
+        <div class="auth-separator">Or continue with account</div>
+
+        <div class="auth-method-tabs" role="tablist" aria-label="Login method">
+          <button class="auth-method-tab active" data-auth-method-tab="password" type="button">Email + Password</button>
+          <button class="auth-method-tab" data-auth-method-tab="code" type="button">Email + Code</button>
+        </div>
+
+        <div class="auth-form" data-auth-method-panel="password">
+          <div class="auth-field">
+            <label for="loginEmailPassword">Email</label>
+            <input class="auth-input" id="loginEmailPassword" type="email" placeholder="name@email.com" />
+          </div>
+          <div class="auth-field">
+            <label for="loginPassword">Password</label>
+            <input class="auth-input" id="loginPassword" type="password" placeholder="Enter your password" />
+          </div>
+          <button class="auth-primary-btn" id="loginPasswordBtn" type="button">Login</button>
+        </div>
+
+        <div class="auth-form is-hidden" data-auth-method-panel="code">
+          <div class="auth-field">
+            <label for="loginEmailCode">Email</label>
+            <input class="auth-input" id="loginEmailCode" type="email" placeholder="name@email.com" />
+          </div>
+          <div class="auth-field">
+            <label for="loginCode">Verification Code</label>
+            <div class="auth-input-row">
+              <input class="auth-input" id="loginCode" type="text" placeholder="6-digit code" />
+              <button class="auth-secondary-btn" type="button">Send Code</button>
+            </div>
+          </div>
+          <button class="auth-primary-btn" id="loginCodeBtn" type="button">Login</button>
+        </div>
+
+        <label class="auth-check-row" for="loginPolicyAgree">
+          <input id="loginPolicyAgree" type="checkbox" />
+          <span>I have read and agree to the <a href="#" aria-label="User Agreement">User Agreement</a> and <a href="#" aria-label="Privacy Policy">Privacy Policy</a>.</span>
+        </label>
+
+        <div class="auth-foot-links">
+          <button class="auth-link-btn" onclick="window.location.href='plan-b-forgot-password.html'" type="button">Forgot Password?</button>
+          <button class="auth-link-btn" onclick="window.location.href='plan-b-register.html'" type="button">Create Account</button>
+        </div>
+      </section>
+    </section>
+
+    <div class="auth-toast is-hidden" id="authToast" aria-live="polite"></div>
+  </main>
+
+  <script src="js/plan-b-auth.js" defer></script>
+</body>
+</html>

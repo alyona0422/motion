@@ -23,9 +23,12 @@
       <div class="pr-header">
         <div class="pr-user-info">
           <div class="pr-avatar">A</div>
-          <div class="pr-user-details">
-             <h1>Alyona</h1>
-             <p>MEMBER SINCE 2026</p>
+          <div class="pr-user-meta">
+            <div class="pr-user-details">
+               <h1>Alyona</h1>
+               <p>MEMBER SINCE 2026</p>
+            </div>
+            <button class="pr-logout-btn" id="logoutBtn" type="button">Log out</button>
           </div>
         </div>
         <div class="pr-total-days">
@@ -209,9 +212,43 @@
       </div>
     </div>
 
+    <div class="auth-confirm-modal is-hidden" id="logoutConfirmModal" aria-hidden="true">
+      <div class="auth-confirm-panel" role="dialog" aria-modal="true" aria-labelledby="logoutConfirmTitle">
+        <h3 id="logoutConfirmTitle">Are you sure you want to log out?</h3>
+        <div class="auth-confirm-actions">
+          <button class="auth-confirm-btn auth-confirm-cancel" id="logoutCancelBtn" type="button">Cancel</button>
+          <button class="auth-confirm-btn auth-confirm-ok" id="logoutConfirmBtn" type="button">Confirm</button>
+        </div>
+      </div>
+    </div>
+
   </main>
   <script src="js/data/explore-library.js"></script>
   <script src="js/plan-b-verify.js" defer></script>
+  <script>
+    (function () {
+      const logoutBtn = document.getElementById("logoutBtn");
+      const modal = document.getElementById("logoutConfirmModal");
+      const cancelBtn = document.getElementById("logoutCancelBtn");
+      const confirmBtn = document.getElementById("logoutConfirmBtn");
+
+      if (!logoutBtn || !modal || !cancelBtn || !confirmBtn) return;
+
+      const toggleModal = (visible) => {
+        modal.classList.toggle("is-hidden", !visible);
+        modal.setAttribute("aria-hidden", visible ? "false" : "true");
+      };
+
+      logoutBtn.addEventListener("click", () => toggleModal(true));
+      cancelBtn.addEventListener("click", () => toggleModal(false));
+      modal.addEventListener("click", (event) => {
+        if (event.target === modal) toggleModal(false);
+      });
+      confirmBtn.addEventListener("click", () => {
+        window.location.href = "plan-b-login.html";
+      });
+    })();
+  </script>
   <script>
     window.__DEV_BACKUP__ = { apiOrigin: 'http://127.0.0.1:37547' };
   </script>
