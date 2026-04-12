@@ -791,9 +791,12 @@ function resetIwAiCapture() {
   }
   if (iwComboBadge) iwComboBadge.hidden = true;
   if (iwAiScoreValue) iwAiScoreValue.textContent = "0";
-  if (iwAiTierValue) iwAiTierValue.textContent = "Better";
+  if (iwAiTierValue) {
+    iwAiTierValue.textContent = "Better";
+    iwAiTierValue.dataset.tier = "better";
+  }
   if (iwAiHintText) {
-    iwAiHintText.textContent = "腿可以抬高一点";
+    iwAiHintText.textContent = "Lift your leg a bit higher.";
   }
 }
 
@@ -806,7 +809,7 @@ function resolveAiTier(score) {
 function resolveAiHint(second, score) {
   if (score >= 88) return "动作很稳定，继续保持";
   const hints = [
-    "腿可以抬高一点",
+    "Lift your leg a bit higher.",
     "核心可以再收紧一点",
     "回程速度可以稍微放慢一点"
   ];
@@ -829,9 +832,12 @@ function showIwComboBadge(comboCount) {
 
 function updateIwAiPanel(score, tier, hint) {
   if (iwAiScoreValue) iwAiScoreValue.textContent = String(Math.round(score));
-  if (iwAiTierValue) iwAiTierValue.textContent = tier;
+  if (iwAiTierValue) {
+    iwAiTierValue.textContent = tier;
+    iwAiTierValue.dataset.tier = String(tier || "").toLowerCase();
+  }
   if (iwAiHintText) {
-    iwAiHintText.textContent = hint || "腿可以抬高一点";
+    iwAiHintText.textContent = hint || "Lift your leg a bit higher.";
   }
 }
 
