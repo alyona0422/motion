@@ -1007,6 +1007,7 @@ function renderReportPowerCurve(payload) {
 function renderReportActionCompletion(planMovesData) {
   if (!reportActionList) return;
   const safeMoves = Array.isArray(planMovesData) ? planMovesData : [];
+  const hiddenCards = [];
   reportActionList.innerHTML = "";
   if (!safeMoves.length) {
     const empty = document.createElement("p");
@@ -1055,8 +1056,26 @@ function renderReportActionCompletion(planMovesData) {
         </div>
       </div>` : ""}
     `;
+    if (idx >= 1) {
+      card.hidden = true;
+      hiddenCards.push(card);
+    }
     reportActionList.appendChild(card);
   });
+  if (hiddenCards.length) {
+    const expandBtn = document.createElement("button");
+    expandBtn.type = "button";
+    expandBtn.className = "tr-btn tr-btn--ghost tr-action-expand-btn";
+    expandBtn.textContent = "Show All Moves";
+    expandBtn.setAttribute("aria-expanded", "false");
+    expandBtn.addEventListener("click", () => {
+      const isExpanded = expandBtn.getAttribute("aria-expanded") === "true";
+      hiddenCards.forEach((card) => { card.hidden = isExpanded; });
+      expandBtn.setAttribute("aria-expanded", isExpanded ? "false" : "true");
+      expandBtn.textContent = isExpanded ? "Show All Moves" : "Collapse Moves";
+    });
+    reportActionList.appendChild(expandBtn);
+  }
 }
 
 function renderReportAccuracyDistribution(distribution) {
@@ -3252,6 +3271,23 @@ function initPlanTrainingPage() {
           powerSeries: []
         };
       });
+      const aiPerfectRates = planMovesData
+        .filter((item) => item && item.aiSupported && item.aiQuality && Number.isFinite(Number(item.aiQuality.perfectRate)))
+        .map((item) => Math.max(0, Math.min(100, Number(item.aiQuality.perfectRate))));
+      const finalAiScore = aiPerfectRates.length
+        ? Math.round(aiPerfectRates.reduce((sum, value) => sum + value, 0) / aiPerfectRates.length)
+        : null;
+      const accuracyDistribution = aiPerfectRates.length
+        ? aiPerfectRates.reduce((acc, score) => {
+          if (score >= 90) acc.perfect += 1;
+          else if (score >= 75) acc.good += 1;
+          else acc.better += 1;
+          return acc;
+        }, { better: 0, good: 0, perfect: 0 })
+        : null;
+      const aiSummary = aiPerfectRates.length
+        ? `AI reviewed ${aiPerfectRates.length} moves. Average form score ${finalAiScore}.`
+        : "";
       const reportPayload = {
         reportFromScene: "plan-training",
         userName: reportUser.name,
@@ -3267,7 +3303,10 @@ function initPlanTrainingPage() {
         modeLabel: iwModeMapReport[iwState.mode] || "Standard",
         equipmentLabel: "Plan Flow",
         maxResistance: 120,
-        timeline
+        timeline,
+        finalAiScore,
+        accuracyDistribution,
+        aiSummary
       };
       try {
         sessionStorage.setItem(STORAGE_REPORT_PAYLOAD, JSON.stringify(reportPayload));

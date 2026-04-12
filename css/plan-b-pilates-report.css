@@ -470,6 +470,25 @@
   line-height: 1;
 }
 
+/* Action Analysis: score-style cards share centered layout; override .tr-extra-card strong */
+#reportActionAnalysisBlock .tr-extra-card.tr-final-score strong {
+  font-family: "Barlow Condensed", sans-serif;
+  display: block;
+  margin-top: 4px;
+  font-size: 2.4rem;
+  line-height: 1;
+  text-align: center;
+}
+
+#reportActionAnalysisBlock .tr-extra-card.tr-final-score label {
+  display: block;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(186, 207, 231, 0.66);
+  margin-bottom: 0;
+}
+
 .tr-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -727,6 +746,11 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.tr-action-expand-btn {
+  width: 100%;
+  min-height: 40px;
 }
 
 .tr-action-item {
