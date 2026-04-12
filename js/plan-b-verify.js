@@ -94,6 +94,15 @@ const reportIntensityLegend = document.getElementById("reportIntensityLegend");
 const reportPeakResistance = document.getElementById("reportPeakResistance");
 const reportConsistency = document.getElementById("reportConsistency");
 const reportCoachNote = document.getElementById("reportCoachNote");
+const reportModeSetupBlock = document.getElementById("reportModeSetupBlock");
+const reportSessionInsightsBlock = document.getElementById("reportSessionInsightsBlock");
+const reportActionCompletionBlock = document.getElementById("reportActionCompletionBlock");
+const reportActionList = document.getElementById("reportActionList");
+const reportPowerCurveBlock = document.getElementById("reportPowerCurveBlock");
+const reportPowerCurveMeta = document.getElementById("reportPowerCurveMeta");
+const reportPowerCurveTabs = document.getElementById("reportPowerCurveTabs");
+const reportPowerCurveSvg = document.getElementById("reportPowerCurveSvg");
+const reportPowerCurveFoot = document.getElementById("reportPowerCurveFoot");
 const reportAgainBtn = document.getElementById("reportAgainBtn");
 const reportHomeBtn = document.getElementById("reportHomeBtn");
 
@@ -157,6 +166,7 @@ const ptState = {
   inRest: false,
   moveIndex: 0,
   moveStartAt: 0,
+  moveStartTimelineIndex: 0,
   moveProgress: [],
   repsCompleted: 0,
   repTimerId: 0,
@@ -165,6 +175,7 @@ const ptState = {
   sessionElapsedSeconds: 0,
   sessionName: "Plan Training",
   sessionMoves: [],
+  moveResults: [],
   sessionTotalSeconds: 0
 };
 const reportUser = {
@@ -172,6 +183,7 @@ const reportUser = {
   avatar: "A"
 };
 let reportFromScene = "";
+let reportPowerCurveSelectedKey = "session";
 let pilatesEndTrainingFn = null;
 const adInstallPreviewAsset = {
   image: "assets/show.jpg",
@@ -779,6 +791,166 @@ function hideTrainingReport() {
   trainingReportScreen.setAttribute("aria-hidden", "true");
 }
 
+function hashTextSeed(text) {
+  return Array.from(String(text || "")).reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
+}
+
+function buildPowerSeries(resistanceSeries) {
+  const safe = Array.isArray(resistanceSeries) ? resistanceSeries : [];
+  if (!safe.length) return [];
+  const rough = safe.map((value, idx) => {
+    const prev = idx > 0 ? Number(safe[idx - 1] || 0) : Number(value || 0);
+    const delta = Math.abs(Number(value || 0) - prev);
+    return Math.max(0, Number(value || 0) * 0.46 + delta * 1.8);
+  });
+  return rough.map((_, idx) => {
+    const from = Math.max(0, idx - 1);
+    const to = Math.min(rough.length - 1, idx + 1);
+    const segment = rough.slice(from, to + 1);
+    return segment.reduce((sum, item) => sum + item, 0) / segment.length;
+  });
+}
+
+function buildAiQualitySnapshot(move, actualReps, actualSets) {
+  const seed = hashTextSeed((move && move.name) || "") + actualReps * 11 + actualSets * 7;
+  const perfectRate = Math.max(58, Math.min(96, 68 + (seed % 24)));
+  const errorRate = Math.max(4, 100 - perfectRate);
+  const errorTypes = (move && move.aiQualityTemplate && Array.isArray(move.aiQualityTemplate.errorTypes) && move.aiQualityTemplate.errorTypes.length)
+    ? move.aiQualityTemplate.errorTypes
+    : ["Knee Valgus", "Short Range", "Core Instability"];
+  const weights = errorTypes.map((_, idx) => ((seed + (idx + 1) * 13) % 10) + 1);
+  const totalWeight = weights.reduce((sum, item) => sum + item, 0) || 1;
+  let usedPercent = 0;
+  const errorStats = errorTypes.map((label, idx) => {
+    const raw = idx === errorTypes.length - 1
+      ? Math.max(0, errorRate - usedPercent)
+      : Math.round((errorRate * weights[idx]) / totalWeight);
+    usedPercent += raw;
+    return { label, percent: raw };
+  }).filter((item) => item.percent > 0);
+  const topErrors = errorStats
+    .slice()
+    .sort((a, b) => b.percent - a.percent)
+    .slice(0, 2);
+  const summary = `Across ${Math.max(1, actualSets)} sets of ${(move && move.name) || "this move"}, ${errorRate}% reps showed form errors.`;
+  return { perfectRate, errorStats, summary, topErrors };
+}
+
+function buildPowerCurvePath(series) {
+  const points = Array.isArray(series) ? series : [];
+  const width = 320;
+  const height = 140;
+  const padX = 8;
+  const padY = 10;
+  if (!points.length) return "";
+  const maxValue = Math.max(1, ...points);
+  const minValue = Math.min(...points);
+  const range = Math.max(1, maxValue - minValue);
+  return points.map((value, idx) => {
+    const x = padX + (idx / Math.max(1, points.length - 1)) * (width - padX * 2);
+    const normalized = (value - minValue) / range;
+    const y = height - padY - normalized * (height - padY * 2);
+    return `${x.toFixed(2)},${y.toFixed(2)}`;
+  }).join(" ");
+}
+
+function renderReportPowerCurve(payload) {
+  if (!reportPowerCurveBlock || !reportPowerCurveSvg || !reportPowerCurveTabs || !reportPowerCurveFoot || !reportPowerCurveMeta) return;
+  const sessionSeries = buildPowerSeries(payload && payload.timeline);
+  const moveRows = Array.isArray(payload && payload.planMovesData) ? payload.planMovesData : [];
+  const moveOptions = moveRows
+    .filter((row) => Array.isArray(row && row.powerSeries) && row.powerSeries.length)
+    .map((row, idx) => ({
+      key: `move-${idx}`,
+      label: row.name || `Move ${idx + 1}`,
+      series: row.powerSeries
+    }));
+  const options = [{ key: "session", label: "Session", series: sessionSeries }, ...moveOptions];
+  reportPowerCurveBlock.hidden = !options.some((item) => item.series.length);
+  if (reportPowerCurveBlock.hidden) return;
+  if (!options.some((item) => item.key === reportPowerCurveSelectedKey)) {
+    reportPowerCurveSelectedKey = "session";
+  }
+  reportPowerCurveTabs.innerHTML = "";
+  options.forEach((option) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = `tr-power-tab${option.key === reportPowerCurveSelectedKey ? " is-active" : ""}`;
+    btn.textContent = option.label;
+    btn.addEventListener("click", () => {
+      reportPowerCurveSelectedKey = option.key;
+      renderReportPowerCurve(payload);
+    });
+    reportPowerCurveTabs.appendChild(btn);
+  });
+  const active = options.find((item) => item.key === reportPowerCurveSelectedKey) || options[0];
+  const points = Array.isArray(active.series) ? active.series : [];
+  const pathPoints = buildPowerCurvePath(points);
+  const peak = points.length ? Math.max(...points) : 0;
+  const avg = points.length ? points.reduce((sum, item) => sum + item, 0) / points.length : 0;
+  reportPowerCurveSvg.innerHTML = `
+    <polyline points="${pathPoints}" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"></polyline>
+    <polyline points="${pathPoints}" fill="none" stroke="rgba(94,234,255,0.95)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></polyline>
+  `;
+  reportPowerCurveMeta.textContent = active.key === "session" ? "Session" : active.label;
+  reportPowerCurveFoot.textContent = `Peak ${peak.toFixed(1)} · Avg ${avg.toFixed(1)}`;
+}
+
+function renderReportActionCompletion(planMovesData) {
+  if (!reportActionList) return;
+  const safeMoves = Array.isArray(planMovesData) ? planMovesData : [];
+  reportActionList.innerHTML = "";
+  if (!safeMoves.length) {
+    const empty = document.createElement("p");
+    empty.className = "tr-coach-note";
+    empty.textContent = "No move completion data available for this plan day.";
+    reportActionList.appendChild(empty);
+    return;
+  }
+  safeMoves.forEach((item, idx) => {
+    const row = item && typeof item === "object" ? item : {};
+    const moveName = row.name || `Move ${idx + 1}`;
+    const targetSets = Math.max(0, Number(row.targetSets) || 0);
+    const targetReps = Math.max(0, Number(row.targetReps) || 0);
+    const actualSets = Math.max(0, Number(row.actualSets) || 0);
+    const actualReps = Math.max(0, Number(row.actualReps) || 0);
+    const durationSeconds = Math.max(0, Number(row.durationSeconds) || 0);
+    const aiSupported = Boolean(row.aiSupported);
+    const quality = row.aiQuality && typeof row.aiQuality === "object" ? row.aiQuality : null;
+    const perfectRate = quality ? Math.max(0, Math.min(100, Number(quality.perfectRate) || 0)) : 0;
+    const summaryText = quality && quality.summary ? quality.summary : "";
+    const topErrors = quality && Array.isArray(quality.topErrors) ? quality.topErrors : [];
+
+    const card = document.createElement("article");
+    card.className = "tr-action-item";
+    card.innerHTML = `
+      <div class="tr-action-item-top">
+        <strong>${moveName}</strong>
+        <span class="tr-action-time">${formatTime(durationSeconds)}</span>
+      </div>
+      <div class="tr-action-meta">
+        <span class="tr-action-metric"><em>Target Reps</em>${targetReps}</span>
+        <span class="tr-action-metric"><em>Actual Reps</em>${actualReps}</span>
+        <span class="tr-action-metric"><em>Target Sets</em>${targetSets}</span>
+        <span class="tr-action-metric"><em>Actual Sets</em>${actualSets}</span>
+      </div>
+      ${aiSupported && quality ? `
+      <div class="tr-quality">
+        <div class="tr-quality-head">
+          <span>Perfect Ratio</span>
+          <span>${perfectRate}%</span>
+        </div>
+        <div class="tr-quality-bar"><i style="width:${perfectRate}%"></i></div>
+        <div class="tr-quality-errors">
+          ${summaryText ? `<p>${summaryText}</p>` : ""}
+          ${topErrors.map((entry) => `<p>${entry.label}: ${entry.percent}% occurrences</p>`).join("")}
+        </div>
+      </div>` : ""}
+    `;
+    reportActionList.appendChild(card);
+  });
+}
+
 function showTrainingReport(payload) {
   if (payload && payload.reportFromScene) reportFromScene = payload.reportFromScene;
   const {
@@ -792,19 +964,27 @@ function showTrainingReport(payload) {
     modeLabel,
     equipmentLabel,
     maxResistance,
-    timeline
+    timeline,
+    planName,
+    planDayName,
+    planMovesData
   } = payload;
   const safeTimeline = Array.isArray(timeline) ? timeline : [];
   const peak = safeTimeline.length ? Math.max(...safeTimeline) : 0;
   const consistency = calcConsistency(safeTimeline, maxResistance);
+  const isPlanTrainingReport = reportFromScene === "plan-training";
   const reportIntensityDistribution = [
     { className: "tr-intensity-z1", label: "0-24kg", ratio: 0.6 },
     { className: "tr-intensity-z2", label: "24-48kg", ratio: 0.2 },
     { className: "tr-intensity-z3", label: "48-72kg", ratio: 0.2 }
   ];
-  if (reportUserAvatar) reportUserAvatar.textContent = "A";
+  if (reportUserAvatar) reportUserAvatar.textContent = String(userAvatar || "A").slice(0, 1).toUpperCase();
   if (reportCongratsTitle) reportCongratsTitle.textContent = `Great Job, ${userName}`;
-  if (reportSessionMeta) reportSessionMeta.textContent = `Session complete • ${sceneLabel}`;
+  if (reportSessionMeta) {
+    reportSessionMeta.textContent = isPlanTrainingReport
+      ? `Training completed • ${planName || "Plan Training"} • ${planDayName || "Week 1, Day 1"}`
+      : `Session complete • ${sceneLabel}`;
+  }
   if (reportDurationValue) reportDurationValue.textContent = formatTime(durationSeconds);
   if (reportCapacityValue) reportCapacityValue.textContent = Number(capacityKg).toFixed(1);
   if (reportEnergyValue) reportEnergyValue.textContent = String(Math.max(0, Math.round(energyKj)));
@@ -819,6 +999,12 @@ function showTrainingReport(payload) {
   if (reportIntensityLegend) reportIntensityLegend.innerHTML = reportIntensityDistribution
     .map((zone) => `<div class="tr-legend-item"><span class="tr-legend-dot ${zone.className}"></span><span>${zone.label} · ${Math.round(zone.ratio * 100)}%</span></div>`)
     .join("");
+  if (reportModeSetupBlock) reportModeSetupBlock.hidden = isPlanTrainingReport;
+  if (reportSessionInsightsBlock) reportSessionInsightsBlock.hidden = isPlanTrainingReport;
+  if (reportActionCompletionBlock) reportActionCompletionBlock.hidden = !isPlanTrainingReport;
+  if (isPlanTrainingReport) renderReportActionCompletion(planMovesData);
+  else if (reportActionList) reportActionList.innerHTML = "";
+  renderReportPowerCurve(payload);
   if (reportPeakResistance) reportPeakResistance.textContent = `${peak.toFixed(1)}kg`;
   if (reportConsistency) reportConsistency.textContent = `${consistency}%`;
   if (reportCoachNote) reportCoachNote.textContent = getCoachNote(consistency, peak, maxResistance);
@@ -2703,11 +2889,16 @@ function initPlanTrainingPage() {
   const normalizeMove = (move, idx) => {
     const targetReps = parseLeadingInt(move && move.repsOrDuration, 10);
     const sets = Math.max(1, Number(move && move.sets) || 3);
+    const qualityTemplate = move && move.aiQualityTemplate && typeof move.aiQualityTemplate === "object"
+      ? move.aiQualityTemplate
+      : { errorTypes: ["Knee Valgus", "Short Range", "Core Instability"] };
     return {
       name: (move && move.name) || `Move ${idx + 1}`,
       targetReps,
       sets,
-      restSeconds: Math.max(0, Number(move && move.restSeconds) || 30)
+      restSeconds: Math.max(0, Number(move && move.restSeconds) || 30),
+      aiSupported: move && Object.prototype.hasOwnProperty.call(move, "aiSupported") ? Boolean(move.aiSupported) : false,
+      aiQualityTemplate: qualityTemplate
     };
   };
   const buildFallbackSession = () => {
@@ -2751,6 +2942,7 @@ function initPlanTrainingPage() {
   ptState.moveIndex = 0;
   ptState.repsCompleted = 0;
   ptState.sessionElapsedSeconds = 0;
+  ptState.moveResults = [];
   ptState.sessionTotalSeconds = ptState.sessionMoves.reduce((sum, move, idx) => {
     const moveSeconds = move.targetReps * 2;
     const restSeconds = idx < ptState.sessionMoves.length - 1 ? 30 : 0;
@@ -2845,11 +3037,35 @@ function initPlanTrainingPage() {
       const capacityKg = sumResistanceTimeline(timeline);
       const energyKj = capacityKg * 0.38;
       const caloriesKcal = energyKj * 0.24;
+      const weekNumber = Math.max(1, Number(payload && payload.week) || 1);
+      const dayNumber = Math.max(1, Number(payload && payload.day) || 1);
+      const moveResultMap = new Map(
+        ptState.moveResults.map((item) => [item.moveIndex, item])
+      );
+      const planMovesData = ptState.sessionMoves.map((move, idx) => {
+        const captured = moveResultMap.get(idx);
+        if (captured) return captured;
+        return {
+          moveIndex: idx,
+          name: move.name,
+          targetSets: move.sets,
+          targetReps: move.targetReps,
+          actualSets: 0,
+          actualReps: 0,
+          durationSeconds: 0,
+          aiSupported: Boolean(move.aiSupported),
+          aiQuality: move.aiSupported ? buildAiQualitySnapshot(move, 0, 0) : null,
+          powerSeries: []
+        };
+      });
       const reportPayload = {
         reportFromScene: "plan-training",
         userName: reportUser.name,
         userAvatar: reportUser.avatar,
         sceneLabel: "Plan Training",
+        planName: payload.planName || ptState.sessionName,
+        planDayName: `Week ${weekNumber}, Day ${dayNumber}`,
+        planMovesData,
         durationSeconds,
         capacityKg,
         energyKj,
@@ -2903,7 +3119,27 @@ function initPlanTrainingPage() {
     const move = ptState.sessionMoves[ptState.moveIndex];
     if (!move) return;
     ptState.moveProgress[ptState.moveIndex] = 1;
-    ptState.repsCompleted = skipped ? move.targetReps : Math.max(move.targetReps, ptState.repsCompleted);
+    const actualReps = skipped ? Math.max(0, ptState.repsCompleted) : Math.max(move.targetReps, ptState.repsCompleted);
+    const moveElapsedSeconds = Math.max(1, Math.round((performance.now() - ptState.moveStartAt) / 1000));
+    const moveTimeline = iwTrainingState.resistanceTimeline.slice(ptState.moveStartTimelineIndex);
+    const powerSeries = buildPowerSeries(moveTimeline);
+    const actualSets = skipped ? 0 : Math.min(move.sets, 1);
+    const moveResult = {
+      moveIndex: ptState.moveIndex,
+      name: move.name,
+      targetSets: move.sets,
+      targetReps: move.targetReps,
+      actualSets,
+      actualReps,
+      durationSeconds: moveElapsedSeconds,
+      aiSupported: Boolean(move.aiSupported),
+      aiQuality: move.aiSupported ? buildAiQualitySnapshot(move, actualReps, actualSets) : null,
+      powerSeries
+    };
+    const existingIdx = ptState.moveResults.findIndex((item) => item.moveIndex === ptState.moveIndex);
+    if (existingIdx >= 0) ptState.moveResults[existingIdx] = moveResult;
+    else ptState.moveResults.push(moveResult);
+    ptState.repsCompleted = actualReps;
     updateCurrentMoveUI();
     if (ptState.moveIndex >= ptState.sessionMoves.length - 1) {
       completePlanTraining(true);
@@ -2914,6 +3150,7 @@ function initPlanTrainingPage() {
   function startRepLoop() {
     clearRepTimer();
     ptState.moveStartAt = performance.now();
+    ptState.moveStartTimelineIndex = iwTrainingState.resistanceTimeline.length;
     ptState.repTimerId = window.setInterval(() => {
       if (!ptState.active || ptState.paused || ptState.inRest) return;
       const move = ptState.sessionMoves[ptState.moveIndex];
@@ -2938,6 +3175,7 @@ function initPlanTrainingPage() {
       ptState.repsCompleted = 0;
       ptState.moveIndex = 0;
       ptState.moveProgress = ptState.sessionMoves.map(() => 0);
+      ptState.moveResults = [];
       resetIwTrainingCapture();
       updateCurrentMoveUI();
     } else {

@@ -49,7 +49,7 @@
             <strong><span id="reportCaloriesValue">0</span><small>kcal</small></strong>
           </article>
         </section>
-        <section class="tr-block" aria-label="Mode settings">
+        <section class="tr-block" id="reportModeSetupBlock" aria-label="Mode settings">
           <div class="tr-title-row">
             <h3>Mode Setup</h3>
             <span class="tr-note">View only</span>
@@ -68,7 +68,18 @@
           <div class="tr-intensity-wrap" id="reportIntensityBar"></div>
           <div class="tr-intensity-legend" id="reportIntensityLegend"></div>
         </section>
-        <section class="tr-block" aria-label="Session insights">
+        <section class="tr-block" id="reportPowerCurveBlock" aria-label="Power curve" hidden>
+          <div class="tr-title-row">
+            <h3>Power Curve</h3>
+            <span class="tr-note" id="reportPowerCurveMeta">Session</span>
+          </div>
+          <div class="tr-power-curve-tabs" id="reportPowerCurveTabs"></div>
+          <div class="tr-power-curve-canvas-wrap">
+            <svg class="tr-power-curve-svg" id="reportPowerCurveSvg" viewBox="0 0 320 140" preserveAspectRatio="none" aria-label="Power curve chart"></svg>
+          </div>
+          <div class="tr-power-curve-foot" id="reportPowerCurveFoot">Peak -- · Avg --</div>
+        </section>
+        <section class="tr-block" id="reportSessionInsightsBlock" aria-label="Session insights">
           <div class="tr-title-row">
             <h3>Session Insights</h3>
             <span class="tr-note">Auto generated</span>
@@ -84,6 +95,13 @@
             </article>
           </div>
           <p class="tr-coach-note" id="reportCoachNote">Keep a steady tempo and progress the resistance gradually.</p>
+        </section>
+        <section class="tr-block" id="reportActionCompletionBlock" aria-label="Action completion" hidden>
+          <div class="tr-title-row">
+            <h3>Action Completion</h3>
+            <span class="tr-note">Plan day detail</span>
+          </div>
+          <div class="tr-action-list" id="reportActionList"></div>
         </section>
         <footer class="tr-actions">
           <button class="tr-btn tr-btn--ghost" id="reportAgainBtn" type="button">Train Again</button>

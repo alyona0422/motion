@@ -491,3 +491,28 @@ window.PlanBDemo.libraryData = {
     }
   }
 };
+
+(() => {
+  const lib = window.PlanBDemo && window.PlanBDemo.libraryData;
+  const details = lib && lib.allTraining && lib.allTraining.planDetails;
+  if (!details || typeof details !== "object") return;
+  const defaultErrorTypes = ["Knee Valgus", "Short Range", "Core Instability"];
+  Object.values(details).forEach((plan) => {
+    const weeks = Array.isArray(plan && plan.schedule) ? plan.schedule : [];
+    weeks.forEach((week) => {
+      const days = Array.isArray(week && week.days) ? week.days : [];
+      days.forEach((day) => {
+        const moves = Array.isArray(day && day.moves) ? day.moves : [];
+        moves.forEach((move) => {
+          if (!move || typeof move !== "object") return;
+          move.aiSupported = true;
+          if (!move.aiQualityTemplate || typeof move.aiQualityTemplate !== "object") {
+            move.aiQualityTemplate = {
+              errorTypes: defaultErrorTypes
+            };
+          }
+        });
+      });
+    });
+  });
+})();
