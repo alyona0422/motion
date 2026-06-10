@@ -1,0 +1,107 @@
+/* Energy Sport Teal Variant */
+:root {
+  --bg-0: #fffdf8;
+  --bg-1: #f8f7ef;
+  --bg-2: #eef2e8;
+  --panel: rgba(255, 255, 255, 0.9);
+  --panel-strong: rgba(255, 255, 255, 0.98);
+  --line: rgba(148, 163, 184, 0.34);
+  --line-soft: rgba(148, 163, 184, 0.24);
+  --text: #12202d;
+  --muted: #55687f;
+  --blue: #0ea5a5;
+  --cyan: #14b8a6;
+  --orange: #22c55e;
+  --accent-cyan: #14b8a6;
+  --accent-green: #22c55e;
+  --accent-orange: #10b981;
+  --glow-soft: 0 14px 32px rgba(15, 23, 42, 0.12);
+  --glow-cyan: 0 0 18px rgba(20, 184, 166, 0.26);
+  --glow-blue: 0 0 18px rgba(14, 165, 165, 0.24);
+  --glow-orange: 0 0 16px rgba(34, 197, 94, 0.22);
+}
+
+body {
+  color: var(--text);
+  background:
+    radial-gradient(circle at 10% 0%, rgba(20, 184, 166, 0.22), transparent 42%),
+    radial-gradient(circle at 88% 10%, rgba(34, 197, 94, 0.14), transparent 42%),
+    linear-gradient(180deg, #fffdf8 0%, #f7f9f1 58%, #edf2e8 100%);
+}
+
+.device-shell {
+  background: linear-gradient(180deg, #fffdf8 0%, #f4f8ef 52%, #ebf2e7 100%);
+  box-shadow: 0 40px 90px rgba(15, 23, 42, 0.2), inset 0 0 0 1px rgba(148, 163, 184, 0.22);
+}
+
+.status-pill,
+.weekly-card,
+.resume-card,
+.today-plan-card,
+.explore-section,
+.bottom-nav {
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: var(--glow-soft), inset 0 0 0 1px rgba(148, 163, 184, 0.22);
+}
+
+.weekly-card::before {
+  background: radial-gradient(circle, rgba(34, 197, 94, 0.16), transparent 60%);
+}
+
+.resume-card {
+  background: linear-gradient(96deg, rgba(20, 184, 166, 0.16), rgba(34, 197, 94, 0.08) 45%, rgba(255, 255, 255, 0.92));
+}
+
+.resume-card strong {
+  font-family: "Teko", "Barlow Condensed", sans-serif;
+  letter-spacing: 0.08em;
+  font-size: 30px;
+}
+
+.resume-btn,
+.today-plan-btn {
+  background: linear-gradient(124deg, #22c55e 0%, #14b8a6 46%, #0ea5a5 100%);
+  color: #ecfeff;
+  font-family: "Oswald", "Barlow Condensed", sans-serif;
+  font-style: italic;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  box-shadow: 0 13px 26px rgba(34, 197, 94, 0.22), 0 0 16px rgba(20, 184, 166, 0.28), inset 0 0 0 1px rgba(220, 252, 231, 0.5);
+}
+
+.resume-btn:hover,
+.today-plan-btn:hover {
+  transform: translateY(-1px) skewX(-4deg);
+  filter: brightness(1.05) saturate(1.04);
+}
+
+.day-chip--active,
+.side-tab.active,
+.filter-tab.active,
+.nav-item.active .nav-item-inner {
+  background: linear-gradient(90deg, rgba(34, 197, 94, 0.22), rgba(20, 184, 166, 0.2), rgba(236, 253, 245, 0.74));
+  box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.34);
+}
+
+.today-plan-copy small,
+.item .tag,
+.banner-content small {
+  color: #065f46;
+  border-color: rgba(34, 197, 94, 0.34);
+  background: rgba(240, 253, 244, 0.82);
+}
+
+.item {
+  background: #fbfef9;
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.24), 0 10px 22px rgba(15, 23, 42, 0.1);
+}
+
+.item:hover {
+  box-shadow: inset 0 0 0 1px rgba(20, 184, 166, 0.42), 0 14px 26px rgba(15, 23, 42, 0.14), var(--glow-cyan);
+}
+
+.modal-panel {
+  background: rgba(255, 255, 255, 0.98);
+  color: var(--text);
+}

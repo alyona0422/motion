@@ -18,6 +18,16 @@
   gap: 10px;
 }
 
+#trChartsView {
+  display: grid;
+  gap: 10px;
+}
+
+#trChartsView[hidden],
+#trListView[hidden] {
+  display: none !important;
+}
+
 .tr-header {
   border-radius: 16px;
   padding: 10px 12px;

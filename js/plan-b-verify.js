@@ -64,11 +64,18 @@ const iwParamSubmit = document.getElementById("iwParamSubmit");
 const iwChartTabs = document.getElementById("iwChartTabs");
 const iwChartCanvas = document.getElementById("iwChartCanvas");
 const iwChartCtx = iwChartCanvas ? iwChartCanvas.getContext("2d") : null;
+const iwAiPanel = document.getElementById("iwAiPanel");
 const iwAiReadyOverlay = document.getElementById("iwAiReadyOverlay");
 const iwAiReadyBtn = document.getElementById("iwAiReadyBtn");
+const iwTrainerSelect = document.getElementById("iwTrainerSelect");
+const iwTrainerOptions = Array.from(document.querySelectorAll("#iwTrainerSelect .iw-trainer-option"));
 const iwAiScoreValue = document.getElementById("iwAiScoreValue");
+const iwAiScoreRing = document.getElementById("iwAiScoreRing");
 const iwAiTierValue = document.getElementById("iwAiTierValue");
 const iwAiHintText = document.getElementById("iwAiHintText");
+const iwAiRingCard = document.querySelector("#iwAiPanel .iw-ai-ring-card");
+const iwAiSkeletonCard = document.getElementById("iwAiSkeletonCard");
+const iwAiSkeletonMessage = document.getElementById("iwAiSkeletonMessage");
 const iwComboBadge = document.getElementById("iwComboBadge");
 const ptProgressTrack = document.getElementById("ptProgressTrack");
 const ptCurrentMoveName = document.getElementById("ptCurrentMoveName");
@@ -89,6 +96,7 @@ const reportCongratsTitle = document.getElementById("reportCongratsTitle");
 const reportSessionMeta = document.getElementById("reportSessionMeta");
 const reportDurationValue = document.getElementById("reportDurationValue");
 const reportCapacityValue = document.getElementById("reportCapacityValue");
+const reportCapacityStat = document.getElementById("reportCapacityStat");
 const reportEnergyValue = document.getElementById("reportEnergyValue");
 const reportCaloriesValue = document.getElementById("reportCaloriesValue");
 const reportModeLabel = document.getElementById("reportModeLabel");
@@ -179,7 +187,9 @@ const iwTrainingState = {
 const iwAiState = {
   ready: false,
   score: 0,
-  tier: "Better",
+  tier: "Miss",
+  personVisible: true,
+  cycleStep: 0,
   combo: 0,
   lastSecond: -1,
   scoreSum: 0,
@@ -187,6 +197,24 @@ const iwAiState = {
   tierCounts: { better: 0, good: 0, perfect: 0 },
   comboHideTimer: 0
 };
+const IW_AI_RING_RADIUS = Number(iwAiScoreRing?.getAttribute("r")) || 46;
+const IW_AI_RING_CIRCUMFERENCE = 2 * Math.PI * IW_AI_RING_RADIUS;
+const IW_AI_RING_GRADIENT_ID = "iwAiRingGradient";
+const IW_AI_RING_PALETTE = {
+  miss: ["#ff7a7a", "#ff3b30"],
+  good: ["#ffe680", "#ffb703"],
+  better: ["#7db6ff", "#2563eb"],
+  perfect: ["#ffc48a", "#ff8f3f"]
+};
+const IW_AI_OUT_OF_ZONE_TIER = "Out of tracking zone";
+const IW_AI_OUT_OF_ZONE_HINT = "Move back into the camera view to continue AI tracking.";
+const IW_AI_CLICK_STATES = [
+  { score: 0, tier: "Miss", hint: "Action not recognized.", personVisible: true },
+  { score: 94, tier: "Perfect", hint: "Your form is very standard.", personVisible: true },
+  { score: 86, tier: "Better", hint: "Lift your leg a bit higher", personVisible: true },
+  { score: 80, tier: "Good", hint: "Lift your leg a bit higher", personVisible: true },
+  { score: null, scoreDisplay: "--", tier: IW_AI_OUT_OF_ZONE_TIER, tierKey: "out-of-zone", hint: IW_AI_OUT_OF_ZONE_HINT, personVisible: false }
+];
 const ptState = {
   active: false,
   paused: false,
@@ -212,6 +240,7 @@ const reportUser = {
 let reportFromScene = "";
 let reportPowerCurveSelectedKey = "session";
 let pilatesEndTrainingFn = null;
+let selectedTrainer = "";
 const adInstallPreviewAsset = {
   image: "assets/show.jpg",
   video: ""
@@ -235,13 +264,24 @@ function exploreDataKey(category) {
   return category === "aiMoves" ? "moves" : category;
 }
 
-function exploreGridItems(category, filter) {
-  const key = exploreDataKey(category);
-  const bucket = libraryData[key];
-  return bucket && bucket[filter] ? bucket[filter] : [];
+function resolveExploreFilter(category, filter) {
+  const safeCategory = String(category || "");
+  const safeFilter = String(filter || "recommended");
+  const planCompatibleFilter = safeCategory === "plans" && safeFilter === "latest" ? "personalized" : safeFilter;
+  if (safeCategory !== "plans" && planCompatibleFilter === "personalized") return "latest";
+  return planCompatibleFilter;
 }
 
-function exploreGridTitle(category) {
+function exploreGridItems(category, filter) {
+  const key = exploreDataKey(category);
+  const filterKey = resolveExploreFilter(category, filter);
+  const bucket = libraryData[key];
+  return bucket && bucket[filterKey] ? bucket[filterKey] : [];
+}
+
+function exploreGridTitle(category, filter) {
+  const filterKey = resolveExploreFilter(category, filter);
+  if (category === "plans") return filterKey === "personalized" ? "Personalized" : "Plans";
   if (category === "aiMoves") return "AI Moves";
   const bucket = libraryData[category];
   return bucket && bucket.title ? bucket.title : "";
@@ -332,6 +372,9 @@ function openPlanDetailFromSelection(item, index, from = "home") {
   const params = new URLSearchParams({ from });
   const planId = resolvePlanIdFromSelection(item, index);
   if (planId) params.set("planId", planId);
+  if (currentCategory === "plans" && resolveExploreFilter(currentCategory, currentFilter) === "personalized") {
+    params.set("personalized", "1");
+  }
   window.location.href = `plan-b-plan-detail.html?${params.toString()}`;
 }
 
@@ -779,7 +822,9 @@ function stopIwTrainingCapture() {
 function resetIwAiCapture() {
   iwAiState.ready = false;
   iwAiState.score = 0;
-  iwAiState.tier = "Better";
+  iwAiState.tier = "Miss";
+  iwAiState.personVisible = true;
+  iwAiState.cycleStep = 0;
   iwAiState.combo = 0;
   iwAiState.lastSecond = -1;
   iwAiState.scoreSum = 0;
@@ -790,14 +835,66 @@ function resetIwAiCapture() {
     iwAiState.comboHideTimer = 0;
   }
   if (iwComboBadge) iwComboBadge.hidden = true;
-  if (iwAiScoreValue) iwAiScoreValue.textContent = "0";
-  if (iwAiTierValue) {
-    iwAiTierValue.textContent = "Better";
-    iwAiTierValue.dataset.tier = "better";
+  updateIwAiPanel(0, "Miss", "Action not recognized.", { personVisible: true });
+}
+
+function resolveIwAiClickState(step) {
+  const safeStep = Math.max(0, Number(step) || 0);
+  return IW_AI_CLICK_STATES[safeStep % IW_AI_CLICK_STATES.length];
+}
+
+function resolveIwAiCycleState(second) {
+  const cycle = Math.max(0, Number(second) || 0) % 8;
+  if (cycle < 2) {
+    return { score: 0, tier: "Miss", hint: "Action not recognized." };
   }
-  if (iwAiHintText) {
-    iwAiHintText.textContent = "Lift your leg a bit higher.";
+  if (cycle < 4) {
+    return { score: 94, tier: "Perfect", hint: "Your form is very standard." };
   }
+  if (cycle < 6) {
+    return { score: 86, tier: "Better", hint: "Lift your leg a bit higher" };
+  }
+  return { score: 80, tier: "Good", hint: "Lift your leg a bit higher" };
+}
+
+function ensureIwAiRingGradient() {
+  if (!iwAiScoreRing) return null;
+  const svg = iwAiScoreRing.ownerSVGElement;
+  if (!svg) return null;
+  const ns = "http://www.w3.org/2000/svg";
+  let defs = svg.querySelector("defs");
+  if (!defs) {
+    defs = document.createElementNS(ns, "defs");
+    svg.insertBefore(defs, svg.firstChild);
+  }
+  let gradient = svg.querySelector(`#${IW_AI_RING_GRADIENT_ID}`);
+  if (!gradient) {
+    gradient = document.createElementNS(ns, "linearGradient");
+    gradient.setAttribute("id", IW_AI_RING_GRADIENT_ID);
+    gradient.setAttribute("x1", "0%");
+    gradient.setAttribute("y1", "0%");
+    gradient.setAttribute("x2", "100%");
+    gradient.setAttribute("y2", "100%");
+    const startStop = document.createElementNS(ns, "stop");
+    startStop.setAttribute("offset", "0%");
+    const endStop = document.createElementNS(ns, "stop");
+    endStop.setAttribute("offset", "100%");
+    gradient.append(startStop, endStop);
+    defs.appendChild(gradient);
+  }
+  return gradient;
+}
+
+function updateIwAiRingGradient(tier) {
+  if (!iwAiScoreRing) return;
+  const tierKey = String(tier || "better").toLowerCase();
+  const palette = IW_AI_RING_PALETTE[tierKey] || IW_AI_RING_PALETTE.better;
+  const gradient = ensureIwAiRingGradient();
+  if (!gradient) return;
+  const stops = gradient.querySelectorAll("stop");
+  if (stops[0]) stops[0].setAttribute("stop-color", palette[0]);
+  if (stops[1]) stops[1].setAttribute("stop-color", palette[1]);
+  iwAiScoreRing.style.stroke = `url(#${IW_AI_RING_GRADIENT_ID})`;
 }
 
 function resolveAiTier(score) {
@@ -807,13 +904,21 @@ function resolveAiTier(score) {
 }
 
 function resolveAiHint(second, score) {
-  if (score >= 88) return "动作很稳定，继续保持";
+  if (score >= 88) return "Great stability, keep it up.";
   const hints = [
     "Lift your leg a bit higher.",
-    "核心可以再收紧一点",
-    "回程速度可以稍微放慢一点"
+    "Brace your core a bit tighter.",
+    "Slow down the return phase slightly."
   ];
   return hints[Math.abs(second) % hints.length];
+}
+
+function updateIwAiRing(score) {
+  if (!iwAiScoreRing) return;
+  const safeScore = clamp(Number(score) || 0, 0, 100);
+  const progressRatio = safeScore / 100;
+  iwAiScoreRing.style.strokeDasharray = String(IW_AI_RING_CIRCUMFERENCE);
+  iwAiScoreRing.style.strokeDashoffset = String(IW_AI_RING_CIRCUMFERENCE * (1 - progressRatio));
 }
 
 function showIwComboBadge(comboCount) {
@@ -830,15 +935,70 @@ function showIwComboBadge(comboCount) {
   }, 900);
 }
 
-function updateIwAiPanel(score, tier, hint) {
-  if (iwAiScoreValue) iwAiScoreValue.textContent = String(Math.round(score));
+function updateIwAiSkeletonPresence(personVisible, message) {
+  const isVisible = personVisible !== false;
+  if (iwAiSkeletonCard) {
+    iwAiSkeletonCard.dataset.personVisible = isVisible ? "true" : "false";
+  }
+  if (iwAiSkeletonMessage) {
+    iwAiSkeletonMessage.hidden = isVisible;
+    if (!isVisible) {
+      iwAiSkeletonMessage.textContent = message || IW_AI_OUT_OF_ZONE_HINT;
+    }
+  }
+}
+
+function updateIwAiPanel(score, tier, hint, options = {}) {
+  const rawScore = Number(score);
+  const hasNumericScore = Number.isFinite(rawScore);
+  const safeScore = clamp(hasNumericScore ? rawScore : 0, 0, 100);
+  const scoreDisplay = options.scoreDisplay ?? (hasNumericScore ? String(Math.round(safeScore)) : "--");
+  const personVisible = options.personVisible !== false;
+  const tierKey = options.tierKey || String(tier || "").toLowerCase().replace(/\s+/g, "-");
+  if (iwAiScoreValue) iwAiScoreValue.textContent = scoreDisplay;
+  updateIwAiRing(safeScore);
   if (iwAiTierValue) {
     iwAiTierValue.textContent = tier;
-    iwAiTierValue.dataset.tier = String(tier || "").toLowerCase();
+    iwAiTierValue.dataset.tier = tierKey;
   }
+  if (iwAiPanel) {
+    iwAiPanel.dataset.tier = personVisible ? String(tier || "").toLowerCase() : "miss";
+  }
+  updateIwAiRingGradient(personVisible ? tier : "Miss");
   if (iwAiHintText) {
     iwAiHintText.textContent = hint || "Lift your leg a bit higher.";
   }
+  updateIwAiSkeletonPresence(personVisible, hint);
+}
+
+function applyIwAiStateAndStats(score, tier, hint, options = {}) {
+  const personVisible = options.personVisible !== false;
+  const rawScore = Number(score);
+  const safeScore = Number.isFinite(rawScore) ? rawScore : 0;
+  if (personVisible && (tier === "Good" || tier === "Perfect")) {
+    iwAiState.combo += 1;
+    if (iwAiState.combo >= 3) showIwComboBadge(iwAiState.combo);
+  } else {
+    iwAiState.combo = 0;
+  }
+  iwAiState.score = safeScore;
+  iwAiState.tier = tier;
+  iwAiState.personVisible = personVisible;
+  if (personVisible) {
+    iwAiState.scoreSum += safeScore;
+    iwAiState.scoreSamples += 1;
+    if (tier === "Perfect") iwAiState.tierCounts.perfect += 1;
+    else if (tier === "Good") iwAiState.tierCounts.good += 1;
+    else if (tier === "Better") iwAiState.tierCounts.better += 1;
+  }
+  updateIwAiPanel(score, tier, hint, options);
+}
+
+function advanceIwAiCycleOnClick() {
+  if (!iwAiState.ready) return;
+  iwAiState.cycleStep = (iwAiState.cycleStep + 1) % IW_AI_CLICK_STATES.length;
+  const nextState = resolveIwAiClickState(iwAiState.cycleStep);
+  applyIwAiStateAndStats(nextState.score, nextState.tier, nextState.hint, nextState);
 }
 
 function openReportFromIwTraining() {
@@ -1132,8 +1292,11 @@ function showTrainingReport(payload) {
   const peak = safeTimeline.length ? Math.max(...safeTimeline) : 0;
   const consistency = calcConsistency(safeTimeline, maxResistance);
   const isPlanTrainingReport = reportFromScene === "plan-training";
-  const isCardioOrPilates = reportFromScene === "pilates"
-    || /cardio|aerobic|fat burn/i.test(`${sceneLabel || ""} ${modeLabel || ""} ${equipmentLabel || ""} ${planName || ""}`);
+  const reportContext = `${reportFromScene || ""} ${sceneLabel || ""} ${modeLabel || ""} ${equipmentLabel || ""} ${planName || ""} ${payload.trainingType || ""}`;
+  const isPilatesReport = reportFromScene === "pilates" || /\bpilates\b/i.test(reportContext);
+  const isBodyweightCardioReport = reportFromScene === "bodyweight-cardio"
+    || /bodyweight[_\s-]*cardio|non[-\s]*resistance[_\s-]*cardio/i.test(reportContext);
+  const hideResistanceMetrics = isPilatesReport || isBodyweightCardioReport;
   const reportIntensityDistribution = [
     { className: "tr-intensity-z1", label: "0-24kg", ratio: 0.6 },
     { className: "tr-intensity-z2", label: "24-48kg", ratio: 0.2 },
@@ -1164,8 +1327,9 @@ function showTrainingReport(payload) {
   if (reportIntensityLegend) reportIntensityLegend.innerHTML = reportIntensityDistribution
     .map((zone) => `<div class="tr-legend-item"><span class="tr-legend-dot ${zone.className}"></span><span>${zone.label} · ${Math.round(zone.ratio * 100)}%</span></div>`)
     .join("");
-  if (reportModeSetupBlock) reportModeSetupBlock.hidden = isPlanTrainingReport || isCardioOrPilates;
-  if (reportStrengthPowerBlock) reportStrengthPowerBlock.hidden = isCardioOrPilates;
+  if (reportCapacityStat) reportCapacityStat.hidden = hideResistanceMetrics;
+  if (reportModeSetupBlock) reportModeSetupBlock.hidden = isPlanTrainingReport || hideResistanceMetrics;
+  if (reportStrengthPowerBlock) reportStrengthPowerBlock.hidden = hideResistanceMetrics;
   if (reportActionCompletionBlock) reportActionCompletionBlock.hidden = !isPlanTrainingReport;
   if (isPlanTrainingReport) renderReportActionCompletion(planMovesData);
   else if (reportActionList) reportActionList.innerHTML = "";
@@ -1190,27 +1354,7 @@ function sampleIwTraining(currentSeconds) {
   const resistance = clamp(iwState.weight + modeOffset + equipOffset + sway, 0, 120);
   iwTrainingState.resistanceTimeline.push(Math.round(resistance * 10) / 10);
   if (iwTrainingState.resistanceTimeline.length > 7200) iwTrainingState.resistanceTimeline.shift();
-  if (iwAiState.ready && second !== iwAiState.lastSecond) {
-    iwAiState.lastSecond = second;
-    const base = 74 + Math.sin(second / 3.5) * 12 + Math.cos(second / 5.2) * 8 + (resistance / 120) * 6;
-    const score = Math.max(58, Math.min(99, Math.round(base)));
-    const tier = resolveAiTier(score);
-    const hint = resolveAiHint(second, score);
-    if (tier === "Good" || tier === "Perfect") {
-      iwAiState.combo += 1;
-      if (iwAiState.combo >= 3) showIwComboBadge(iwAiState.combo);
-    } else {
-      iwAiState.combo = 0;
-    }
-    iwAiState.score = score;
-    iwAiState.tier = tier;
-    iwAiState.scoreSum += score;
-    iwAiState.scoreSamples += 1;
-    if (tier === "Perfect") iwAiState.tierCounts.perfect += 1;
-    else if (tier === "Good") iwAiState.tierCounts.good += 1;
-    else iwAiState.tierCounts.better += 1;
-    updateIwAiPanel(score, tier, hint);
-  }
+  // AI score state now changes by clicking the score card.
 }
 
 function updateIwTimeUI() {
@@ -1440,6 +1584,10 @@ function openImmersiveWorkout() {
     iwAiReadyOverlay.classList.add("is-visible");
     iwAiReadyOverlay.setAttribute("aria-hidden", "false");
   }
+  if (iwTrainerOptions.length) {
+    const defaultOption = iwTrainerOptions.find((option) => option.classList.contains("is-lg")) || iwTrainerOptions[0];
+    setSelectedTrainer(defaultOption);
+  }
 }
 
 function closeImmersiveWorkout() {
@@ -1463,15 +1611,44 @@ function closeImmersiveWorkout() {
 
 function startIwTrainingAfterReady() {
   if (!iwVideo || !iwPlayBtn) return;
+  if (!selectedTrainer && iwTrainerOptions.length) {
+    const defaultOption = iwTrainerOptions.find((option) => option.classList.contains("is-selected")) || iwTrainerOptions[0];
+    selectedTrainer = defaultOption ? String(defaultOption.dataset.trainer || "") : "";
+  }
   if (iwAiReadyOverlay) {
     iwAiReadyOverlay.classList.remove("is-visible");
     iwAiReadyOverlay.setAttribute("aria-hidden", "true");
   }
   iwAiState.ready = true;
+  iwAiState.cycleStep = 0;
+  iwAiState.lastSecond = -1;
   resetIwTrainingCapture();
+  const initialAiState = resolveIwAiClickState(0);
+  updateIwAiPanel(initialAiState.score, initialAiState.tier, initialAiState.hint, initialAiState);
   iwVideo.play().catch(() => {});
   iwPlayBtn.textContent = "Pause";
   iwState.playing = true;
+}
+
+function setSelectedTrainer(option) {
+  if (!option || !iwTrainerOptions.length) return;
+  iwTrainerOptions.forEach((item) => {
+    const isCurrent = item === option;
+    item.classList.toggle("is-selected", isCurrent);
+    item.setAttribute("aria-checked", String(isCurrent));
+  });
+  selectedTrainer = String(option.dataset.trainer || "");
+}
+
+function initIwTrainerSelection() {
+  if (!iwTrainerSelect || !iwTrainerOptions.length) return;
+  const defaultOption = iwTrainerOptions.find((option) => option.classList.contains("is-selected")) || iwTrainerOptions[0];
+  setSelectedTrainer(defaultOption);
+  iwTrainerOptions.forEach((option) => {
+    option.addEventListener("click", () => {
+      setSelectedTrainer(option);
+    });
+  });
 }
 
 function createCard(item, index) {
@@ -1503,7 +1680,7 @@ function createCard(item, index) {
 function renderGrid() {
   if (!grid || !title) return;
   const items = exploreGridItems(currentCategory, currentFilter);
-  title.textContent = exploreGridTitle(currentCategory);
+  title.textContent = exploreGridTitle(currentCategory, currentFilter);
   grid.innerHTML = "";
   items.forEach((item, index) => grid.appendChild(createCard(item, index)));
 }
@@ -1570,8 +1747,13 @@ if (adActionHero && adVideoFallback) {
 }
 
 if (iwEndBtn) iwEndBtn.addEventListener("click", openReportFromIwTraining);
+initIwTrainerSelection();
 if (iwAiReadyBtn) {
   iwAiReadyBtn.addEventListener("click", startIwTrainingAfterReady);
+}
+if (iwAiRingCard) {
+  iwAiRingCard.style.cursor = "pointer";
+  iwAiRingCard.addEventListener("click", advanceIwAiCycleOnClick);
 }
 if (iwFlipBtn && iwVideo) {
   iwFlipBtn.addEventListener("click", () => {
@@ -1760,11 +1942,11 @@ if (strengthTrainingBtn) {
     window.location.href = "free-training-strength-temp.html";
   });
 }
-const cardioFatBurnBtn = document.getElementById("cardioFatBurnBtn");
-if (cardioFatBurnBtn) {
-  cardioFatBurnBtn.addEventListener("click", () => {
+const resistanceCardioBtn = document.getElementById("resistanceCardioBtn");
+if (resistanceCardioBtn) {
+  resistanceCardioBtn.addEventListener("click", () => {
     hideTrainingTypeModal();
-    window.location.href = "free-training-strength-temp.html?type=cardio";
+    window.location.href = "free-training-strength-temp.html?type=resistance_cardio";
   });
 }
 
@@ -2096,13 +2278,16 @@ function initPlanDetailPage() {
   const cycleEl = document.getElementById("planDetailCycle");
   const sessionsEl = document.getElementById("planDetailSessions");
   const difficultyEl = document.getElementById("planDetailDifficulty");
+  const planTypeEl = document.getElementById("planDetailPlanType");
   const sceneChipEl = document.getElementById("planDetailSceneChip");
   const cycleChipEl = document.getElementById("planDetailCycleChip");
   const sessionsChipEl = document.getElementById("planDetailSessionsChip");
   const difficultyChipEl = document.getElementById("planDetailDifficultyChip");
+  const planTypeChipEl = document.getElementById("planDetailPlanTypeChip");
   const hintEl = document.getElementById("planDetailScheduleHint");
   const weekTabsEl = document.getElementById("planDetailWeekTabs");
   const dayTabsEl = document.getElementById("planDetailDayTabs");
+  const movesTitleEl = document.getElementById("planDetailMovesTitle");
   const movesListEl = document.getElementById("planDetailMovesList");
   const emptyEl = document.getElementById("planDetailMovesEmpty");
   const dayActionsEl = document.getElementById("planDetailDayActions");
@@ -2122,6 +2307,7 @@ function initPlanDetailPage() {
   const overview = plans.find((item) => item && item.id === requestedPlanId) || fallbackPlan;
   if (!overview) return;
   const pickedDetail = planDetails[overview.id] || null;
+  const showPersonalizedType = params.get("personalized") === "1" || Boolean(overview.isPersonalized);
 
   const parseLeadingInt = (value, fallbackValue) => {
     const matched = String(value || "").match(/\d+/);
@@ -2201,6 +2387,13 @@ function initPlanDetailPage() {
   syncMetaChipClass(cycleChipEl, "cycle", mergedPlan.cycleWeeks);
   syncMetaChipClass(sessionsChipEl, "sessions", mergedPlan.sessionsPerWeek);
   syncMetaChipClass(difficultyChipEl, "difficulty", mergedPlan.difficulty);
+  if (planTypeChipEl && planTypeEl) {
+    planTypeChipEl.hidden = !showPersonalizedType;
+    if (showPersonalizedType) {
+      planTypeEl.textContent = "Personalized";
+      syncMetaChipClass(planTypeChipEl, "plan-type", "Personalized");
+    }
+  }
 
   const schedule = mergedPlan.schedule;
   const initialWeek = Math.max(1, parseInt(params.get("week") || "1", 10) || 1);
@@ -2336,6 +2529,20 @@ function initPlanDetailPage() {
     acc[dayKey] = idx;
     return acc;
   }, {});
+  const dayMetaMap = {};
+  schedule.forEach((weekItem, weekIndex) => {
+    const weekValue = Number(weekItem && weekItem.week) || weekIndex + 1;
+    const days = Array.isArray(weekItem && weekItem.days) ? weekItem.days : [];
+    days.forEach((dayItem, dayIndex) => {
+      const dayValue = Number(dayItem && dayItem.day) || dayIndex + 1;
+      const dayKey = toDayKey(weekValue, dayValue);
+      dayMetaMap[dayKey] = {
+        weekValue,
+        dayValue,
+        moves: Array.isArray(dayItem && dayItem.moves) ? dayItem.moves : []
+      };
+    });
+  });
   const requestedCurrentDay = Math.max(0, parseInt(params.get("currentDay") || "0", 10) || 0);
   const currentDayIndex = Math.max(0, requestedCurrentDay - 1);
   const isJoinedFromParams = params.get("joined") === "1";
@@ -2358,45 +2565,136 @@ function initPlanDetailPage() {
     }
   }
 
+  const readTrainingDaysForRender = (planId) => {
+    try {
+      const raw = sessionStorage.getItem(STORAGE_PLAN_TRAINING_DAYS);
+      const parsed = raw ? JSON.parse(raw) : {};
+      const values = parsed && typeof parsed === "object" ? parsed[planId] : [];
+      return Array.isArray(values)
+        ? values.filter((item) => typeof item === "string" && /^\d{4}-\d{2}-\d{2}$/.test(item)).sort()
+        : [];
+    } catch (e) {
+      return [];
+    }
+  };
+  const addDaysToDateKey = (dateKey, addDays) => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(dateKey || ""))) return "";
+    const [yearText, monthText, dayText] = String(dateKey).split("-");
+    const year = Number(yearText);
+    const month = Number(monthText);
+    const day = Number(dayText);
+    if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return "";
+    const date = new Date(year, month - 1, day);
+    if (Number.isNaN(date.getTime())) return "";
+    date.setDate(date.getDate() + addDays);
+    const nextYear = date.getFullYear();
+    const nextMonth = String(date.getMonth() + 1).padStart(2, "0");
+    const nextDay = String(date.getDate()).padStart(2, "0");
+    return `${nextYear}-${nextMonth}-${nextDay}`;
+  };
+  const buildBaseDateMap = () => {
+    const selectedDateKeys = readTrainingDaysForRender(mergedPlan.id);
+    if (!selectedDateKeys.length) return {};
+    const baseDateMap = {};
+    orderedDayKeys.forEach((dayKey, index) => {
+      const selectedDate = selectedDateKeys[index % selectedDateKeys.length];
+      const weekOffset = Math.floor(index / selectedDateKeys.length);
+      baseDateMap[dayKey] = addDaysToDateKey(selectedDate, weekOffset * 7);
+    });
+    return baseDateMap;
+  };
+  const renderMoveCard = (move, parentEl) => {
+    const card = document.createElement("article");
+    card.className = "plan-detail-move-card";
+    const top = document.createElement("div");
+    top.className = "plan-detail-move-top";
+    const name = document.createElement("h4");
+    name.textContent = move.name || "Move";
+    top.appendChild(name);
+    card.appendChild(top);
+    const tags = document.createElement("div");
+    tags.className = "plan-detail-move-tags";
+    const setsChip = document.createElement("span");
+    setsChip.className = "plan-detail-tag";
+    setsChip.textContent = `${Number(move.sets || 3)} sets`;
+    const repsChip = document.createElement("span");
+    repsChip.className = "plan-detail-tag";
+    repsChip.textContent = move.repsOrDuration || "10 reps";
+    const restChip = document.createElement("span");
+    restChip.className = "plan-detail-tag";
+    restChip.textContent = `${Number(move.restSeconds || 30)}s rest`;
+    tags.append(setsChip, repsChip, restChip);
+    if (Number.isFinite(Number(move.weightKg))) {
+      const weightChip = document.createElement("span");
+      weightChip.className = "plan-detail-tag plan-detail-tag--weight";
+      weightChip.textContent = `${Number(move.weightKg)}kg`;
+      tags.appendChild(weightChip);
+    }
+    card.appendChild(tags);
+    parentEl.appendChild(card);
+  };
+
   function renderMoves() {
     const weekNode = schedule[state.weekIndex] || { week: state.weekIndex + 1, days: [] };
     const dayNode = Array.isArray(weekNode.days) ? weekNode.days[state.dayIndex] : null;
-    const moves = Array.isArray(dayNode && dayNode.moves) ? dayNode.moves : [];
     const weekLabel = String(weekNode.week || state.weekIndex + 1);
     const dayLabel = String((dayNode && dayNode.day) || state.dayIndex + 1).padStart(2, "0");
     hintEl.textContent = `Week ${weekLabel} · Day ${dayLabel}`;
     movesListEl.innerHTML = "";
-    emptyEl.hidden = moves.length > 0;
-    moves.forEach((move) => {
-      const card = document.createElement("article");
-      card.className = "plan-detail-move-card";
-      const top = document.createElement("div");
-      top.className = "plan-detail-move-top";
-      const name = document.createElement("h4");
-      name.textContent = move.name || "Move";
-      top.appendChild(name);
-      card.appendChild(top);
-      const tags = document.createElement("div");
-      tags.className = "plan-detail-move-tags";
-      const setsChip = document.createElement("span");
-      setsChip.className = "plan-detail-tag";
-      setsChip.textContent = `${Number(move.sets || 3)} sets`;
-      const repsChip = document.createElement("span");
-      repsChip.className = "plan-detail-tag";
-      repsChip.textContent = move.repsOrDuration || "10 reps";
-      const restChip = document.createElement("span");
-      restChip.className = "plan-detail-tag";
-      restChip.textContent = `${Number(move.restSeconds || 30)}s rest`;
-      tags.append(setsChip, repsChip, restChip);
-      if (Number.isFinite(Number(move.weightKg))) {
-        const weightChip = document.createElement("span");
-        weightChip.className = "plan-detail-tag plan-detail-tag--weight";
-        weightChip.textContent = `${Number(move.weightKg)}kg`;
-        tags.appendChild(weightChip);
-      }
-      card.appendChild(tags);
-      movesListEl.appendChild(card);
+    if (movesTitleEl) movesTitleEl.hidden = false;
+
+    const { dayKey: currentDayKey } = getCurrentDayMeta();
+    const currentMeta = dayMetaMap[currentDayKey] || { weekValue: Number(weekNode.week || 1), dayValue: Number((dayNode && dayNode.day) || 1), moves: [] };
+    const currentMoves = Array.isArray(currentMeta.moves) ? currentMeta.moves : [];
+    const joined = isJoinedPlan();
+    const rescheduleMap = joined ? readPlanDayRescheduleMap(mergedPlan.id) : {};
+    const baseDateMap = buildBaseDateMap();
+    const resolveDateKey = (dayKey) => {
+      const movedDate = rescheduleMap[dayKey];
+      const baseDate = baseDateMap[dayKey];
+      return movedDate || baseDate || "";
+    };
+    const currentDateKey = resolveDateKey(currentDayKey);
+    const groupedDayKeys = currentDateKey
+      ? orderedDayKeys.filter((dayKey) => resolveDateKey(dayKey) === currentDateKey)
+      : [currentDayKey];
+    const hasRescheduledAdds = joined && groupedDayKeys.some((dayKey) => dayKey !== currentDayKey && Boolean(rescheduleMap[dayKey]));
+
+    if (!hasRescheduledAdds) {
+      emptyEl.hidden = currentMoves.length > 0;
+      currentMoves.forEach((move) => renderMoveCard(move, movesListEl));
+      return;
+    }
+
+    if (movesTitleEl) movesTitleEl.hidden = true;
+    let totalMoveCount = 0;
+    groupedDayKeys.forEach((dayKey) => {
+      const meta = dayMetaMap[dayKey];
+      if (!meta) return;
+      const moves = Array.isArray(meta.moves) ? meta.moves : [];
+      totalMoveCount += moves.length;
+
+      const group = document.createElement("section");
+      group.className = "plan-detail-move-group";
+      const groupHead = document.createElement("header");
+      groupHead.className = "plan-detail-move-group-head";
+      const title = document.createElement("h4");
+      title.className = "plan-detail-group-title";
+      const sourceDate = baseDateMap[dayKey] || resolveDateKey(dayKey) || currentDateKey;
+      title.textContent = `${sourceDate} W${meta.weekValue} Day${meta.dayValue}`;
+      const count = document.createElement("p");
+      count.className = "plan-detail-group-count";
+      count.textContent = `${moves.length} ${moves.length === 1 ? "move" : "moves"}`;
+      groupHead.append(title, count);
+      group.appendChild(groupHead);
+
+      const list = document.createElement("div");
+      list.className = "plan-detail-move-group-list";
+      moves.forEach((move) => renderMoveCard(move, list));
+      group.appendChild(list);
+      movesListEl.appendChild(group);
     });
+    emptyEl.hidden = totalMoveCount > 0;
   }
 
   let refreshDayActionControls = () => {};
@@ -3057,10 +3355,10 @@ function initMoveDetailPage() {
   const idx = Math.max(0, parseInt(params.get("idx") || "0", 10) || 0);
   const cat = params.get("cat") || "plans";
   const filter = params.get("filter") || "recommended";
+  const safeFilter = resolveExploreFilter(cat, filter);
   currentCategory = cat;
-  currentFilter = filter;
-  const dataKey = exploreDataKey(cat);
-  const items = libraryData[dataKey] && libraryData[dataKey][filter];
+  currentFilter = safeFilter;
+  const items = exploreGridItems(cat, safeFilter);
   if (items && items[idx] !== undefined) openMoveDetail(items[idx], idx);
 }
 initMoveDetailPage();

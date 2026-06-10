@@ -642,9 +642,12 @@
   <script>
     (function () {
       var p = new URLSearchParams(window.location.search);
-      if (p.get("type") === "cardio") {
+      var trainingType = p.get("type");
+      if (trainingType === "cardio" || trainingType === "bodyweight_cardio") {
         document.body.classList.add("is-cardio");
-        document.title = "Cardio & Fat Burn";
+        document.title = "Bodyweight Cardio";
+      } else if (trainingType === "resistance_cardio") {
+        document.title = "Resistance Cardio";
       }
     })();
   </script>
@@ -806,11 +809,21 @@
       const endBtn = document.getElementById("endBtn");
       (function () {
         var params = new URLSearchParams(window.location.search);
-        if (params.get("type") === "cardio") {
+        var trainingType = params.get("type");
+        if (trainingType === "cardio" || trainingType === "bodyweight_cardio") {
           var titleEl = document.getElementById("pageMainTitle");
           var subEl = document.getElementById("pageSubtitle");
-          if (titleEl) titleEl.textContent = "Cardio & Fat Burn";
-          if (subEl) subEl.textContent = "Cardio boost & calorie burn";
+          var topTitleEl = document.querySelector(".top-bar-strength-title");
+          if (titleEl) titleEl.textContent = "Bodyweight Cardio";
+          if (subEl) subEl.textContent = "Cardio training without resistance control";
+          if (topTitleEl) topTitleEl.textContent = "Bodyweight Cardio · Free Training";
+        } else if (trainingType === "resistance_cardio") {
+          var titleEl2 = document.getElementById("pageMainTitle");
+          var subEl2 = document.getElementById("pageSubtitle");
+          var topTitleEl2 = document.querySelector(".top-bar-strength-title");
+          if (titleEl2) titleEl2.textContent = "Resistance Cardio";
+          if (subEl2) subEl2.textContent = "Rowing, skiing, and cardio with resistance control";
+          if (topTitleEl2) topTitleEl2.textContent = "Resistance Cardio · Free Training";
         }
       })();
       const modeBtns = document.querySelectorAll(".mode-btn");
