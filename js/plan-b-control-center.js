@@ -8,6 +8,7 @@
   const handle = document.getElementById("controlCenterHandle");
   const panelDragZone = document.getElementById("controlCenterDrag");
   const scrim = document.getElementById("controlCenterScrim");
+  const fab = document.getElementById("controlCenterFab");
   const wifiTile = document.getElementById("wifiToggleTile");
   const btTile = document.getElementById("btToggleTile");
 
@@ -18,6 +19,7 @@
   let isOpen = false;
   let dragState = null;
   let suppressHandleClick = false;
+  let suppressFabClick = false;
 
   function updateOffset() {
     const height = panel.getBoundingClientRect().height || 280;
@@ -168,11 +170,105 @@
   wireTileToggle(wifiTile);
   wireTileToggle(btTile);
 
+  if (wifiTile) {
+    let longPressTimer = null;
+    let suppressNextWifiClick = false;
+
+    const clearLongPress = () => {
+      if (!longPressTimer) return;
+      window.clearTimeout(longPressTimer);
+      longPressTimer = null;
+    };
+
+    const startLongPress = () => {
+      clearLongPress();
+      longPressTimer = window.setTimeout(() => {
+        suppressNextWifiClick = true;
+        window.location.href = "plan-b-device-settings.html";
+      }, 550);
+    };
+
+    wifiTile.addEventListener("pointerdown", startLongPress);
+    wifiTile.addEventListener("pointerup", clearLongPress);
+    wifiTile.addEventListener("pointercancel", clearLongPress);
+    wifiTile.addEventListener("pointerleave", clearLongPress);
+    wifiTile.addEventListener("contextmenu", (event) => event.preventDefault());
+    wifiTile.addEventListener("click", (event) => {
+      if (!suppressNextWifiClick) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      suppressNextWifiClick = false;
+    }, { capture: true });
+  }
+
+  if (fab) {
+    let fabDrag = null;
+
+    const placeFab = (left, top) => {
+      const shellRect = shell.getBoundingClientRect();
+      const fabRect = fab.getBoundingClientRect();
+      const minLeft = 10;
+      const minTop = 10;
+      const maxLeft = shellRect.width - fabRect.width - 10;
+      const maxTop = shellRect.height - fabRect.height - 10;
+      const clampedLeft = Math.min(Math.max(left, minLeft), Math.max(minLeft, maxLeft));
+      const clampedTop = Math.min(Math.max(top, minTop), Math.max(minTop, maxTop));
+      fab.style.left = `${clampedLeft}px`;
+      fab.style.top = `${clampedTop}px`;
+      fab.style.right = "auto";
+      fab.style.bottom = "auto";
+    };
+
+    fab.addEventListener("pointerdown", (event) => {
+      const shellRect = shell.getBoundingClientRect();
+      const fabRect = fab.getBoundingClientRect();
+      fab.setPointerCapture(event.pointerId);
+      fabDrag = {
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+        startLeft: fabRect.left - shellRect.left,
+        startTop: fabRect.top - shellRect.top,
+        moved: false
+      };
+      fab.classList.add("is-dragging");
+    });
+
+    fab.addEventListener("pointermove", (event) => {
+      if (!fabDrag || fabDrag.pointerId !== event.pointerId) return;
+      const deltaX = event.clientX - fabDrag.startX;
+      const deltaY = event.clientY - fabDrag.startY;
+      if (Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3) {
+        fabDrag.moved = true;
+      }
+      placeFab(fabDrag.startLeft + deltaX, fabDrag.startTop + deltaY);
+    });
+
+    const endFabDrag = (event) => {
+      if (!fabDrag || fabDrag.pointerId !== event.pointerId) return;
+      suppressFabClick = fabDrag.moved;
+      fabDrag = null;
+      fab.classList.remove("is-dragging");
+    };
+
+    fab.addEventListener("pointerup", endFabDrag);
+    fab.addEventListener("pointercancel", endFabDrag);
+
+    fab.addEventListener("click", () => {
+      if (suppressFabClick) {
+        suppressFabClick = false;
+        return;
+      }
+      if (!isOpen) openCenter();
+    });
+  }
+
   const sliders = [...controlCenter.querySelectorAll("[data-slider]")];
   const volumePath = document.getElementById("volumeIconPath");
   const sliderState = {
     brightness: 0.62,
-    volume: 0.58
+    volume: 0.58,
+    ambient: 0.48
   };
 
   function applyBrightness(value) {
@@ -187,6 +283,12 @@
     } else {
       volumePath.setAttribute("d", "M11 5L6 9H3v6h3l5 4V5zm3.5 4.5a5 5 0 0 1 0 5m2.5-7.5a8.5 8.5 0 0 1 0 10");
     }
+  }
+
+  function applyAmbient(value) {
+    const alpha = 0.08 + value * 0.2;
+    shell.style.boxShadow =
+      `0 42px 110px rgba(0, 0, 0, 0.76), inset 0 0 0 1px rgba(148, 163, 184, 0.2), 0 0 36px rgba(14, 165, 233, ${alpha.toFixed(2)})`;
   }
 
   function renderSlider(sliderEl, value) {
@@ -205,6 +307,7 @@
     if (sliderEl) renderSlider(sliderEl, clamped);
     if (key === "brightness") applyBrightness(clamped);
     if (key === "volume") applyVolumeIcon(clamped);
+    if (key === "ambient") applyAmbient(clamped);
   }
 
   function wireSlider(sliderEl) {
@@ -236,60 +339,7 @@
   sliders.forEach((slider) => wireSlider(slider));
   setSliderValue("brightness", sliderState.brightness);
   setSliderValue("volume", sliderState.volume);
-
-  const playlist = [
-    { title: "Night Sprint", artist: "Pulse Drive" },
-    { title: "Skyline Tempo", artist: "Nova Loop" },
-    { title: "Core Ignite", artist: "Atlas Beat" }
-  ];
-  let trackIndex = 0;
-  let isPlaying = true;
-
-  const musicCard = document.getElementById("ccMusicCard");
-  const titleEl = document.getElementById("ccMusicTitle");
-  const artistEl = document.getElementById("ccMusicArtist");
-  const playBtn = document.getElementById("ccPlayBtn");
-  const prevBtn = document.getElementById("ccPrevBtn");
-  const nextBtn = document.getElementById("ccNextBtn");
-  const playIcon = document.getElementById("ccPlayIcon");
-  const pauseIcon = document.getElementById("ccPauseIcon");
-
-  function renderTrack() {
-    const track = playlist[trackIndex];
-    if (titleEl) titleEl.textContent = track.title;
-    if (artistEl) artistEl.textContent = track.artist;
-  }
-
-  function renderPlaying() {
-    if (musicCard) musicCard.classList.toggle("playing", isPlaying);
-    if (playIcon) playIcon.hidden = isPlaying;
-    if (pauseIcon) pauseIcon.hidden = !isPlaying;
-    if (playBtn) playBtn.setAttribute("aria-label", isPlaying ? "Pause" : "Play");
-  }
-
-  if (prevBtn) {
-    prevBtn.addEventListener("click", () => {
-      trackIndex = (trackIndex - 1 + playlist.length) % playlist.length;
-      renderTrack();
-    });
-  }
-
-  if (nextBtn) {
-    nextBtn.addEventListener("click", () => {
-      trackIndex = (trackIndex + 1) % playlist.length;
-      renderTrack();
-    });
-  }
-
-  if (playBtn) {
-    playBtn.addEventListener("click", () => {
-      isPlaying = !isPlaying;
-      renderPlaying();
-    });
-  }
-
-  renderTrack();
-  renderPlaying();
+  setSliderValue("ambient", sliderState.ambient);
   updateOffset();
   applyProgress(0);
   window.addEventListener("resize", updateOffset);

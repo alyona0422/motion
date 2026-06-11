@@ -261,8 +261,52 @@
   cursor: n-resize;
 }
 
+.cc-fab {
+  position: absolute;
+  bottom: 94px;
+  right: 18px;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.34);
+  background: rgba(15, 23, 42, 0.18);
+  backdrop-filter: blur(10px);
+  color: var(--text);
+  box-shadow: 0 10px 24px rgba(2, 6, 23, 0.24);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 25;
+  opacity: 0.72;
+  touch-action: none;
+  user-select: none;
+  transition: opacity 180ms ease, transform 180ms ease, border-color 180ms ease;
+}
+
+.cc-fab:hover {
+  opacity: 0.95;
+  border-color: rgba(148, 163, 184, 0.48);
+}
+
+.cc-fab svg {
+  width: 18px;
+  height: 18px;
+}
+
+.cc-fab.is-dragging {
+  opacity: 0.98;
+  transform: scale(1.03);
+}
+
 body.cc-open {
   overflow: hidden;
+}
+
+body.cc-open .cc-fab {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-8px);
 }
 
 @keyframes ccSpin {
@@ -275,7 +319,8 @@ body.cc-open {
   .cc-panel,
   .cc-scrim,
   .cc-btn,
-  .cc-tile {
+  .cc-tile,
+  .cc-fab {
     transition: none;
   }
 
