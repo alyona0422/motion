@@ -233,14 +233,12 @@
       row.append(image, content);
       listInnerEl.appendChild(row);
     });
-
-    renderActiveFilterTags();
   }
 
   function renderFilterPanel() {
     if (!filterPanel) return;
     const tab = state.activeTab;
-    const source = getActiveFilterSource();
+    ensureTabFilterState(tab);
     filterPanel.innerHTML = "";
     getFiltersForTab(tab).forEach(({ key, label, options }) => {
       const group = document.createElement("section");
@@ -250,7 +248,7 @@
       title.textContent = label;
       const optionsWrap = document.createElement("div");
       optionsWrap.className = "all-training-filter-options";
-      const set = source[key] || new Set();
+      const set = state.filterMap[tab][key];
 
       const allChip = document.createElement("button");
       allChip.type = "button";
@@ -260,6 +258,7 @@
       allChip.addEventListener("click", () => {
         set.clear();
         renderFilterPanel();
+        renderList();
       });
       optionsWrap.appendChild(allChip);
 
@@ -273,6 +272,7 @@
           if (set.has(option)) set.delete(option);
           else set.add(option);
           renderFilterPanel();
+          renderList();
         });
         optionsWrap.appendChild(chip);
       });
@@ -283,7 +283,7 @@
 
   function setActiveTab(tab) {
     if (!TAB_CONFIG[tab]) return;
-    if (state.sheetOpen) closeFilterSheet(true);
+    if (state.panelOpen) setPanelOpen(false);
     state.activeTab = tab;
     ensureTabFilterState(tab);
     tabButtons.forEach((btn) => {
@@ -303,15 +303,8 @@
   });
 
   if (filterToggle) {
-    filterToggle.addEventListener("click", () => {
-      if (state.sheetOpen) closeFilterSheet(true);
-      else openFilterSheet();
-    });
+    filterToggle.addEventListener("click", () => setPanelOpen(!state.panelOpen));
   }
-  if (filterScrim) filterScrim.addEventListener("click", () => closeFilterSheet(true));
-  if (filterClose) filterClose.addEventListener("click", () => closeFilterSheet(true));
-  if (filterReset) filterReset.addEventListener("click", resetDraftFilters);
-  if (filterApply) filterApply.addEventListener("click", applyDraftFilters);
 
   if (searchInput) {
     searchInput.addEventListener("input", () => {
@@ -325,9 +318,10 @@
   const initTab = initParams.get("tab");
   if (initTab && TAB_CONFIG[initTab]) state.activeTab = initTab;
   setViewMode("list");
-  closeFilterSheet(true);
+  setPanelOpen(false);
+  renderFilterPanel();
   renderList();
   const initView = initParams.get("view");
   if (initView === "waterfall" || initView === "list") setViewMode(initView);
-  if (initParams.get("filters") === "open") openFilterSheet();
+  if (initParams.get("filters") === "open") setPanelOpen(true);
 })();

@@ -114,6 +114,19 @@
   box-shadow: inset 0 0 0 1px rgba(0, 122, 255, 0.42), var(--glow-cyan);
 }
 
+.tr-stat-period {
+  margin: 0;
+  padding: 0 2px;
+  color: #9fb0c6;
+  font-size: 11px;
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+}
+
+.tr-stat-period[hidden] {
+  display: none !important;
+}
+
 .tr-card {
   border-radius: 14px;
   background: rgba(2, 6, 23, 0.44);
@@ -225,8 +238,116 @@
   box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.16);
   padding: 8px 8px 10px;
   display: grid;
-  justify-items: center;
   gap: 5px;
+  min-width: 0;
+}
+
+.tr-body-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
+  width: 100%;
+  align-items: center;
+}
+
+.tr-body-layout--back {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.tr-body-svg-wrap {
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+
+.tr-muscle-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+  align-content: start;
+  min-width: 0;
+}
+
+.tr-muscle-legend-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 6px;
+  border-radius: 6px;
+  background: rgba(15, 23, 42, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.16);
+  font-size: 10px;
+  line-height: 1.25;
+}
+
+.tr-muscle-legend-name {
+  color: #cbd5e1;
+  min-width: 0;
+}
+
+.tr-muscle-legend-count {
+  color: #f8fafc;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.tr-list-filter-bar {
+  border-radius: 12px;
+  padding: 8px;
+  background: rgba(8, 14, 25, 0.62);
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.16);
+}
+
+.tr-list-filter-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: end;
+}
+
+.tr-date-field {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.tr-date-label {
+  color: #9fb0c6;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
+.tr-date-field input[type="date"] {
+  width: 100%;
+  min-height: 34px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(2, 6, 23, 0.66);
+  color: var(--text);
+  padding: 0 8px;
+  font-size: 11px;
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.24);
+}
+
+.tr-date-field input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.85);
+  cursor: pointer;
+}
+
+.tr-date-reset {
+  border: none;
+  border-radius: 10px;
+  min-height: 34px;
+  padding: 0 10px;
+  background: rgba(148, 163, 184, 0.2);
+  color: #f1f5f9;
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  white-space: nowrap;
 }
 
 .tr-body-figure figcaption {
@@ -234,6 +355,7 @@
   font-size: 11px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  text-align: center;
 }
 
 .tr-body-svg {

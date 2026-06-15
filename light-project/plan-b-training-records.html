@@ -32,6 +32,7 @@
             <button class="tr-range-btn" type="button" data-range="month" role="tab" aria-selected="false">月统计</button>
             <button class="tr-range-btn" type="button" data-range="all" role="tab" aria-selected="false">全部训练</button>
           </div>
+          <p class="tr-stat-period" id="trStatPeriod" aria-live="polite"></p>
         </header>
 
         <div id="trChartsView">
@@ -86,25 +87,35 @@
               <p>下方统计来自已完成动作训练的肌肉数据。</p>
             </div>
             <div class="tr-body-map" id="bodyMapRoot">
-              <figure class="tr-body-figure">
+              <figure class="tr-body-figure tr-body-figure--front">
                 <figcaption>正面</figcaption>
-                <svg class="tr-body-svg" viewBox="0 0 120 220" aria-label="正面身体图">
-                  <path class="tr-body-outline" d="M60 10c11 0 20 9 20 20 0 8-5 15-11 18l2 13 10 15-3 53-10 12v26h-16v-26l-10-12-3-53 10-15 2-13c-6-3-11-10-11-18 0-11 9-20 20-20z"/>
-                  <path id="chest" class="tr-muscle-zone" d="M45 67h30v24H45z"/>
-                  <path id="core" class="tr-muscle-zone" d="M48 93h24v34H48z"/>
-                  <path id="arms" class="tr-muscle-zone" d="M33 78h10v40H33zm44 0h10v40H77z"/>
-                  <path id="glutes" class="tr-muscle-zone" d="M47 127h26v16H47z"/>
-                  <path id="legs" class="tr-muscle-zone" d="M44 144h13v46H44zm19 0h13v46H63z"/>
-                </svg>
+                <div class="tr-body-layout">
+                  <ul class="tr-muscle-legend tr-muscle-legend--left" id="frontMuscleLegend" aria-label="正面肌肉训练次数"></ul>
+                  <div class="tr-body-svg-wrap">
+                    <svg class="tr-body-svg" viewBox="0 0 120 220" aria-label="正面身体图">
+                      <path class="tr-body-outline" d="M60 10c11 0 20 9 20 20 0 8-5 15-11 18l2 13 10 15-3 53-10 12v26h-16v-26l-10-12-3-53 10-15 2-13c-6-3-11-10-11-18 0-11 9-20 20-20z"/>
+                      <path id="chest" class="tr-muscle-zone" d="M45 67h30v24H45z"/>
+                      <path id="core" class="tr-muscle-zone" d="M48 93h24v34H48z"/>
+                      <path id="arms" class="tr-muscle-zone" d="M33 78h10v40H33zm44 0h10v40H77z"/>
+                      <path id="glutes" class="tr-muscle-zone" d="M47 127h26v16H47z"/>
+                      <path id="legs" class="tr-muscle-zone" d="M44 144h13v46H44zm19 0h13v46H63z"/>
+                    </svg>
+                  </div>
+                </div>
               </figure>
-              <figure class="tr-body-figure">
+              <figure class="tr-body-figure tr-body-figure--back">
                 <figcaption>背面</figcaption>
-                <svg class="tr-body-svg" viewBox="0 0 120 220" aria-label="背面身体图">
-                  <path class="tr-body-outline" d="M60 10c11 0 20 9 20 20 0 8-5 15-11 18l2 13 10 15-3 53-10 12v26h-16v-26l-10-12-3-53 10-15 2-13c-6-3-11-10-11-18 0-11 9-20 20-20z"/>
-                  <path id="back" class="tr-muscle-zone" d="M45 67h30v48H45z"/>
-                  <path id="rearShoulders" class="tr-muscle-zone" d="M36 68h11v24H36zm37 0h11v24H73z"/>
-                  <path id="hamstrings" class="tr-muscle-zone" d="M44 144h13v46H44zm19 0h13v46H63z"/>
-                </svg>
+                <div class="tr-body-layout tr-body-layout--back">
+                  <div class="tr-body-svg-wrap">
+                    <svg class="tr-body-svg" viewBox="0 0 120 220" aria-label="背面身体图">
+                      <path class="tr-body-outline" d="M60 10c11 0 20 9 20 20 0 8-5 15-11 18l2 13 10 15-3 53-10 12v26h-16v-26l-10-12-3-53 10-15 2-13c-6-3-11-10-11-18 0-11 9-20 20-20z"/>
+                      <path id="back" class="tr-muscle-zone" d="M45 67h30v48H45z"/>
+                      <path id="rearShoulders" class="tr-muscle-zone" d="M36 68h11v24H36zm37 0h11v24H73z"/>
+                      <path id="hamstrings" class="tr-muscle-zone" d="M44 144h13v46H44zm19 0h13v46H63z"/>
+                    </svg>
+                  </div>
+                  <ul class="tr-muscle-legend tr-muscle-legend--right" id="backMuscleLegend" aria-label="背面肌肉训练次数"></ul>
+                </div>
               </figure>
             </div>
           </section>
@@ -114,6 +125,19 @@
           <div class="tr-card-head tr-history-head">
             <h2>全部训练</h2>
             <button class="tr-clear-filter" id="clearChartFilterBtn" type="button" hidden>清除筛选</button>
+          </div>
+          <div class="tr-list-filter-bar" aria-label="训练记录筛选">
+            <div class="tr-list-filter-row">
+              <label class="tr-date-field" for="trFilterDateStart">
+                <span class="tr-date-label">开始日期</span>
+                <input type="date" id="trFilterDateStart" />
+              </label>
+              <label class="tr-date-field" for="trFilterDateEnd">
+                <span class="tr-date-label">结束日期</span>
+                <input type="date" id="trFilterDateEnd" />
+              </label>
+              <button class="tr-date-reset" id="trFilterDateReset" type="button">重置日期</button>
+            </div>
           </div>
           <div class="tr-filter-indicator" id="activeFilterHint" hidden></div>
           <div class="tr-history-list" id="historyListContainer"></div>

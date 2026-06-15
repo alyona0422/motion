@@ -8,11 +8,7 @@
   const tabButtons = Array.from(document.querySelectorAll(".all-training-tab"));
   const viewButtons = Array.from(document.querySelectorAll(".at-view-btn"));
   const filterToggle = document.getElementById("allTrainingFilterToggle");
-  const filterSheet = document.getElementById("allTrainingFilterSheet");
-  const filterScrim = document.getElementById("allTrainingFilterScrim");
-  const filterClose = document.getElementById("allTrainingFilterClose");
-  const filterReset = document.getElementById("allTrainingFilterReset");
-  const filterApply = document.getElementById("allTrainingFilterApply");
+  const filterCollapse = document.getElementById("allTrainingFilterCollapse");
   const filterPanel = document.getElementById("allTrainingFilterPanel");
   const searchInput = document.getElementById("allTrainingSearchInput");
   const listEl = document.getElementById("allTrainingList");
@@ -20,7 +16,6 @@
   const emptyEl = document.getElementById("allTrainingEmpty");
   const resultCountEl = document.getElementById("allTrainingResultCount");
   const resultTitleEl = document.getElementById("allTrainingResultTitle");
-  const activeFiltersEl = document.getElementById("allTrainingActiveFilters");
 
   const TAB_CONFIG = {
     moves: {
@@ -64,8 +59,7 @@
       aiMoves: {},
       plans: {}
     },
-    draftFilterMap: null,
-    sheetOpen: false
+    panelOpen: false
   };
 
   function toFilterValue(item, key) {
@@ -99,20 +93,18 @@
     });
   }
 
-  function cloneFilterMap(tab) {
-    ensureTabFilterState(tab);
-    const cloned = {};
-    getFiltersForTab(tab).forEach(({ key }) => {
-      cloned[key] = new Set(state.filterMap[tab][key] || []);
-    });
-    return cloned;
-  }
-
-  function getActiveFilterSource() {
-    const tab = state.activeTab;
-    if (state.sheetOpen && state.draftFilterMap) return state.draftFilterMap;
-    ensureTabFilterState(tab);
-    return state.filterMap[tab];
+  function setPanelOpen(open) {
+    state.panelOpen = open;
+    if (filterCollapse) {
+      filterCollapse.classList.toggle("is-open", open);
+      filterCollapse.setAttribute("aria-hidden", String(!open));
+    }
+    if (filterToggle) {
+      filterToggle.setAttribute("aria-expanded", String(open));
+      filterToggle.classList.toggle("is-open", open);
+      filterToggle.setAttribute("aria-label", open ? "Collapse filters" : "Expand filters");
+    }
+    if (open) renderFilterPanel();
   }
 
   function getItemsForTab(tab) {
@@ -145,88 +137,6 @@
       btn.classList.toggle("is-active", active);
       btn.setAttribute("aria-pressed", String(active));
     });
-  }
-
-  function openFilterSheet() {
-    if (!filterSheet) return;
-    state.draftFilterMap = cloneFilterMap(state.activeTab);
-    state.sheetOpen = true;
-    filterSheet.hidden = false;
-    filterSheet.setAttribute("aria-hidden", "false");
-    filterSheet.classList.add("is-open");
-    if (filterToggle) {
-      filterToggle.setAttribute("aria-expanded", "true");
-      filterToggle.classList.add("is-open");
-    }
-    renderFilterPanel();
-  }
-
-  function closeFilterSheet(discardDraft) {
-    if (!filterSheet) return;
-    state.sheetOpen = false;
-    if (discardDraft) state.draftFilterMap = null;
-    filterSheet.classList.remove("is-open");
-    filterSheet.setAttribute("aria-hidden", "true");
-    filterSheet.hidden = true;
-    if (filterToggle) {
-      filterToggle.setAttribute("aria-expanded", "false");
-      filterToggle.classList.remove("is-open");
-    }
-  }
-
-  function applyDraftFilters() {
-    const tab = state.activeTab;
-    if (!state.draftFilterMap) return;
-    ensureTabFilterState(tab);
-    getFiltersForTab(tab).forEach(({ key }) => {
-      state.filterMap[tab][key] = new Set(state.draftFilterMap[key] || []);
-    });
-    state.draftFilterMap = null;
-    closeFilterSheet(false);
-    renderList();
-  }
-
-  function resetDraftFilters() {
-    const tab = state.activeTab;
-    if (!state.draftFilterMap) state.draftFilterMap = cloneFilterMap(tab);
-    getFiltersForTab(tab).forEach(({ key }) => {
-      state.draftFilterMap[key] = new Set();
-    });
-    renderFilterPanel();
-  }
-
-  function renderActiveFilterTags() {
-    if (!activeFiltersEl) return;
-    const tab = state.activeTab;
-    const map = state.filterMap[tab] || {};
-    const tags = [];
-    getFiltersForTab(tab).forEach(({ key, label }) => {
-      const set = map[key];
-      if (!set || set.size === 0) return;
-      set.forEach((value) => tags.push(`${label}: ${value}`));
-    });
-    if (state.keyword.trim()) tags.push(`Search: ${state.keyword.trim()}`);
-
-    activeFiltersEl.innerHTML = "";
-    if (!tags.length) return;
-    tags.forEach((text) => {
-      const tag = document.createElement("span");
-      tag.className = "all-training-active-tag";
-      tag.textContent = text;
-      activeFiltersEl.appendChild(tag);
-    });
-    const clearBtn = document.createElement("button");
-    clearBtn.type = "button";
-    clearBtn.className = "all-training-reset-btn";
-    clearBtn.textContent = "Clear All";
-    clearBtn.addEventListener("click", () => {
-      ensureTabFilterState(tab);
-      Object.keys(state.filterMap[tab]).forEach((key) => state.filterMap[tab][key].clear());
-      state.keyword = "";
-      if (searchInput) searchInput.value = "";
-      renderList();
-    });
-    activeFiltersEl.appendChild(clearBtn);
   }
 
   function openActionDetail(item) {
@@ -323,14 +233,12 @@
       row.append(image, content);
       listInnerEl.appendChild(row);
     });
-
-    renderActiveFilterTags();
   }
 
   function renderFilterPanel() {
     if (!filterPanel) return;
     const tab = state.activeTab;
-    const source = getActiveFilterSource();
+    ensureTabFilterState(tab);
     filterPanel.innerHTML = "";
     getFiltersForTab(tab).forEach(({ key, label, options }) => {
       const group = document.createElement("section");
@@ -340,7 +248,7 @@
       title.textContent = label;
       const optionsWrap = document.createElement("div");
       optionsWrap.className = "all-training-filter-options";
-      const set = source[key] || new Set();
+      const set = state.filterMap[tab][key];
 
       const allChip = document.createElement("button");
       allChip.type = "button";
@@ -350,6 +258,7 @@
       allChip.addEventListener("click", () => {
         set.clear();
         renderFilterPanel();
+        renderList();
       });
       optionsWrap.appendChild(allChip);
 
@@ -363,6 +272,7 @@
           if (set.has(option)) set.delete(option);
           else set.add(option);
           renderFilterPanel();
+          renderList();
         });
         optionsWrap.appendChild(chip);
       });
@@ -373,7 +283,7 @@
 
   function setActiveTab(tab) {
     if (!TAB_CONFIG[tab]) return;
-    if (state.sheetOpen) closeFilterSheet(true);
+    if (state.panelOpen) setPanelOpen(false);
     state.activeTab = tab;
     ensureTabFilterState(tab);
     tabButtons.forEach((btn) => {
@@ -393,15 +303,8 @@
   });
 
   if (filterToggle) {
-    filterToggle.addEventListener("click", () => {
-      if (state.sheetOpen) closeFilterSheet(true);
-      else openFilterSheet();
-    });
+    filterToggle.addEventListener("click", () => setPanelOpen(!state.panelOpen));
   }
-  if (filterScrim) filterScrim.addEventListener("click", () => closeFilterSheet(true));
-  if (filterClose) filterClose.addEventListener("click", () => closeFilterSheet(true));
-  if (filterReset) filterReset.addEventListener("click", resetDraftFilters);
-  if (filterApply) filterApply.addEventListener("click", applyDraftFilters);
 
   if (searchInput) {
     searchInput.addEventListener("input", () => {
@@ -415,9 +318,10 @@
   const initTab = initParams.get("tab");
   if (initTab && TAB_CONFIG[initTab]) state.activeTab = initTab;
   setViewMode("list");
-  closeFilterSheet(true);
+  setPanelOpen(false);
+  renderFilterPanel();
   renderList();
   const initView = initParams.get("view");
   if (initView === "waterfall" || initView === "list") setViewMode(initView);
-  if (initParams.get("filters") === "open") openFilterSheet();
+  if (initParams.get("filters") === "open") setPanelOpen(true);
 })();

@@ -456,6 +456,9 @@
 .all-training-subtitle,
 .all-training-results-head span,
 .tr-card-head p,
+.tr-stat-period,
+.tr-date-label,
+.tr-muscle-legend-name,
 .tr-row-time,
 .tr-empty-list,
 .all-training-empty {
@@ -475,7 +478,8 @@
 .tr-card,
 .tr-chart-wrap,
 .tr-ring-card,
-.tr-body-figure {
+.tr-body-figure,
+.tr-list-filter-bar {
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.88), rgba(255, 250, 238, 0.72));
   box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.24);
 }

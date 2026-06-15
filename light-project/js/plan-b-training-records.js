@@ -12,6 +12,12 @@
   const qualityEmptyOverlay = document.getElementById("qualityEmptyOverlay");
   const chartsView = document.getElementById("trChartsView");
   const listView = document.getElementById("trListView");
+  const statPeriodEl = document.getElementById("trStatPeriod");
+  const filterDateStart = document.getElementById("trFilterDateStart");
+  const filterDateEnd = document.getElementById("trFilterDateEnd");
+  const filterDateReset = document.getElementById("trFilterDateReset");
+  const frontMuscleLegend = document.getElementById("frontMuscleLegend");
+  const backMuscleLegend = document.getElementById("backMuscleLegend");
 
   const chartEls = {
     volume: document.getElementById("volumeChart"),
@@ -51,9 +57,89 @@
     return type;
   }
 
+  const STAT_RANGES = {
+    week: { start: "2026-06-09", end: "2026-06-16" },
+    month: { start: "2026-05-15", end: "2026-06-16" }
+  };
+
+  const WEEKDAY_ZH = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+  const WEEKDAY_EN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+  const MUSCLE_LABELS = {
+    chest: { zh: "胸部", en: "Chest" },
+    core: { zh: "核心", en: "Core" },
+    arms: { zh: "手臂", en: "Arms" },
+    glutes: { zh: "臀部", en: "Glutes" },
+    legs: { zh: "腿部", en: "Legs" },
+    back: { zh: "背部", en: "Back" },
+    rearShoulders: { zh: "后肩", en: "Rear shoulders" },
+    hamstrings: { zh: "腘绳肌", en: "Hamstrings" }
+  };
+
+  const FRONT_MUSCLE_IDS = ["chest", "core", "arms", "glutes", "legs"];
+  const BACK_MUSCLE_IDS = ["back", "rearShoulders", "hamstrings"];
+
+  function isZhLocale() {
+    return (document.documentElement.lang || "").toLowerCase().indexOf("zh") === 0;
+  }
+
+  function getMuscleLabel(id) {
+    var meta = MUSCLE_LABELS[id];
+    if (!meta) return id;
+    return isZhLocale() ? meta.zh : meta.en;
+  }
+
+  function parseYmd(ymd) {
+    var parts = String(ymd || "").split("-");
+    return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+  }
+
+  function formatMd(date) {
+    var month = String(date.getMonth() + 1).padStart(2, "0");
+    var day = String(date.getDate()).padStart(2, "0");
+    return month + "/" + day;
+  }
+
+  function addDays(date, days) {
+    var next = new Date(date.getTime());
+    next.setDate(next.getDate() + days);
+    return next;
+  }
+
+  function buildWeekAxisLabels() {
+    var start = parseYmd(STAT_RANGES.week.start);
+    var names = isZhLocale() ? WEEKDAY_ZH : WEEKDAY_EN;
+    var labels = [];
+    for (var i = 0; i < 7; i += 1) {
+      labels.push(names[addDays(start, i).getDay()]);
+    }
+    return labels;
+  }
+
+  function buildMonthWeekAxisLabels() {
+    var start = parseYmd(STAT_RANGES.month.start);
+    var end = parseYmd(STAT_RANGES.month.end);
+    var labels = [];
+    var cursor = new Date(start.getTime());
+    var weekCount = 4;
+    for (var i = 0; i < weekCount; i += 1) {
+      var weekStart = new Date(cursor.getTime());
+      var weekEnd = i === weekCount - 1 ? end : addDays(weekStart, 6);
+      if (weekEnd > end) weekEnd = end;
+      labels.push(formatMd(weekStart) + "-" + formatMd(weekEnd));
+      cursor = addDays(weekEnd, 1);
+      if (cursor > end) break;
+    }
+    return labels;
+  }
+
+  function getChartAxisLabels(range) {
+    if (range === "week") return buildWeekAxisLabels();
+    if (range === "month") return buildMonthWeekAxisLabels();
+    return [];
+  }
+
   const WEEK_DATA = {
-      labels: ["周一", "周二", "周三", "周四", "周五", "周六", "周日"],
-      /* Underlying stats: limited strength samples (overlays only in Week; charts use demo series). */
       volumeByType: {
         Strength: [0, 0, 0, 0, 0, 0, 0],
         Pilates: [0, 0, 0, 0, 0, 0, 0],
@@ -79,18 +165,27 @@
         rearShoulders: 49,
         hamstrings: 54
       },
+      bodySessions: {
+        chest: 8,
+        core: 6,
+        arms: 7,
+        glutes: 5,
+        legs: 9,
+        back: 6,
+        rearShoulders: 4,
+        hamstrings: 5
+      },
       records: [
-        { title: "力量：全身训练", time: "今天 08:30", duration: "45分钟", metric: "8,200 kg", mode: "Strength", source: "Plan Follow" },
-        { title: "普拉提：核心流动", time: "昨天 19:20", duration: "32分钟", metric: "1,120 kg", mode: "Pilates", source: "Free Training" },
-        { title: "力量：上肢专项", time: "周五 07:40", duration: "56分钟", metric: "10,500 kg", mode: "Strength", source: "Plan Follow" },
-        { title: "有氧：划船 HIIT", time: "周四 18:05", duration: "28分钟", metric: "420 kcal", mode: "Cardio", source: "Free Training" },
-        { title: "力量：下肢链条", time: "周二 08:00", duration: "42分钟", metric: "7,600 kg", mode: "Strength", source: "Plan Follow" },
-        { title: "普拉提：脊柱重置", time: "周一 20:12", duration: "35分钟", metric: "980 kg", mode: "Pilates", source: "Plan Follow" }
+        { title: "力量：全身训练", time: "今天 08:30", date: "2026-06-16", duration: "45分钟", metric: "8,200 kg", mode: "Strength", source: "Plan Follow" },
+        { title: "普拉提：核心流动", time: "昨天 19:20", date: "2026-06-15", duration: "32分钟", metric: "1,120 kg", mode: "Pilates", source: "Free Training" },
+        { title: "力量：上肢专项", time: "周五 07:40", date: "2026-06-13", duration: "56分钟", metric: "10,500 kg", mode: "Strength", source: "Plan Follow" },
+        { title: "有氧：划船 HIIT", time: "周四 18:05", date: "2026-06-12", duration: "28分钟", metric: "420 kcal", mode: "Cardio", source: "Free Training" },
+        { title: "力量：下肢链条", time: "周二 08:00", date: "2026-06-10", duration: "42分钟", metric: "7,600 kg", mode: "Strength", source: "Plan Follow" },
+        { title: "普拉提：脊柱重置", time: "周一 20:12", date: "2026-06-09", duration: "35分钟", metric: "980 kg", mode: "Pilates", source: "Plan Follow" }
       ]
     };
 
   const MONTH_DATA = {
-      labels: ["第1周", "第2周", "第3周", "第4周"],
       volumeByType: {
         Strength: [0, 0, 0, 0],
         Pilates: [0, 0, 0, 0],
@@ -116,22 +211,32 @@
         rearShoulders: 10,
         hamstrings: 65
       },
+      bodySessions: {
+        chest: 2,
+        core: 4,
+        arms: 3,
+        glutes: 6,
+        legs: 10,
+        back: 2,
+        rearShoulders: 1,
+        hamstrings: 7
+      },
       records: [
-        { title: "有氧：耐力骑行", time: "4月2日 07:55", duration: "35分钟", metric: "530 kcal", mode: "Cardio", source: "Free Training" },
-        { title: "有氧：爬坡冲刺", time: "4月5日 18:40", duration: "25分钟", metric: "410 kcal", mode: "Cardio", source: "Free Training" },
-        { title: "有氧：节奏划船", time: "4月10日 07:28", duration: "31分钟", metric: "460 kcal", mode: "Cardio", source: "Free Training" },
-        { title: "有氧：单车构建", time: "4月13日 19:10", duration: "38分钟", metric: "590 kcal", mode: "Cardio", source: "Plan Follow" },
-        { title: "有氧：恢复跑", time: "4月16日 06:58", duration: "27分钟", metric: "350 kcal", mode: "Cardio", source: "Free Training" }
+        { title: "有氧：耐力骑行", time: "6月2日 07:55", date: "2026-06-02", duration: "35分钟", metric: "530 kcal", mode: "Cardio", source: "Free Training" },
+        { title: "有氧：爬坡冲刺", time: "6月5日 18:40", date: "2026-06-05", duration: "25分钟", metric: "410 kcal", mode: "Cardio", source: "Free Training" },
+        { title: "有氧：节奏划船", time: "6月10日 07:28", date: "2026-06-10", duration: "31分钟", metric: "460 kcal", mode: "Cardio", source: "Free Training" },
+        { title: "有氧：单车构建", time: "6月13日 19:10", date: "2026-06-13", duration: "38分钟", metric: "590 kcal", mode: "Cardio", source: "Plan Follow" },
+        { title: "有氧：恢复跑", time: "6月16日 06:58", date: "2026-06-16", duration: "27分钟", metric: "350 kcal", mode: "Cardio", source: "Free Training" }
       ]
     };
 
   const LEGACY_YEAR_RECORDS = [
-    { title: "力量：渐进推举", time: "3月20日 08:12", duration: "53分钟", metric: "9,850 kg", mode: "Strength", source: "Plan Follow" },
-    { title: "普拉提：平衡控制", time: "3月18日 19:03", duration: "33分钟", metric: "1,230 kg", mode: "Pilates", source: "Plan Follow" },
-    { title: "有氧：Zone 2 骑行", time: "3月15日 07:35", duration: "42分钟", metric: "620 kcal", mode: "Cardio", source: "Free Training" },
-    { title: "力量：拉力容量", time: "3月10日 08:24", duration: "49分钟", metric: "8,900 kg", mode: "Strength", source: "Free Training" },
-    { title: "力量：腿部爆发", time: "3月7日 07:50", duration: "58分钟", metric: "10,980 kg", mode: "Strength", source: "Plan Follow" },
-    { title: "普拉提：灵活性重置", time: "3月2日 20:02", duration: "37分钟", metric: "1,420 kg", mode: "Pilates", source: "Free Training" }
+    { title: "力量：渐进推举", time: "3月20日 08:12", date: "2026-03-20", duration: "53分钟", metric: "9,850 kg", mode: "Strength", source: "Plan Follow" },
+    { title: "普拉提：平衡控制", time: "3月18日 19:03", date: "2026-03-18", duration: "33分钟", metric: "1,230 kg", mode: "Pilates", source: "Plan Follow" },
+    { title: "有氧：Zone 2 骑行", time: "3月15日 07:35", date: "2026-03-15", duration: "42分钟", metric: "620 kcal", mode: "Cardio", source: "Free Training" },
+    { title: "力量：拉力容量", time: "3月10日 08:24", date: "2026-03-10", duration: "49分钟", metric: "8,900 kg", mode: "Strength", source: "Free Training" },
+    { title: "力量：腿部爆发", time: "3月7日 07:50", date: "2026-03-07", duration: "58分钟", metric: "10,980 kg", mode: "Strength", source: "Plan Follow" },
+    { title: "普拉提：灵活性重置", time: "3月2日 20:02", date: "2026-03-02", duration: "37分钟", metric: "1,420 kg", mode: "Pilates", source: "Free Training" }
   ];
 
   function mergeUniqueRecords(recordGroups) {
@@ -158,7 +263,8 @@
 
   const state = {
     range: "week",
-    filter: null
+    filter: null,
+    dateFilter: { start: "", end: "" }
   };
 
   const charts = {
@@ -215,6 +321,33 @@
     });
   }
 
+  function renderMuscleLegends(bodySessions) {
+    if (!frontMuscleLegend || !backMuscleLegend) return;
+    var sessions = bodySessions || {};
+
+    function renderList(container, ids) {
+      var items = ids.map(function (id) {
+        return { id: id, count: Number(sessions[id] || 0), label: getMuscleLabel(id) };
+      }).sort(function (a, b) { return b.count - a.count; });
+      container.innerHTML = "";
+      items.forEach(function (item) {
+        var row = document.createElement("li");
+        row.className = "tr-muscle-legend-item";
+        var name = document.createElement("span");
+        name.className = "tr-muscle-legend-name";
+        name.textContent = item.label;
+        var count = document.createElement("span");
+        count.className = "tr-muscle-legend-count";
+        count.textContent = String(item.count);
+        row.append(name, count);
+        container.appendChild(row);
+      });
+    }
+
+    renderList(frontMuscleLegend, FRONT_MUSCLE_IDS);
+    renderList(backMuscleLegend, BACK_MUSCLE_IDS);
+  }
+
   function setRange(range) {
     if (!PERIOD_DATA[range]) return;
     state.range = range;
@@ -235,11 +368,33 @@
 
   function clearFilter() {
     state.filter = null;
-    renderHistory();
+    resetDateFilter();
   }
 
   function getCurrentData() {
     return PERIOD_DATA[state.range] || PERIOD_DATA.week;
+  }
+
+  function getStatPeriodLabel(range) {
+    var isZh = (document.documentElement.lang || "").toLowerCase().indexOf("zh") === 0;
+    var prefix = isZh ? "数据统计周期为：" : "Data period: ";
+    var periods = {
+      week: "2026/06/09-2026/06/16",
+      month: "2026/05/15-2026/06/16"
+    };
+    if (!periods[range]) return "";
+    return prefix + periods[range];
+  }
+
+  function updateStatPeriodDisplay() {
+    if (!statPeriodEl) return;
+    if (state.range === "week" || state.range === "month") {
+      statPeriodEl.textContent = getStatPeriodLabel(state.range);
+      statPeriodEl.hidden = false;
+      return;
+    }
+    statPeriodEl.textContent = "";
+    statPeriodEl.hidden = true;
   }
 
   function applyViewMode() {
@@ -253,7 +408,7 @@
     }
   }
 
-  function buildDemoVolumeSeries(range, labels) {
+  function buildDemoVolumeSeries(range, count) {
     var presets = {
       week: {
         Strength: [4100, 5600, 5200, 6700, 7200, 6400, 6900],
@@ -267,21 +422,20 @@
       }
     };
     var base = presets[range] || presets.week;
-    var length = labels.length;
     return {
-      Strength: base.Strength.slice(0, length),
-      Pilates: base.Pilates.slice(0, length),
-      Cardio: base.Cardio.slice(0, length)
+      Strength: base.Strength.slice(0, count),
+      Pilates: base.Pilates.slice(0, count),
+      Cardio: base.Cardio.slice(0, count)
     };
   }
 
-  function buildDemoQualitySeries(range, labels) {
+  function buildDemoQualitySeries(range, count) {
     var presets = {
       week: [84, 86, 88, 89, 91, 92, 93],
       month: [83, 85, 87, 89]
     };
     var base = presets[range] || presets.week;
-    return base.slice(0, labels.length);
+    return base.slice(0, count);
   }
 
   function sumSeries(arr) {
@@ -315,18 +469,20 @@
 
   function renderVolumeChart(data) {
     if (!charts.volume) return;
-    var demoVolume = buildDemoVolumeSeries(state.range, data.labels);
+    var axisLabels = getChartAxisLabels(state.range);
+    var demoVolume = buildDemoVolumeSeries(state.range, axisLabels.length);
     var strengthSeries = demoVolume.Strength;
     var pilatesSeries = demoVolume.Pilates;
     var cardioSeries = demoVolume.Cardio;
-    var totals = data.labels.map(function (_, index) {
+    var totals = axisLabels.map(function (_, index) {
       return (strengthSeries[index] || 0) + (pilatesSeries[index] || 0) + (cardioSeries[index] || 0);
     });
     var trend = computeMovingAverage(totals, 3);
+    var isMonthRange = state.range === "month";
 
     charts.volume.setOption({
       animationDuration: 350,
-      grid: { left: 34, right: 18, top: 30, bottom: 26 },
+      grid: { left: 34, right: 18, top: 30, bottom: isMonthRange ? 34 : 26 },
       legend: {
         top: 0,
         textStyle: { color: "#cbd5e1", fontSize: 10 },
@@ -336,8 +492,13 @@
       tooltip: { trigger: "axis" },
       xAxis: {
         type: "category",
-        data: data.labels,
-        axisLabel: { color: "#9fb0c6", fontSize: 10 },
+        data: axisLabels,
+        axisLabel: {
+          color: "#9fb0c6",
+          fontSize: isMonthRange ? 9 : 10,
+          interval: 0,
+          rotate: isMonthRange ? 24 : 0
+        },
         axisLine: { lineStyle: { color: "rgba(148,163,184,0.24)" } }
       },
       yAxis: {
@@ -364,15 +525,22 @@
 
   function renderQualityChart(data) {
     if (!charts.quality) return;
-    var qualitySeries = buildDemoQualitySeries(state.range, data.labels);
+    var axisLabels = getChartAxisLabels(state.range);
+    var qualitySeries = buildDemoQualitySeries(state.range, axisLabels.length);
+    var isMonthRange = state.range === "month";
     charts.quality.setOption({
       animationDuration: 350,
-      grid: { left: 34, right: 18, top: 18, bottom: 26 },
+      grid: { left: 34, right: 18, top: 18, bottom: isMonthRange ? 34 : 26 },
       tooltip: { trigger: "axis" },
       xAxis: {
         type: "category",
-        data: data.labels,
-        axisLabel: { color: "#9fb0c6", fontSize: 10 },
+        data: axisLabels,
+        axisLabel: {
+          color: "#9fb0c6",
+          fontSize: isMonthRange ? 9 : 10,
+          interval: 0,
+          rotate: isMonthRange ? 24 : 0
+        },
         axisLine: { lineStyle: { color: "rgba(148,163,184,0.24)" } }
       },
       yAxis: {
@@ -455,12 +623,57 @@
   }
 
   function filterRecords(records) {
-    if (!state.filter) return records;
-    return records.filter(function (item) {
-      if (state.filter.type === "mode") return item.mode === state.filter.value;
-      if (state.filter.type === "source") return item.source === state.filter.value;
-      return true;
-    });
+    var filtered = records || [];
+    if (state.filter) {
+      filtered = filtered.filter(function (item) {
+        if (state.filter.type === "mode") return item.mode === state.filter.value;
+        if (state.filter.type === "source") return item.source === state.filter.value;
+        return true;
+      });
+    }
+    if (state.dateFilter.start || state.dateFilter.end) {
+      filtered = filtered.filter(function (item) {
+        if (!item.date) return true;
+        if (state.dateFilter.start && item.date < state.dateFilter.start) return false;
+        if (state.dateFilter.end && item.date > state.dateFilter.end) return false;
+        return true;
+      });
+    }
+    return filtered;
+  }
+
+  function hasActiveFilters() {
+    return Boolean(state.filter) || Boolean(state.dateFilter.start) || Boolean(state.dateFilter.end);
+  }
+
+  function updateFilterIndicator() {
+    if (!activeFilterHint || !clearFilterBtn) return;
+    var parts = [];
+    if (state.filter) {
+      parts.push("已按" + getFilterTypeLabel(state.filter.type) + "筛选：" + (state.filter.type === "mode" ? getModeLabel(state.filter.value) : getSourceLabel(state.filter.value)));
+    }
+    if (state.dateFilter.start || state.dateFilter.end) {
+      var startText = state.dateFilter.start || "不限";
+      var endText = state.dateFilter.end || "不限";
+      parts.push("日期：" + startText + " 至 " + endText);
+    }
+    clearFilterBtn.hidden = !hasActiveFilters();
+    activeFilterHint.hidden = parts.length === 0;
+    if (parts.length) activeFilterHint.textContent = parts.join(" · ");
+  }
+
+  function syncDateFilterFromInputs() {
+    if (filterDateStart) state.dateFilter.start = filterDateStart.value || "";
+    if (filterDateEnd) state.dateFilter.end = filterDateEnd.value || "";
+    renderHistory();
+  }
+
+  function resetDateFilter() {
+    state.dateFilter.start = "";
+    state.dateFilter.end = "";
+    if (filterDateStart) filterDateStart.value = "";
+    if (filterDateEnd) filterDateEnd.value = "";
+    renderHistory();
   }
 
   function renderHistory() {
@@ -506,16 +719,12 @@
       historyListContainer.appendChild(row);
     });
 
-    var hasFilter = Boolean(state.filter);
-    clearFilterBtn.hidden = !hasFilter;
-    activeFilterHint.hidden = !hasFilter;
-    if (hasFilter) {
-      activeFilterHint.textContent = "已按" + getFilterTypeLabel(state.filter.type) + "筛选：" + (state.filter.type === "mode" ? getModeLabel(state.filter.value) : getSourceLabel(state.filter.value));
-    }
+    updateFilterIndicator();
   }
 
   function renderAll() {
     var data = getCurrentData();
+    updateStatPeriodDisplay();
     if (state.range === "all") {
       if (volumeEmptyOverlay) volumeEmptyOverlay.hidden = true;
       if (qualityEmptyOverlay) qualityEmptyOverlay.hidden = true;
@@ -527,6 +736,7 @@
     renderQualityChart(data);
     renderStructureCharts(data);
     applyBodyMap(data.bodyLoad || {});
+    renderMuscleLegends(data.bodySessions || {});
   }
 
   function wireChartEvents() {
@@ -549,6 +759,15 @@
     }
     if (clearFilterBtn) {
       clearFilterBtn.addEventListener("click", clearFilter);
+    }
+    if (filterDateStart) {
+      filterDateStart.addEventListener("change", syncDateFilterFromInputs);
+    }
+    if (filterDateEnd) {
+      filterDateEnd.addEventListener("change", syncDateFilterFromInputs);
+    }
+    if (filterDateReset) {
+      filterDateReset.addEventListener("click", resetDateFilter);
     }
 
     var homeTabBtn = document.getElementById("homeTabBtn");
