@@ -27,10 +27,16 @@
           <p class="all-training-subtitle">Browse every move, AI move, and plan in one place.</p>
         </header>
 
-        <div class="all-training-tabs" role="tablist" aria-label="All training categories">
-          <button class="all-training-tab is-active" type="button" role="tab" aria-selected="true" data-tab="moves">Moves</button>
-          <button class="all-training-tab" type="button" role="tab" aria-selected="false" data-tab="aiMoves">AI Moves</button>
-          <button class="all-training-tab" type="button" role="tab" aria-selected="false" data-tab="plans">Plans</button>
+        <div class="all-training-tabs-row">
+          <div class="all-training-tabs" role="tablist" aria-label="All training categories">
+            <button class="all-training-tab is-active" type="button" role="tab" aria-selected="true" data-tab="moves">Moves</button>
+            <button class="all-training-tab" type="button" role="tab" aria-selected="false" data-tab="aiMoves">AI Moves</button>
+            <button class="all-training-tab" type="button" role="tab" aria-selected="false" data-tab="plans">Plans</button>
+          </div>
+          <div class="at-view-toggle" role="group" aria-label="View mode">
+            <button class="at-view-btn is-active" type="button" data-view="list" aria-pressed="true">List</button>
+            <button class="at-view-btn" type="button" data-view="waterfall" aria-pressed="false">Waterfall</button>
+          </div>
         </div>
 
         <section class="all-training-tools" aria-label="Search and filter">
@@ -39,15 +45,18 @@
               <span class="sr-only">Search by name</span>
               <input id="allTrainingSearchInput" type="search" placeholder="Search by name" autocomplete="off" />
             </label>
-            <button class="all-training-filter-toggle" id="allTrainingFilterToggle" type="button" aria-expanded="false" aria-controls="allTrainingFilterPanel" aria-label="Expand filters">
+            <button class="all-training-filter-toggle" id="allTrainingFilterToggle" type="button" aria-expanded="false" aria-controls="allTrainingFilterCollapse" aria-label="Expand filters">
               <svg class="all-training-filter-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
               <span class="sr-only">Toggle filters</span>
             </button>
           </div>
-          <div class="all-training-filter-panel" id="allTrainingFilterPanel" hidden></div>
-          <div class="all-training-active-filters" id="allTrainingActiveFilters" aria-live="polite"></div>
+          <div class="all-training-filter-collapse" id="allTrainingFilterCollapse" aria-hidden="true">
+            <div class="all-training-filter-collapse-inner">
+              <div class="all-training-filter-panel" id="allTrainingFilterPanel"></div>
+            </div>
+          </div>
         </section>
 
         <section class="all-training-results" aria-label="Training list">
@@ -55,7 +64,9 @@
             <strong id="allTrainingResultTitle">Moves</strong>
             <span id="allTrainingResultCount">0 items</span>
           </div>
-          <div class="all-training-list" id="allTrainingList"></div>
+          <div class="all-training-list" id="allTrainingList" data-view="list">
+            <div class="all-training-list-inner" id="allTrainingListInner"></div>
+          </div>
           <p class="all-training-empty" id="allTrainingEmpty" hidden>No items match your current filters.</p>
         </section>
       </div>

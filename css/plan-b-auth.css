@@ -331,3 +331,28 @@
 .is-hidden {
   display: none !important;
 }
+
+/* Bottom dock back: full-width bar below primary actions (overrides icon-style .auth-back-btn) */
+.action-dock-back-btn.auth-back-btn {
+  width: 100%;
+  min-width: 0;
+  height: auto;
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  background: transparent;
+  box-shadow: none;
+  color: var(--text);
+  font-family: "Barlow", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.action-dock-back-btn.auth-back-btn:hover {
+  border-color: rgba(96, 165, 250, 0.65);
+  color: #f1f5f9;
+  background: rgba(148, 163, 184, 0.08);
+  transform: none;
+}

@@ -95,6 +95,69 @@
       flex-shrink: 0;
     }
 
+    .settings-toggle-row {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--line-soft);
+      border-radius: 12px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      backdrop-filter: blur(8px);
+    }
+
+    .settings-toggle-row svg {
+      width: 20px;
+      height: 20px;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    .settings-toggle-row span {
+      flex: 1;
+      text-align: left;
+    }
+
+    .ds-follow-switch {
+      width: 46px;
+      height: 26px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: rgba(148, 163, 184, 0.22);
+      padding: 3px;
+      cursor: pointer;
+      transition: background 160ms ease, border-color 160ms ease;
+      flex-shrink: 0;
+    }
+
+    .ds-follow-switch-knob {
+      display: block;
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: #fff;
+      box-shadow: 0 1px 4px rgba(2, 6, 23, 0.3);
+      transition: transform 180ms ease;
+    }
+
+    .ds-follow-switch.is-on {
+      background: rgba(14, 165, 233, 0.35);
+      border-color: rgba(56, 189, 248, 0.55);
+    }
+
+    .ds-follow-switch.is-on .ds-follow-switch-knob {
+      transform: translateX(19px);
+    }
+
+    .ds-follow-switch:focus-visible {
+      outline: 2px solid rgba(56, 189, 248, 0.85);
+      outline-offset: 2px;
+    }
+
     /* Wi-Fi Sheet & Overlay Styles */
     .sheet-overlay {
       position: absolute;
@@ -293,7 +356,8 @@
     }
 
     /* Device Self-Check Page */
-    .self-check-page {
+    .self-check-page,
+    .self-check-issue-page {
       position: absolute;
       inset: 0;
       z-index: 20;
@@ -303,7 +367,8 @@
       padding: 66px 18px 96px;
       overflow-y: auto;
     }
-    .self-check-page.active {
+    .self-check-page.active,
+    .self-check-issue-page.active {
       display: flex;
     }
     .self-check-header {
@@ -347,7 +412,7 @@
     }
     .self-check-ring .ring-progress {
       fill: none;
-      stroke: var(--orange);
+      stroke: var(--blue);
       stroke-width: 10;
       stroke-linecap: round;
       stroke-dasharray: 427.26;
@@ -400,8 +465,8 @@
       transition: border-color 0.2s ease, background 0.2s ease;
     }
     .self-check-item.is-active {
-      border-color: rgba(255, 107, 53, 0.35);
-      background: rgba(255, 107, 53, 0.08);
+      border-color: rgba(0, 122, 255, 0.35);
+      background: rgba(0, 122, 255, 0.08);
     }
     .self-check-item-name {
       font-size: 17px;
@@ -415,7 +480,7 @@
       white-space: nowrap;
     }
     .self-check-item-status.is-checking {
-      color: var(--orange);
+      color: var(--blue);
     }
     .self-check-item-status.is-normal {
       color: #34d399;
@@ -426,26 +491,25 @@
       border: 1px solid rgba(248, 113, 113, 0.35);
       border-radius: 999px;
       padding: 6px 14px;
-      cursor: pointer;
-      transition: background 0.2s ease, border-color 0.2s ease;
-    }
-    .self-check-item-status.is-abnormal:hover {
-      background: rgba(248, 113, 113, 0.2);
-      border-color: rgba(248, 113, 113, 0.5);
     }
     .self-check-footer {
+      display: none;
       padding-top: 12px;
     }
-    .self-check-start-btn,
-    .self-check-done-btn {
+    .self-check-page[data-state="done"] .self-check-footer {
+      display: block;
+    }
+    .self-check-done-btn,
+    .self-check-view-issues-btn,
+    .self-check-issue-back-btn {
       width: 100%;
       min-height: 56px;
       height: auto;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: var(--orange);
-      box-shadow: var(--glow-orange), 0 14px 24px rgba(0, 0, 0, 0.28);
+      background: var(--blue);
+      box-shadow: var(--glow-blue), 0 14px 24px rgba(0, 0, 0, 0.28);
       color: #fff;
       cursor: pointer;
       border: none;
@@ -457,32 +521,55 @@
       letter-spacing: 0.02em;
       transition: filter 0.2s ease, transform 0.2s ease;
     }
-    .self-check-start-btn:hover,
-    .self-check-done-btn:hover {
+    .self-check-done-btn:hover,
+    .self-check-view-issues-btn:hover,
+    .self-check-issue-back-btn:hover {
       filter: brightness(1.06);
     }
-    .self-check-page[data-state="running"] .self-check-start-btn,
-    .self-check-page[data-state="done"] .self-check-start-btn {
-      display: none;
-    }
     .self-check-page[data-state="idle"] .self-check-done-btn,
-    .self-check-page[data-state="running"] .self-check-done-btn {
+    .self-check-page[data-state="running"] .self-check-done-btn,
+    .self-check-page[data-state="idle"] .self-check-view-issues-btn,
+    .self-check-page[data-state="running"] .self-check-view-issues-btn {
       display: none;
     }
-    .self-check-page[data-state="done"] .self-check-done-btn {
+    .self-check-page[data-state="done"][data-result="normal"] .self-check-done-btn {
+      display: flex;
+    }
+    .self-check-page[data-state="done"][data-result="normal"] .self-check-view-issues-btn {
+      display: none;
+    }
+    .self-check-page[data-state="done"][data-result="abnormal"] .self-check-done-btn {
+      display: none;
+    }
+    .self-check-page[data-state="done"][data-result="abnormal"] .self-check-view-issues-btn {
       display: flex;
     }
     .self-check-page[data-state="idle"] .self-check-current {
       display: none;
     }
-    #selfCheckIssueModal {
-      z-index: 25;
-    }
     .self-check-issue-body {
-      padding: 16px 0 8px;
+      flex: 1;
+      width: 100%;
       display: flex;
       flex-direction: column;
       gap: 16px;
+      padding: 8px 0 24px;
+      overflow-y: auto;
+    }
+    .self-check-issue-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--line-soft);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .self-check-issue-card-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      margin: 0;
     }
     .self-check-issue-row {
       display: flex;
@@ -500,12 +587,14 @@
       font-size: 15px;
       color: var(--text);
       line-height: 1.5;
+      margin: 0;
     }
     .self-check-issue-code {
       font-family: 'Barlow Condensed', monospace;
       font-size: 22px;
       font-weight: 700;
       color: #f87171;
+      margin: 0;
     }
     .self-check-issue-qr-wrap {
       display: flex;
@@ -528,6 +617,14 @@
       color: var(--muted);
       margin: 0;
       text-align: center;
+    }
+    .self-check-issue-qr-support {
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--muted);
+      margin: 4px 0 0;
+      text-align: center;
+      max-width: 280px;
     }
   </style>
 </head>
@@ -562,8 +659,22 @@
         </button>
         <button class="list-btn" type="button" id="ambientLightBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8 14a5 5 0 1 1 8 0c-.8.7-1.2 1.6-1.3 2.6H9.3C9.2 15.6 8.8 14.7 8 14z"/></svg>
-          <span data-i18n="ambient">Ambient Light</span>
+          <span data-i18n="ambient">AMBIENT LIGHT</span>
         </button>
+        <div class="settings-toggle-row">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M6 20v-1a6 6 0 0 1 12 0v1"/><path d="M16 3.5a2.5 2.5 0 0 1 0 4"/><path d="M21 8h-2"/></svg>
+          <span data-i18n="personFollow">Person Following</span>
+          <button
+            type="button"
+            class="ds-follow-switch is-on"
+            id="devicePersonFollowSwitch"
+            role="switch"
+            aria-checked="true"
+            aria-label="Person Following"
+          >
+            <span class="ds-follow-switch-knob" aria-hidden="true"></span>
+          </button>
+        </div>
         <button class="list-btn" type="button" id="languageBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
           <span data-i18n="lang">LANGUAGE</span>
@@ -578,16 +689,12 @@
         </button>
       </div>
       <div class="action-dock" aria-label="Page actions">
-        <button class="settings-back-btn" type="button" onclick="window.location.href='plan-b-profile.html'" aria-label="Back to profile">
-          <svg viewBox="0 0 24 24">
-            <path d="M15 18l-6-6 6-6"></path>
-          </svg>
-        </button>
+        <button class="action-dock-back-btn" type="button" onclick="window.location.href='plan-b-profile.html'" aria-label="Back to profile">Back</button>
       </div>
     </section>
 
     <!-- Device Self-Check Page -->
-    <section class="self-check-page" id="selfCheckScreen" data-state="idle" aria-label="Device Self-Check" aria-hidden="true">
+    <section class="self-check-page" id="selfCheckScreen" data-state="running" data-result="normal" aria-label="Device Self-Check" aria-hidden="true">
       <div class="self-check-header">
         <h2 class="self-check-title">DEVICE SELF-CHECK</h2>
       </div>
@@ -599,52 +706,26 @@
           </svg>
           <div class="self-check-percent" id="selfCheckPercent">0%</div>
         </div>
-        <p class="self-check-status-label" id="selfCheckStatusLabel">Tap below to start self-check</p>
+        <p class="self-check-status-label" id="selfCheckStatusLabel">Self-check in progress…</p>
         <p class="self-check-current" id="selfCheckCurrentItem">Checking: Camera</p>
         <ul class="self-check-items" id="selfCheckItemsList" aria-label="Self-check items"></ul>
       </div>
       <div class="self-check-footer">
-        <button class="resume-btn self-check-start-btn" type="button" id="startSelfCheckBtn">Start Self-Check</button>
         <button class="resume-btn self-check-done-btn" type="button" id="selfCheckDoneBtn">Done</button>
-      </div>
-      <div class="action-dock" aria-label="Page actions">
-        <button class="settings-back-btn" type="button" id="selfCheckCloseBtn" aria-label="Back to settings">
-          <svg viewBox="0 0 24 24">
-            <path d="M15 18l-6-6 6-6"></path>
-          </svg>
-        </button>
+        <button class="resume-btn self-check-view-issues-btn" type="button" id="viewIssuesBtn">View Abnormal Items</button>
       </div>
     </section>
 
-    <!-- Self-Check Issue Modal -->
-    <div class="training-modal" id="selfCheckIssueModal" aria-hidden="true" style="padding: 40px 24px;">
-      <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="selfCheckIssueTitle" style="margin: auto; border-radius: 20px; width: 100%; max-width: 360px;">
-        <div class="modal-head" style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 16px; border-bottom: 1px solid var(--line-soft);">
-          <h3 id="selfCheckIssueTitle" class="truncate-text" style="margin: 0;">Issue Details</h3>
-          <button class="close-btn" id="closeSelfCheckIssueBtn" type="button" aria-label="Close" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; padding: 0; margin-left: 16px; flex-shrink: 0; color: var(--muted);">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-          </button>
-        </div>
-        <div class="self-check-issue-body">
-          <div class="self-check-issue-row">
-            <span class="self-check-issue-label">Reason</span>
-            <p class="self-check-issue-value" id="selfCheckIssueReason">—</p>
-          </div>
-          <div class="self-check-issue-row">
-            <span class="self-check-issue-label">Error Code</span>
-            <p class="self-check-issue-code" id="selfCheckIssueCode">—</p>
-          </div>
-          <div class="self-check-issue-qr-wrap">
-            <span class="self-check-issue-label">Error QR Code</span>
-            <img id="selfCheckIssueQr" class="self-check-issue-qr" src="" alt="Error QR code" width="168" height="168" />
-            <p class="self-check-issue-qr-hint">Scan for support details</p>
-          </div>
-        </div>
-        <div class="wifi-modal-actions" style="margin-top: 8px;">
-          <button class="resume-btn" id="selfCheckIssueOkBtn" type="button" style="width: 100%; background: var(--orange); box-shadow: var(--glow-orange), 0 14px 24px rgba(0, 0, 0, 0.28); color: #fff; cursor: pointer;">OK</button>
-        </div>
+    <!-- Self-Check Issue Page -->
+    <section class="self-check-issue-page" id="selfCheckIssuePage" aria-label="Abnormal Items" aria-hidden="true">
+      <div class="self-check-header">
+        <h2 class="self-check-title">Abnormal Items</h2>
       </div>
-    </div>
+      <div class="self-check-issue-body" id="selfCheckIssueList" aria-label="Abnormal item list"></div>
+      <div class="self-check-footer">
+        <button class="resume-btn self-check-issue-back-btn" type="button" id="selfCheckIssueBackBtn">Back</button>
+      </div>
+    </section>
 
     <!-- Wi-Fi Bottom Sheet & Overlay -->
     <div class="sheet-overlay" id="wifiOverlay"></div>

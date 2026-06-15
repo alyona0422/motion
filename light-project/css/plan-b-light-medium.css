@@ -981,12 +981,20 @@ body.cream-medium .cc-segment-btn.is-active {
   color: #0f172a !important;
 }
 
-body.cream-medium .cc-btn,
-body.cream-medium .cc-fab {
+body.cream-medium .cc-btn {
   background: rgba(255, 255, 255, 0.92) !important;
   color: #334155 !important;
   border-color: rgba(148, 163, 184, 0.34) !important;
   box-shadow: 0 8px 18px rgba(15, 23, 42, 0.1) !important;
+}
+
+body.cream-medium .cc-bottom-handle-pill {
+  background: rgba(100, 116, 139, 0.55) !important;
+}
+
+body.cream-medium .cc-bottom-handle:hover .cc-bottom-handle-pill,
+body.cream-medium .cc-bottom-handle:focus-visible .cc-bottom-handle-pill {
+  background: rgba(51, 65, 85, 0.72) !important;
 }
 
 body.cream-medium .cc-btn--play {
@@ -1175,7 +1183,7 @@ body.cream-medium .row-note,
 body.cream-medium .field-label,
 body.cream-medium .field-tip,
 body.cream-medium .color-grid-tip,
-body.cream-medium .reset-defaults-note {
+body.cream-medium .reset-defaults-btn-desc {
   color: #64748b !important;
 }
 
@@ -1193,7 +1201,8 @@ body.cream-medium .card-power {
 body.cream-medium .preset-chip,
 body.cream-medium .secondary-btn,
 body.cream-medium .segment-btn,
-body.cream-medium .reset-defaults-btn {
+body.cream-medium .reset-defaults-btn,
+body.cream-medium[data-plan-b-page="ambient-light-settings"] .action-dock-back-btn {
   background: rgba(248, 250, 252, 0.92) !important;
   color: #334155 !important;
   border-color: rgba(148, 163, 184, 0.3) !important;

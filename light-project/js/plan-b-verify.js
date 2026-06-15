@@ -12,7 +12,7 @@ const STORAGE_PLAN_TRAINING_SESSION = "planBPlanTrainingSessionV1";
 const grid = document.getElementById("exploreGrid");
 const title = document.getElementById("exploreTitle");
 const sideTabs = document.querySelectorAll(".side-tab");
-const filterTabs = document.querySelectorAll(".filter-tab");
+const exploreViewButtons = document.querySelectorAll(".explore-view-btn");
 const modal = document.getElementById("trainingTypeModal");
 const startTrainingModalBtn = document.getElementById("startTrainingModalBtn");
 const closeTrainingTypeModal = document.getElementById("closeTrainingTypeModal");
@@ -388,6 +388,7 @@ const adInstallPreviewAsset = {
 
 let currentCategory = "plans";
 let currentFilter = "recommended";
+let exploreViewMode = "list";
 const featuredPlanBanner = document.getElementById("featuredPlanBanner");
 const featuredPlanType = document.getElementById("featuredPlanType");
 const featuredPlanTitle = document.getElementById("featuredPlanTitle");
@@ -2088,26 +2089,37 @@ function renderGrid() {
   if (!grid || !title) return;
   const items = exploreGridItems(currentCategory, currentFilter);
   title.textContent = exploreGridTitle(currentCategory, currentFilter);
+  grid.dataset.view = exploreViewMode;
   grid.innerHTML = "";
   items.forEach((item, index) => grid.appendChild(createCard(item, index)));
+}
+
+function setExploreViewMode(mode) {
+  if (mode !== "list" && mode !== "waterfall") return;
+  exploreViewMode = mode;
+  if (grid) grid.dataset.view = mode;
+  exploreViewButtons.forEach((btn) => {
+    const active = btn.dataset.view === mode;
+    btn.classList.toggle("active", active);
+    btn.setAttribute("aria-pressed", String(active));
+  });
 }
 
 if (sideTabs.length) {
   sideTabs.forEach((tab) => {
     tab.addEventListener("click", () => {
       currentCategory = tab.dataset.category;
+      currentFilter = "recommended";
       sideTabs.forEach((item) => item.classList.toggle("active", item === tab));
       renderGrid();
     });
   });
 }
 
-if (filterTabs.length) {
-  filterTabs.forEach((tab) => {
+if (exploreViewButtons.length) {
+  exploreViewButtons.forEach((tab) => {
     tab.addEventListener("click", () => {
-      currentFilter = tab.dataset.filter;
-      filterTabs.forEach((item) => item.classList.toggle("active", item === tab));
-      renderGrid();
+      setExploreViewMode(tab.dataset.view);
     });
   });
 }
@@ -2742,7 +2754,14 @@ function initPilatesDashboard() {
   else frameId = requestAnimationFrame(drawChart);
 }
 
-if (grid) renderGrid();
+if (grid) {
+  setExploreViewMode("list");
+  renderGrid();
+  if (PLAN_B_PAGE === "home") {
+    const initView = new URLSearchParams(window.location.search).get("view");
+    if (initView === "waterfall" || initView === "list") setExploreViewMode(initView);
+  }
+}
 
 function initPlanDetailPage() {
   if (PLAN_B_PAGE !== "plan-detail") return;

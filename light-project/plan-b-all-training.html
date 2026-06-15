@@ -28,10 +28,16 @@
           <p class="all-training-subtitle">在一个地方浏览所有动作、AI 动作与计划。</p>
         </header>
 
-        <div class="all-training-tabs" role="tablist" aria-label="全部训练分类">
-          <button class="all-training-tab is-active" type="button" role="tab" aria-selected="true" data-tab="moves">动作</button>
-          <button class="all-training-tab" type="button" role="tab" aria-selected="false" data-tab="aiMoves">AI 动作</button>
-          <button class="all-training-tab" type="button" role="tab" aria-selected="false" data-tab="plans">计划</button>
+        <div class="all-training-tabs-row">
+          <div class="all-training-tabs" role="tablist" aria-label="全部训练分类">
+            <button class="all-training-tab is-active" type="button" role="tab" aria-selected="true" data-tab="moves">动作</button>
+            <button class="all-training-tab" type="button" role="tab" aria-selected="false" data-tab="aiMoves">AI 动作</button>
+            <button class="all-training-tab" type="button" role="tab" aria-selected="false" data-tab="plans">计划</button>
+          </div>
+          <div class="at-view-toggle" role="group" aria-label="View mode">
+            <button class="at-view-btn is-active" type="button" data-view="list" aria-pressed="true">List</button>
+            <button class="at-view-btn" type="button" data-view="waterfall" aria-pressed="false">Waterfall</button>
+          </div>
         </div>
 
         <section class="all-training-tools" aria-label="搜索与筛选">
@@ -40,15 +46,18 @@
               <span class="sr-only">按名称搜索</span>
               <input id="allTrainingSearchInput" type="search" placeholder="按名称搜索" autocomplete="off" />
             </label>
-            <button class="all-training-filter-toggle" id="allTrainingFilterToggle" type="button" aria-expanded="false" aria-controls="allTrainingFilterPanel" aria-label="展开筛选">
+            <button class="all-training-filter-toggle" id="allTrainingFilterToggle" type="button" aria-expanded="false" aria-controls="allTrainingFilterCollapse" aria-label="Expand filters">
               <svg class="all-training-filter-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
-              <span class="sr-only">展开/收起筛选</span>
+              <span class="sr-only">Toggle filters</span>
             </button>
           </div>
-          <div class="all-training-filter-panel" id="allTrainingFilterPanel" hidden></div>
-          <div class="all-training-active-filters" id="allTrainingActiveFilters" aria-live="polite"></div>
+          <div class="all-training-filter-collapse" id="allTrainingFilterCollapse" aria-hidden="true">
+            <div class="all-training-filter-collapse-inner">
+              <div class="all-training-filter-panel" id="allTrainingFilterPanel"></div>
+            </div>
+          </div>
         </section>
 
         <section class="all-training-results" aria-label="训练列表">
@@ -56,7 +65,9 @@
             <strong id="allTrainingResultTitle">动作</strong>
             <span id="allTrainingResultCount">0 项</span>
           </div>
-          <div class="all-training-list" id="allTrainingList"></div>
+          <div class="all-training-list" id="allTrainingList" data-view="list">
+            <div class="all-training-list-inner" id="allTrainingListInner"></div>
+          </div>
           <p class="all-training-empty" id="allTrainingEmpty" hidden>没有符合当前筛选条件的内容。</p>
         </section>
       </div>

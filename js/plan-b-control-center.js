@@ -9,7 +9,6 @@
   const handle = document.getElementById("controlCenterHandle");
   const panelDragZone = document.getElementById("controlCenterDrag");
   const scrim = document.getElementById("controlCenterScrim");
-  const fab = document.getElementById("controlCenterFab");
   const wifiTile = document.getElementById("wifiToggleTile");
   const btTile = document.getElementById("btToggleTile");
   const ambientCard = document.getElementById("ccAmbientCard");
@@ -42,7 +41,6 @@
   let isOpen = false;
   let dragState = null;
   let suppressHandleClick = false;
-  let suppressFabClick = false;
 
   const sliderState = {
     brightness: 0.62,
@@ -166,7 +164,7 @@
   function applyProgress(nextProgress) {
     const clamped = Math.max(0, Math.min(1, nextProgress));
     openProgress = clamped;
-    const translateY = (-panelOffset) + panelOffset * clamped;
+    const translateY = panelOffset * (1 - clamped);
     panel.style.transform = `translateY(${translateY}px)`;
     scrim.style.opacity = String(clamped);
     controlCenter.classList.toggle("is-open", clamped > 0);
@@ -220,7 +218,7 @@
     if (Math.abs(deltaY) > 4) dragState.moved = true;
 
     if (dragState.mode === "open") {
-      applyProgress(Math.max(0, Math.min(1, deltaY / panelOffset)));
+      applyProgress(Math.max(0, Math.min(1, -deltaY / panelOffset)));
     } else {
       applyProgress(Math.max(0, Math.min(1, 1 + (deltaY / panelOffset))));
     }
@@ -244,7 +242,6 @@
     }
   }
 
-  handle.classList.add("cc-handle");
   handle.setAttribute("aria-expanded", "false");
   handle.addEventListener("click", () => {
     if (suppressHandleClick) {
@@ -336,62 +333,6 @@
       event.stopImmediatePropagation();
       suppressNextWifiClick = false;
     }, { capture: true });
-  }
-
-  if (fab) {
-    let fabDrag = null;
-    const placeFab = (left, top) => {
-      const shellRect = shell.getBoundingClientRect();
-      const fabRect = fab.getBoundingClientRect();
-      const minLeft = 10;
-      const minTop = 10;
-      const maxLeft = shellRect.width - fabRect.width - 10;
-      const maxTop = shellRect.height - fabRect.height - 10;
-      fab.style.left = `${Math.min(Math.max(left, minLeft), Math.max(minLeft, maxLeft))}px`;
-      fab.style.top = `${Math.min(Math.max(top, minTop), Math.max(minTop, maxTop))}px`;
-      fab.style.right = "auto";
-      fab.style.bottom = "auto";
-    };
-
-    fab.addEventListener("pointerdown", (event) => {
-      const shellRect = shell.getBoundingClientRect();
-      const fabRect = fab.getBoundingClientRect();
-      fab.setPointerCapture(event.pointerId);
-      fabDrag = {
-        pointerId: event.pointerId,
-        startX: event.clientX,
-        startY: event.clientY,
-        startLeft: fabRect.left - shellRect.left,
-        startTop: fabRect.top - shellRect.top,
-        moved: false
-      };
-      fab.classList.add("is-dragging");
-    });
-
-    fab.addEventListener("pointermove", (event) => {
-      if (!fabDrag || fabDrag.pointerId !== event.pointerId) return;
-      const deltaX = event.clientX - fabDrag.startX;
-      const deltaY = event.clientY - fabDrag.startY;
-      if (Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3) fabDrag.moved = true;
-      placeFab(fabDrag.startLeft + deltaX, fabDrag.startTop + deltaY);
-    });
-
-    const endFabDrag = (event) => {
-      if (!fabDrag || fabDrag.pointerId !== event.pointerId) return;
-      suppressFabClick = fabDrag.moved;
-      fabDrag = null;
-      fab.classList.remove("is-dragging");
-    };
-
-    fab.addEventListener("pointerup", endFabDrag);
-    fab.addEventListener("pointercancel", endFabDrag);
-    fab.addEventListener("click", () => {
-      if (suppressFabClick) {
-        suppressFabClick = false;
-        return;
-      }
-      if (!isOpen) openCenter();
-    });
   }
 
   const sliders = [...controlCenter.querySelectorAll(".cc-slider[data-slider]")];

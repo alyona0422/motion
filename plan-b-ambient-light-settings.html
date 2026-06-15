@@ -82,18 +82,20 @@
           </article>
 
           <article class="setting-card">
-            <div class="setting-row">
-              <div>
-                <h2 class="card-title">Brightness</h2>
-                <p class="card-subtitle">Adjust brightness manually from 0%–100%.</p>
+            <h2 class="card-title brightness-card-title">Brightness <span class="brightness-inline-value"><span id="brightnessValue">60</span>%</span></h2>
+
+            <div class="brightness-manual-block">
+              <h3 class="row-title">Manual brightness</h3>
+              <div class="brightness-slider-block">
+                <input id="brightnessSlider" class="range-slider" type="range" min="0" max="100" step="1" value="60" aria-label="Manual brightness" />
+                <div class="range-endpoints" aria-hidden="true">
+                  <span>0%</span>
+                  <span>100%</span>
+                </div>
               </div>
-              <span class="value-pill"><span id="brightnessValue">60</span>%</span>
             </div>
 
-            <label class="field-label" for="brightnessSlider">Manual brightness</label>
-            <input id="brightnessSlider" class="range-slider" type="range" min="0" max="100" step="1" value="60" />
-
-            <div class="setting-row">
+            <div class="setting-row brightness-auto-row">
               <div>
                 <h3 class="row-title">Auto brightness</h3>
                 <p class="row-note">Automatically adjust brightness based on ambient light.</p>
@@ -151,17 +153,17 @@
           </article>
         </div>
 
-        <div class="reset-defaults-wrap">
-          <button class="reset-defaults-btn" type="button" id="resetDefaultsBtn">Restore defaults</button>
-          <p class="reset-defaults-note">Reset all ambient light options to factory defaults.</p>
+        <div class="ambient-footer-actions">
+          <div class="reset-defaults-wrap">
+            <button class="reset-defaults-btn" type="button" id="resetDefaultsBtn">
+              <span class="reset-defaults-btn-label">Restore defaults</span>
+              <span class="reset-defaults-btn-desc">Reset all ambient light options to factory defaults.</span>
+            </button>
+          </div>
+          <div class="action-dock ambient-action-dock" aria-label="Page actions">
+            <button class="action-dock-back-btn" type="button" onclick="window.location.href='plan-b-device-settings.html'" aria-label="Back to device settings">Back</button>
+          </div>
         </div>
-      </div>
-      <div class="action-dock" aria-label="Page actions">
-        <button class="settings-back-btn" type="button" onclick="window.location.href='plan-b-device-settings.html'" aria-label="Back to device settings">
-          <svg viewBox="0 0 24 24">
-            <path d="M15 18l-6-6 6-6"></path>
-          </svg>
-        </button>
       </div>
     </section>
 

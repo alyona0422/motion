@@ -294,7 +294,8 @@
     }
 
     /* Device Self-Check Page */
-    .self-check-page {
+    .self-check-page,
+    .self-check-issue-page {
       position: absolute;
       inset: 0;
       z-index: 20;
@@ -304,7 +305,8 @@
       padding: 66px 18px 96px;
       overflow-y: auto;
     }
-    .self-check-page.active {
+    .self-check-page.active,
+    .self-check-issue-page.active {
       display: flex;
     }
     .self-check-header {
@@ -427,18 +429,17 @@
       border: 1px solid rgba(220, 38, 38, 0.28);
       border-radius: 999px;
       padding: 6px 14px;
-      cursor: pointer;
-      transition: background 0.2s ease, border-color 0.2s ease;
-    }
-    .self-check-item-status.is-abnormal:hover {
-      background: rgba(220, 38, 38, 0.16);
-      border-color: rgba(220, 38, 38, 0.42);
     }
     .self-check-footer {
+      display: none;
       padding-top: 12px;
     }
-    .self-check-start-btn,
-    .self-check-done-btn {
+    .self-check-page[data-state="done"] .self-check-footer {
+      display: block;
+    }
+    .self-check-done-btn,
+    .self-check-view-issues-btn,
+    .self-check-issue-back-btn {
       width: 100%;
       min-height: 56px;
       height: auto;
@@ -458,32 +459,55 @@
       letter-spacing: 0.02em;
       transition: filter 0.2s ease, transform 0.2s ease;
     }
-    .self-check-start-btn:hover,
-    .self-check-done-btn:hover {
+    .self-check-done-btn:hover,
+    .self-check-view-issues-btn:hover,
+    .self-check-issue-back-btn:hover {
       filter: brightness(1.06);
     }
-    .self-check-page[data-state="running"] .self-check-start-btn,
-    .self-check-page[data-state="done"] .self-check-start-btn {
-      display: none;
-    }
     .self-check-page[data-state="idle"] .self-check-done-btn,
-    .self-check-page[data-state="running"] .self-check-done-btn {
+    .self-check-page[data-state="running"] .self-check-done-btn,
+    .self-check-page[data-state="idle"] .self-check-view-issues-btn,
+    .self-check-page[data-state="running"] .self-check-view-issues-btn {
       display: none;
     }
-    .self-check-page[data-state="done"] .self-check-done-btn {
+    .self-check-page[data-state="done"][data-result="normal"] .self-check-done-btn {
+      display: flex;
+    }
+    .self-check-page[data-state="done"][data-result="normal"] .self-check-view-issues-btn {
+      display: none;
+    }
+    .self-check-page[data-state="done"][data-result="abnormal"] .self-check-done-btn {
+      display: none;
+    }
+    .self-check-page[data-state="done"][data-result="abnormal"] .self-check-view-issues-btn {
       display: flex;
     }
     .self-check-page[data-state="idle"] .self-check-current {
       display: none;
     }
-    #selfCheckIssueModal {
-      z-index: 25;
-    }
     .self-check-issue-body {
-      padding: 16px 0 8px;
+      flex: 1;
+      width: 100%;
       display: flex;
       flex-direction: column;
       gap: 16px;
+      padding: 8px 0 24px;
+      overflow-y: auto;
+    }
+    .self-check-issue-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--line-soft);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .self-check-issue-card-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      margin: 0;
     }
     .self-check-issue-row {
       display: flex;
@@ -499,12 +523,14 @@
       font-size: 15px;
       color: var(--text);
       line-height: 1.5;
+      margin: 0;
     }
     .self-check-issue-code {
       font-family: 'Barlow Condensed', monospace;
       font-size: 22px;
       font-weight: 700;
       color: #dc2626;
+      margin: 0;
     }
     .self-check-issue-qr-wrap {
       display: flex;
@@ -528,10 +554,20 @@
       margin: 0;
       text-align: center;
     }
-    body.cream-medium .self-check-page {
+    .self-check-issue-qr-support {
+      font-size: 12px;
+      line-height: 1.5;
+      color: var(--muted);
+      margin: 4px 0 0;
+      text-align: center;
+      max-width: 280px;
+    }
+    body.cream-medium .self-check-page,
+    body.cream-medium .self-check-issue-page {
       background: linear-gradient(180deg, rgba(255, 252, 244, 0.96) 0%, #f5f8fb 44%, #e8eef5 100%);
     }
-    body.cream-medium .self-check-item {
+    body.cream-medium .self-check-item,
+    body.cream-medium .self-check-issue-card {
       background: rgba(255, 255, 255, 0.82);
     }
     body.cream-medium .self-check-ring .ring-track {
@@ -570,7 +606,7 @@
         </button>
         <button class="list-btn" type="button" id="ambientLightBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8 14a5 5 0 1 1 8 0c-.8.7-1.2 1.6-1.3 2.6H9.3C9.2 15.6 8.8 14.7 8 14z"/></svg>
-          <span data-i18n="ambient">氛围灯设置</span>
+          <span data-i18n="ambient">AMBIENT LIGHT</span>
         </button>
         <button class="list-btn" type="button" id="languageBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
@@ -586,16 +622,12 @@
         </button>
       </div>
       <div class="action-dock" aria-label="页面操作">
-        <button class="settings-back-btn" type="button" onclick="window.location.href='plan-b-profile.html'" aria-label="返回个人主页">
-          <svg viewBox="0 0 24 24">
-            <path d="M15 18l-6-6 6-6"></path>
-          </svg>
-        </button>
+        <button class="action-dock-back-btn" type="button" onclick="window.location.href='plan-b-profile.html'" aria-label="返回个人主页">Back</button>
       </div>
     </section>
 
     <!-- 设备自检 -->
-    <section class="self-check-page" id="selfCheckScreen" data-state="idle" aria-label="设备自检" aria-hidden="true">
+    <section class="self-check-page" id="selfCheckScreen" data-state="running" data-result="normal" aria-label="设备自检" aria-hidden="true">
       <div class="self-check-header">
         <h2 class="self-check-title">设备自检</h2>
       </div>
@@ -607,52 +639,26 @@
           </svg>
           <div class="self-check-percent" id="selfCheckPercent">0%</div>
         </div>
-        <p class="self-check-status-label" id="selfCheckStatusLabel">点击下方开始自检</p>
+        <p class="self-check-status-label" id="selfCheckStatusLabel">自检进行中…</p>
         <p class="self-check-current" id="selfCheckCurrentItem">正在检测：相机</p>
         <ul class="self-check-items" id="selfCheckItemsList" aria-label="自检项目"></ul>
       </div>
       <div class="self-check-footer">
-        <button class="resume-btn self-check-start-btn" type="button" id="startSelfCheckBtn">开始自检</button>
         <button class="resume-btn self-check-done-btn" type="button" id="selfCheckDoneBtn">完成</button>
-      </div>
-      <div class="action-dock" aria-label="页面操作">
-        <button class="settings-back-btn" type="button" id="selfCheckCloseBtn" aria-label="返回设备设置">
-          <svg viewBox="0 0 24 24">
-            <path d="M15 18l-6-6 6-6"></path>
-          </svg>
-        </button>
+        <button class="resume-btn self-check-view-issues-btn" type="button" id="viewIssuesBtn">查看异常项目</button>
       </div>
     </section>
 
-    <!-- 自检异常弹窗 -->
-    <div class="training-modal" id="selfCheckIssueModal" aria-hidden="true" style="padding: 40px 24px;">
-      <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="selfCheckIssueTitle" style="margin: auto; border-radius: 20px; width: 100%; max-width: 360px;">
-        <div class="modal-head" style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 16px; border-bottom: 1px solid var(--line-soft);">
-          <h3 id="selfCheckIssueTitle" class="truncate-text" style="margin: 0;">异常详情</h3>
-          <button class="close-btn" id="closeSelfCheckIssueBtn" type="button" aria-label="关闭" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; padding: 0; margin-left: 16px; flex-shrink: 0; color: var(--muted);">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-          </button>
-        </div>
-        <div class="self-check-issue-body">
-          <div class="self-check-issue-row">
-            <span class="self-check-issue-label">异常原因</span>
-            <p class="self-check-issue-value" id="selfCheckIssueReason">—</p>
-          </div>
-          <div class="self-check-issue-row">
-            <span class="self-check-issue-label">异常代码</span>
-            <p class="self-check-issue-code" id="selfCheckIssueCode">—</p>
-          </div>
-          <div class="self-check-issue-qr-wrap">
-            <span class="self-check-issue-label">异常二维码</span>
-            <img id="selfCheckIssueQr" class="self-check-issue-qr" src="" alt="异常二维码" width="168" height="168" />
-            <p class="self-check-issue-qr-hint">扫码查看支持信息</p>
-          </div>
-        </div>
-        <div class="wifi-modal-actions" style="margin-top: 8px;">
-          <button class="resume-btn" id="selfCheckIssueOkBtn" type="button" style="width: 100%; background: var(--orange); box-shadow: var(--glow-orange), 0 14px 24px rgba(0, 0, 0, 0.28); color: #fff; cursor: pointer;">确定</button>
-        </div>
+    <!-- 自检异常详情页 -->
+    <section class="self-check-issue-page" id="selfCheckIssuePage" aria-label="异常项目" aria-hidden="true">
+      <div class="self-check-header">
+        <h2 class="self-check-title">异常项目</h2>
       </div>
-    </div>
+      <div class="self-check-issue-body" id="selfCheckIssueList" aria-label="异常项目列表"></div>
+      <div class="self-check-footer">
+        <button class="resume-btn self-check-issue-back-btn" type="button" id="selfCheckIssueBackBtn">返回</button>
+      </div>
+    </section>
 
     <!-- Wi-Fi Bottom Sheet & Overlay -->
     <div class="sheet-overlay" id="wifiOverlay"></div>

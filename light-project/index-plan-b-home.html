@@ -21,7 +21,7 @@
     <div class="vignette" aria-hidden="true"></div>
 
     <section class="content" id="homeScreen">
-      <div class="top-status-row" id="controlCenterHandle" role="button" tabindex="0" aria-label="打开控制中心">
+      <div class="top-status-row">
         <div class="status-pill">
           <div class="status-time">
             <span>上午 10:26</span>
@@ -128,13 +128,13 @@
         <div class="explore-main">
           <div class="explore-head">
             <h3 id="exploreTitle">计划</h3>
-            <div class="filters">
-              <button class="filter-tab active" type="button" data-filter="recommended" aria-label="推荐">推荐</button>
-              <button class="filter-tab" type="button" data-filter="personalized" aria-label="个性化">个性化</button>
+            <div class="explore-view-toggle" role="group" aria-label="View mode">
+              <button class="explore-view-btn active" type="button" data-view="list" aria-pressed="true">List</button>
+              <button class="explore-view-btn" type="button" data-view="waterfall" aria-pressed="false">Waterfall</button>
             </div>
           </div>
           <div class="grid-wrap">
-            <div class="grid" id="exploreGrid"></div>
+            <div class="grid" id="exploreGrid" data-view="list"></div>
           </div>
         </div>
       </section>
@@ -200,37 +200,37 @@
             <svg class="cc-slider-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path id="volumeIconPath" d="M11 5L6 9H3v6h3l5 4V5zm3.5 4.5a5 5 0 0 1 0 5m2.5-7.5a8.5 8.5 0 0 1 0 10"/></svg>
             <span class="cc-slider-label">音量</span>
           </div>
-          <article class="cc-ambient" id="ccAmbientCard" aria-label="氛围灯">
+          <article class="cc-ambient" id="ccAmbientCard" aria-label="Ambient Light">
             <div class="cc-ambient-head">
               <div class="cc-ambient-title">
                 <svg class="cc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.75V16a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-1.25A7 7 0 0 0 12 2z"/></svg>
                 <div>
-                  <p class="cc-tile-title">氛围灯</p>
-                  <span class="cc-ambient-state" id="ambientStatusTextCc">关</span>
+                  <p class="cc-tile-title">Ambient Light</p>
+                  <span class="cc-ambient-state" id="ambientStatusTextCc">Off</span>
                 </div>
               </div>
-              <button class="cc-switch" id="ambientPowerToggleCc" type="button" role="switch" aria-checked="false" aria-label="氛围灯开关">
+              <button class="cc-switch" id="ambientPowerToggleCc" type="button" role="switch" aria-checked="false" aria-label="Ambient light switch">
                 <span class="cc-switch-knob"></span>
               </button>
             </div>
 
             <div class="cc-ambient-row" id="ambientBrightnessRow">
               <div class="cc-ambient-row-head">
-                <span class="cc-ambient-label">亮度</span>
+                <span class="cc-ambient-label">Brightness</span>
                 <span class="cc-ambient-value"><span id="ambientBrightnessValueCc">60</span>%</span>
               </div>
-              <input id="ambientBrightnessSliderCc" class="cc-range" type="range" min="0" max="100" step="1" value="60" aria-label="氛围灯亮度" />
+              <input id="ambientBrightnessSliderCc" class="cc-range" type="range" min="0" max="100" step="1" value="60" aria-label="Ambient light brightness" />
             </div>
 
             <div class="cc-ambient-row" id="ambientModeRow">
               <div class="cc-ambient-row-head">
-                <span class="cc-ambient-label">模式</span>
+                <span class="cc-ambient-label">Mode</span>
               </div>
               <div class="cc-segmented" id="ambientModeSegment">
-                <button class="cc-segment-btn is-active" id="ambientModeSteadyBtn" type="button" data-mode="steady">常亮</button>
-                <button class="cc-segment-btn" id="ambientModeBreathingBtn" type="button" data-mode="breathing">呼吸</button>
+                <button class="cc-segment-btn is-active" id="ambientModeSteadyBtn" type="button" data-mode="steady">Steady</button>
+                <button class="cc-segment-btn" id="ambientModeBreathingBtn" type="button" data-mode="breathing">Breathing</button>
               </div>
-              <p class="cc-ambient-note" id="ambientModeLockHint">开启同步后模式将被锁定。</p>
+              <p class="cc-ambient-note" id="ambientModeLockHint">Mode is locked when sync is enabled.</p>
             </div>
           </article>
 
@@ -278,8 +278,8 @@
         </div>
       </div>
     </section>
-    <button class="cc-fab" id="controlCenterFab" type="button" aria-label="打开控制中心">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-.4-1.1 1.7 1.7 0 0 0-1-.6 1.7 1.7 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H2.8a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.1-.4 1.7 1.7 0 0 0 .6-1 1.7 1.7 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V2.8a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 .4 1.1 1.7 1.7 0 0 0 1 .6 1.7 1.7 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9c0 .39.14.77.4 1.06.29.31.68.49 1.1.5h.1a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.1.44c-.27.3-.41.68-.4 1z"></path></svg>
+    <button class="cc-bottom-handle" id="controlCenterHandle" type="button" aria-label="Open Control Center" aria-expanded="false">
+      <span class="cc-bottom-handle-pill" aria-hidden="true"></span>
     </button>
 
     <nav class="bottom-nav" aria-label="底部导航">

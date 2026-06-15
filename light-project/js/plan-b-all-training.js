@@ -6,14 +6,16 @@
   const assetPaths = (window.PlanBDemo && window.PlanBDemo.assetPaths) || [];
 
   const tabButtons = Array.from(document.querySelectorAll(".all-training-tab"));
+  const viewButtons = Array.from(document.querySelectorAll(".at-view-btn"));
   const filterToggle = document.getElementById("allTrainingFilterToggle");
+  const filterCollapse = document.getElementById("allTrainingFilterCollapse");
   const filterPanel = document.getElementById("allTrainingFilterPanel");
   const searchInput = document.getElementById("allTrainingSearchInput");
   const listEl = document.getElementById("allTrainingList");
+  const listInnerEl = document.getElementById("allTrainingListInner");
   const emptyEl = document.getElementById("allTrainingEmpty");
   const resultCountEl = document.getElementById("allTrainingResultCount");
   const resultTitleEl = document.getElementById("allTrainingResultTitle");
-  const activeFiltersEl = document.getElementById("allTrainingActiveFilters");
 
   const TAB_CONFIG = {
     moves: {
@@ -50,6 +52,7 @@
 
   const state = {
     activeTab: "moves",
+    viewMode: "list",
     keyword: "",
     filterMap: {
       moves: {},
@@ -79,16 +82,6 @@
     return String(assetPaths[index % assetPaths.length] || "");
   }
 
-  function setPanelOpen(open) {
-    state.panelOpen = open;
-    if (!filterPanel || !filterToggle) return;
-    filterToggle.setAttribute("aria-expanded", String(open));
-    filterToggle.setAttribute("aria-label", open ? "Collapse filters" : "Expand filters");
-    filterToggle.classList.toggle("is-open", open);
-    filterPanel.classList.toggle("is-open", open);
-    filterPanel.hidden = !open;
-  }
-
   function getFiltersForTab(tab) {
     return TAB_CONFIG[tab] ? TAB_CONFIG[tab].filters : [];
   }
@@ -100,14 +93,23 @@
     });
   }
 
+  function setPanelOpen(open) {
+    state.panelOpen = open;
+    if (filterCollapse) {
+      filterCollapse.classList.toggle("is-open", open);
+      filterCollapse.setAttribute("aria-hidden", String(!open));
+    }
+    if (filterToggle) {
+      filterToggle.setAttribute("aria-expanded", String(open));
+      filterToggle.classList.toggle("is-open", open);
+      filterToggle.setAttribute("aria-label", open ? "Collapse filters" : "Expand filters");
+    }
+    if (open) renderFilterPanel();
+  }
+
   function getItemsForTab(tab) {
     const items = Array.isArray(demoData[tab]) ? demoData[tab] : [];
     return items.map((item, index) => ({ ...item, __index: index }));
-  }
-
-  function countActiveFilters(tab) {
-    const map = state.filterMap[tab] || {};
-    return Object.values(map).reduce((sum, value) => sum + (value instanceof Set ? value.size : 0), 0);
   }
 
   function applyFilters(items) {
@@ -126,39 +128,15 @@
     });
   }
 
-  function renderActiveFilterTags() {
-    if (!activeFiltersEl) return;
-    const tab = state.activeTab;
-    const map = state.filterMap[tab] || {};
-    const tags = [];
-    getFiltersForTab(tab).forEach(({ key, label }) => {
-      const set = map[key];
-      if (!set || set.size === 0) return;
-      set.forEach((value) => tags.push(`${label}: ${value}`));
+  function setViewMode(mode) {
+    if (mode !== "list" && mode !== "waterfall") return;
+    state.viewMode = mode;
+    if (listEl) listEl.dataset.view = mode;
+    viewButtons.forEach((btn) => {
+      const active = btn.dataset.view === mode;
+      btn.classList.toggle("is-active", active);
+      btn.setAttribute("aria-pressed", String(active));
     });
-    if (state.keyword.trim()) tags.push(`Search: ${state.keyword.trim()}`);
-
-    activeFiltersEl.innerHTML = "";
-    if (!tags.length) return;
-    tags.forEach((text) => {
-      const tag = document.createElement("span");
-      tag.className = "all-training-active-tag";
-      tag.textContent = text;
-      activeFiltersEl.appendChild(tag);
-    });
-    const clearBtn = document.createElement("button");
-    clearBtn.type = "button";
-    clearBtn.className = "all-training-reset-btn";
-    clearBtn.textContent = "Clear All";
-    clearBtn.addEventListener("click", () => {
-      ensureTabFilterState(tab);
-      Object.keys(state.filterMap[tab]).forEach((key) => state.filterMap[tab][key].clear());
-      state.keyword = "";
-      if (searchInput) searchInput.value = "";
-      renderFilterPanel();
-      renderList();
-    });
-    activeFiltersEl.appendChild(clearBtn);
   }
 
   function openActionDetail(item) {
@@ -188,12 +166,12 @@
   }
 
   function renderList() {
-    if (!listEl || !resultTitleEl || !resultCountEl || !emptyEl) return;
+    if (!listInnerEl || !resultTitleEl || !resultCountEl || !emptyEl) return;
     const tab = state.activeTab;
     const filtered = applyFilters(getItemsForTab(tab));
     resultTitleEl.textContent = TAB_CONFIG[tab].label;
     resultCountEl.textContent = `${filtered.length} ${filtered.length === 1 ? "item" : "items"}`;
-    listEl.innerHTML = "";
+    listInnerEl.innerHTML = "";
     emptyEl.hidden = filtered.length > 0;
 
     filtered.forEach((item) => {
@@ -219,7 +197,7 @@
 
       const meta = document.createElement("div");
       meta.className = "all-training-meta";
-      
+
       const level = document.createElement("span");
       const difficultyText = item.difficulty || "Intermediate";
       level.className = `all-training-level cat-difficulty val-difficulty-${slugifyToken(difficultyText)}`;
@@ -252,8 +230,8 @@
         image.style.backgroundImage = `url("${safeCover}")`;
       }
 
-      row.append(content, image);
-      listEl.appendChild(row);
+      row.append(image, content);
+      listInnerEl.appendChild(row);
     });
 
     renderActiveFilterTags();
@@ -262,7 +240,7 @@
   function renderFilterPanel() {
     if (!filterPanel) return;
     const tab = state.activeTab;
-    ensureTabFilterState(tab);
+    const source = getActiveFilterSource();
     filterPanel.innerHTML = "";
     getFiltersForTab(tab).forEach(({ key, label, options }) => {
       const group = document.createElement("section");
@@ -272,7 +250,7 @@
       title.textContent = label;
       const optionsWrap = document.createElement("div");
       optionsWrap.className = "all-training-filter-options";
-      const set = state.filterMap[tab][key];
+      const set = source[key] || new Set();
 
       const allChip = document.createElement("button");
       allChip.type = "button";
@@ -282,7 +260,6 @@
       allChip.addEventListener("click", () => {
         set.clear();
         renderFilterPanel();
-        renderList();
       });
       optionsWrap.appendChild(allChip);
 
@@ -295,13 +272,7 @@
         chip.addEventListener("click", () => {
           if (set.has(option)) set.delete(option);
           else set.add(option);
-          if (set.size === 0) {
-            renderFilterPanel();
-          } else {
-            allChip.classList.remove("is-active");
-            chip.classList.toggle("is-active", set.has(option));
-          }
-          renderList();
+          renderFilterPanel();
         });
         optionsWrap.appendChild(chip);
       });
@@ -312,6 +283,7 @@
 
   function setActiveTab(tab) {
     if (!TAB_CONFIG[tab]) return;
+    if (state.sheetOpen) closeFilterSheet(true);
     state.activeTab = tab;
     ensureTabFilterState(tab);
     tabButtons.forEach((btn) => {
@@ -319,16 +291,28 @@
       btn.classList.toggle("is-active", active);
       btn.setAttribute("aria-selected", String(active));
     });
-    renderFilterPanel();
     renderList();
   }
 
   tabButtons.forEach((button) => {
     button.addEventListener("click", () => setActiveTab(button.dataset.tab));
   });
+
+  viewButtons.forEach((button) => {
+    button.addEventListener("click", () => setViewMode(button.dataset.view));
+  });
+
   if (filterToggle) {
-    filterToggle.addEventListener("click", () => setPanelOpen(!state.panelOpen));
+    filterToggle.addEventListener("click", () => {
+      if (state.sheetOpen) closeFilterSheet(true);
+      else openFilterSheet();
+    });
   }
+  if (filterScrim) filterScrim.addEventListener("click", () => closeFilterSheet(true));
+  if (filterClose) filterClose.addEventListener("click", () => closeFilterSheet(true));
+  if (filterReset) filterReset.addEventListener("click", resetDraftFilters);
+  if (filterApply) filterApply.addEventListener("click", applyDraftFilters);
+
   if (searchInput) {
     searchInput.addEventListener("input", () => {
       state.keyword = searchInput.value || "";
@@ -340,7 +324,10 @@
   const initParams = new URLSearchParams(window.location.search);
   const initTab = initParams.get("tab");
   if (initTab && TAB_CONFIG[initTab]) state.activeTab = initTab;
-  setPanelOpen(false);
-  renderFilterPanel();
+  setViewMode("list");
+  closeFilterSheet(true);
   renderList();
+  const initView = initParams.get("view");
+  if (initView === "waterfall" || initView === "list") setViewMode(initView);
+  if (initParams.get("filters") === "open") openFilterSheet();
 })();

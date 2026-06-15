@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   const STORAGE_KEY = "planBAmbientLightV1";
   const FAVORITE_SLOT_COUNT = 3;
-  const CUSTOM_LABELS = ["自定义一", "自定义二", "自定义三"];
+  const CUSTOM_LABELS = ["Custom 1", "Custom 2", "Custom 3"];
 
   function createDefaultState() {
     return {
@@ -118,8 +118,8 @@ document.addEventListener("DOMContentLoaded", () => {
           dot.classList.add("is-empty");
         }
       }
-      const label = CUSTOM_LABELS[idx] || `自定义${idx + 1}`;
-      slot.setAttribute("aria-label", normalized ? `${label} ${normalized}` : `${label} 未设置`);
+      const label = CUSTOM_LABELS[idx] || `Custom ${idx + 1}`;
+      slot.setAttribute("aria-label", normalized ? `${label} ${normalized}` : `${label} not set`);
     });
   }
 

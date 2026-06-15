@@ -1,4 +1,40 @@
 document.addEventListener('DOMContentLoaded', () => {
+  const STORAGE_PERSON_FOLLOW = 'planBPersonFollowingV1';
+  const devicePersonFollowSwitch = document.getElementById('devicePersonFollowSwitch');
+
+  function getPersonFollowingEnabled() {
+    try {
+      const raw = localStorage.getItem(STORAGE_PERSON_FOLLOW);
+      if (raw === null) return true;
+      return raw === 'true';
+    } catch (e) {
+      return true;
+    }
+  }
+
+  function setPersonFollowingEnabled(enabled) {
+    try {
+      localStorage.setItem(STORAGE_PERSON_FOLLOW, enabled ? 'true' : 'false');
+    } catch (e) {
+      /* ignore */
+    }
+    syncDevicePersonFollowSwitch();
+  }
+
+  function syncDevicePersonFollowSwitch() {
+    if (!devicePersonFollowSwitch) return;
+    const on = getPersonFollowingEnabled();
+    devicePersonFollowSwitch.classList.toggle('is-on', on);
+    devicePersonFollowSwitch.setAttribute('aria-checked', String(on));
+  }
+
+  if (devicePersonFollowSwitch) {
+    devicePersonFollowSwitch.addEventListener('click', () => {
+      setPersonFollowingEnabled(!getPersonFollowingEnabled());
+    });
+    syncDevicePersonFollowSwitch();
+  }
+
   const wifiSettingsBtn = document.getElementById('wifiSettingsBtn');
   const wifiBottomSheet = document.getElementById('wifiBottomSheet');
   const wifiOverlay = document.getElementById('wifiOverlay');
@@ -31,6 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
       title: 'DEVICE SETTINGS',
       wifi: 'WI-FI SETTINGS',
       ambient: 'AMBIENT LIGHT',
+      personFollow: 'Person Following',
       lang: 'LANGUAGE',
       privacy: 'PRIVACY & AGREEMENT',
       langTitle: 'Language',
@@ -40,6 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
       title: '设备设置',
       wifi: '无线网络设置',
       ambient: '氛围灯设置',
+      personFollow: '人物追随功能',
       lang: '语言',
       privacy: '隐私与协议',
       langTitle: '语言',
@@ -233,21 +271,16 @@ document.addEventListener('DOMContentLoaded', () => {
   // Device Self-Check
   const selfCheckBtn = document.getElementById('selfCheckBtn');
   const selfCheckScreen = document.getElementById('selfCheckScreen');
-  const selfCheckCloseBtn = document.getElementById('selfCheckCloseBtn');
-  const startSelfCheckBtn = document.getElementById('startSelfCheckBtn');
   const selfCheckDoneBtn = document.getElementById('selfCheckDoneBtn');
+  const viewIssuesBtn = document.getElementById('viewIssuesBtn');
+  const selfCheckIssuePage = document.getElementById('selfCheckIssuePage');
+  const selfCheckIssueList = document.getElementById('selfCheckIssueList');
+  const selfCheckIssueBackBtn = document.getElementById('selfCheckIssueBackBtn');
   const selfCheckRingProgress = document.getElementById('selfCheckRingProgress');
   const selfCheckPercent = document.getElementById('selfCheckPercent');
   const selfCheckStatusLabel = document.getElementById('selfCheckStatusLabel');
   const selfCheckCurrentItem = document.getElementById('selfCheckCurrentItem');
   const selfCheckItemsList = document.getElementById('selfCheckItemsList');
-  const selfCheckIssueModal = document.getElementById('selfCheckIssueModal');
-  const closeSelfCheckIssueBtn = document.getElementById('closeSelfCheckIssueBtn');
-  const selfCheckIssueOkBtn = document.getElementById('selfCheckIssueOkBtn');
-  const selfCheckIssueTitle = document.getElementById('selfCheckIssueTitle');
-  const selfCheckIssueReason = document.getElementById('selfCheckIssueReason');
-  const selfCheckIssueCode = document.getElementById('selfCheckIssueCode');
-  const selfCheckIssueQr = document.getElementById('selfCheckIssueQr');
 
   const RING_RADIUS = 68;
   const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
@@ -260,15 +293,30 @@ document.addEventListener('DOMContentLoaded', () => {
     complete: 'Self-Check Complete',
     idleHint: 'Tap below to start self-check',
     runningHint: 'Self-check in progress…',
-    checkingPrefix: 'Checking:'
+    checkingPrefix: 'Checking:',
+    viewIssues: 'View Abnormal Items',
+    issuesTitle: 'Abnormal Items',
+    back: 'Back',
+    codeLabel: 'Error Code',
+    fixLabel: 'Troubleshooting',
+    qrLabel: 'Error QR Code',
+    qrHint: 'Scan for support details',
+    qrSupportHint: 'If the issue persists, please contact our support engineer. Hotline: 400-161-7020 (China)'
   };
 
   // Toggle `ok: true` on all items to demo the all-normal Done path.
   const SELF_CHECK_ITEMS = [
-    { id: 'camera', name: 'Camera', ok: true, code: '', reason: '' },
-    { id: 'motor', name: 'Motor', ok: true, code: '', reason: '' },
-    { id: 'controlBoard', name: 'Control Board', ok: false, code: 'E-1203', reason: 'Control board communication timeout' },
-    { id: 'deviceVersion', name: 'Device Version', ok: true, code: '', reason: '' }
+    { id: 'camera', name: 'Camera', ok: true, code: '', reason: '', fix: '' },
+    { id: 'motor', name: 'Motor', ok: true, code: '', reason: '', fix: '' },
+    {
+      id: 'controlBoard',
+      name: 'Control Board',
+      ok: false,
+      code: 'E-1203',
+      reason: 'Control board communication timeout',
+      fix: 'Restart the device. If it persists, reseat the control board cable and contact support.'
+    },
+    { id: 'deviceVersion', name: 'Device Version', ok: true, code: '', reason: '', fix: '' }
   ];
 
   let selfCheckTimer = null;
@@ -320,15 +368,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
           status.textContent = SELF_CHECK_LABELS.abnormal;
           status.classList.add('is-abnormal');
-          status.setAttribute('role', 'button');
-          status.setAttribute('tabindex', '0');
-          status.addEventListener('click', () => openSelfCheckIssueModal(item));
-          status.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter' || event.key === ' ') {
-              event.preventDefault();
-              openSelfCheckIssueModal(item);
-            }
-          });
         }
       }
 
@@ -359,14 +398,23 @@ document.addEventListener('DOMContentLoaded', () => {
     setRingProgress(0);
     if (selfCheckScreen) {
       selfCheckScreen.dataset.state = 'idle';
+      selfCheckScreen.dataset.result = 'normal';
     }
+    closeSelfCheckIssuePage();
     if (selfCheckStatusLabel) selfCheckStatusLabel.textContent = SELF_CHECK_LABELS.idleHint;
     if (selfCheckCurrentItem) selfCheckCurrentItem.style.display = 'none';
     renderSelfCheckItems('idle');
   }
 
   function openSelfCheckScreen() {
-    resetSelfCheck();
+    if (selfCheckTimer) {
+      clearInterval(selfCheckTimer);
+      selfCheckTimer = null;
+    }
+    selfCheckProgress = 0;
+    setRingProgress(0);
+    closeSelfCheckIssuePage();
+    startSelfCheck();
     if (selfCheckScreen) {
       selfCheckScreen.classList.add('active');
       selfCheckScreen.setAttribute('aria-hidden', 'false');
@@ -382,7 +430,7 @@ document.addEventListener('DOMContentLoaded', () => {
       selfCheckScreen.classList.remove('active');
       selfCheckScreen.setAttribute('aria-hidden', 'true');
     }
-    closeSelfCheckIssueModal();
+    closeSelfCheckIssuePage();
     resetSelfCheck();
   }
 
@@ -393,7 +441,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     selfCheckProgress = 100;
     setRingProgress(100);
-    if (selfCheckScreen) selfCheckScreen.dataset.state = 'done';
+    const hasAbnormal = SELF_CHECK_ITEMS.some((item) => !item.ok);
+    if (selfCheckScreen) {
+      selfCheckScreen.dataset.state = 'done';
+      selfCheckScreen.dataset.result = hasAbnormal ? 'abnormal' : 'normal';
+    }
     if (selfCheckStatusLabel) selfCheckStatusLabel.textContent = SELF_CHECK_LABELS.complete;
     if (selfCheckCurrentItem) selfCheckCurrentItem.style.display = 'none';
     renderSelfCheckItems('done');
@@ -427,36 +479,104 @@ document.addEventListener('DOMContentLoaded', () => {
       type: 'device-self-check',
       code: item.code,
       item: item.id,
-      reason: item.reason
+      reason: item.reason,
+      fix: item.fix
     });
     return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=12&data=${encodeURIComponent(payload)}`;
   }
 
-  function openSelfCheckIssueModal(item) {
-    if (!selfCheckIssueModal || !item) return;
-    if (selfCheckIssueTitle) selfCheckIssueTitle.textContent = item.name;
-    if (selfCheckIssueReason) selfCheckIssueReason.textContent = item.reason || 'Unknown issue';
-    if (selfCheckIssueCode) selfCheckIssueCode.textContent = item.code || '—';
-    if (selfCheckIssueQr) {
-      selfCheckIssueQr.src = buildSelfCheckIssueQrUrl(item);
-      selfCheckIssueQr.alt = `Error QR code for ${item.code || item.name}`;
-    }
-    selfCheckIssueModal.classList.add('active');
-    selfCheckIssueModal.setAttribute('aria-hidden', 'false');
+  function renderSelfCheckIssues() {
+    if (!selfCheckIssueList) return;
+    selfCheckIssueList.innerHTML = '';
+
+    SELF_CHECK_ITEMS.filter((item) => !item.ok).forEach((item) => {
+      const card = document.createElement('article');
+      card.className = 'self-check-issue-card';
+
+      const title = document.createElement('h3');
+      title.className = 'self-check-issue-card-title';
+      title.textContent = item.name;
+
+      const codeRow = document.createElement('div');
+      codeRow.className = 'self-check-issue-row';
+      codeRow.innerHTML = `
+        <span class="self-check-issue-label">${SELF_CHECK_LABELS.codeLabel}</span>
+        <p class="self-check-issue-code">${item.code || '—'}</p>
+      `;
+
+      const fixRow = document.createElement('div');
+      fixRow.className = 'self-check-issue-row';
+      const fixLabel = document.createElement('span');
+      fixLabel.className = 'self-check-issue-label';
+      fixLabel.textContent = SELF_CHECK_LABELS.fixLabel;
+      const fixValue = document.createElement('p');
+      fixValue.className = 'self-check-issue-value';
+      fixValue.textContent = item.fix || item.reason || '—';
+      fixRow.appendChild(fixLabel);
+      fixRow.appendChild(fixValue);
+
+      const qrWrap = document.createElement('div');
+      qrWrap.className = 'self-check-issue-qr-wrap';
+      const qrLabel = document.createElement('span');
+      qrLabel.className = 'self-check-issue-label';
+      qrLabel.textContent = SELF_CHECK_LABELS.qrLabel;
+      const qrImg = document.createElement('img');
+      qrImg.className = 'self-check-issue-qr';
+      qrImg.src = buildSelfCheckIssueQrUrl(item);
+      qrImg.alt = `Error QR code for ${item.code || item.name}`;
+      qrImg.width = 168;
+      qrImg.height = 168;
+      const qrHint = document.createElement('p');
+      qrHint.className = 'self-check-issue-qr-hint';
+      qrHint.textContent = SELF_CHECK_LABELS.qrHint;
+      const qrSupportHint = document.createElement('p');
+      qrSupportHint.className = 'self-check-issue-qr-support';
+      qrSupportHint.textContent = SELF_CHECK_LABELS.qrSupportHint;
+      qrWrap.appendChild(qrLabel);
+      qrWrap.appendChild(qrImg);
+      qrWrap.appendChild(qrHint);
+      qrWrap.appendChild(qrSupportHint);
+
+      card.appendChild(title);
+      card.appendChild(codeRow);
+      card.appendChild(fixRow);
+      card.appendChild(qrWrap);
+      selfCheckIssueList.appendChild(card);
+    });
   }
 
-  function closeSelfCheckIssueModal() {
-    if (!selfCheckIssueModal) return;
-    selfCheckIssueModal.classList.remove('active');
-    selfCheckIssueModal.setAttribute('aria-hidden', 'true');
+  function openSelfCheckIssuePage() {
+    renderSelfCheckIssues();
+    if (selfCheckScreen) {
+      selfCheckScreen.classList.remove('active');
+      selfCheckScreen.setAttribute('aria-hidden', 'true');
+    }
+    if (selfCheckIssuePage) {
+      selfCheckIssuePage.classList.add('active');
+      selfCheckIssuePage.setAttribute('aria-hidden', 'false');
+    }
+  }
+
+  function closeSelfCheckIssuePage() {
+    if (selfCheckIssuePage) {
+      selfCheckIssuePage.classList.remove('active');
+      selfCheckIssuePage.setAttribute('aria-hidden', 'true');
+    }
+    if (selfCheckScreen && selfCheckScreen.classList.contains('active')) {
+      selfCheckScreen.setAttribute('aria-hidden', 'false');
+    }
   }
 
   if (selfCheckBtn) selfCheckBtn.addEventListener('click', openSelfCheckScreen);
-  if (selfCheckCloseBtn) selfCheckCloseBtn.addEventListener('click', closeSelfCheckScreen);
-  if (startSelfCheckBtn) startSelfCheckBtn.addEventListener('click', startSelfCheck);
   if (selfCheckDoneBtn) selfCheckDoneBtn.addEventListener('click', closeSelfCheckScreen);
-  if (closeSelfCheckIssueBtn) closeSelfCheckIssueBtn.addEventListener('click', closeSelfCheckIssueModal);
-  if (selfCheckIssueOkBtn) selfCheckIssueOkBtn.addEventListener('click', closeSelfCheckIssueModal);
+  if (viewIssuesBtn) viewIssuesBtn.addEventListener('click', openSelfCheckIssuePage);
+  if (selfCheckIssueBackBtn) selfCheckIssueBackBtn.addEventListener('click', () => {
+    closeSelfCheckIssuePage();
+    if (selfCheckScreen) {
+      selfCheckScreen.classList.add('active');
+      selfCheckScreen.setAttribute('aria-hidden', 'false');
+    }
+  });
 
   // Connect Logic
   if (wifiConnectBtn) wifiConnectBtn.addEventListener('click', () => {

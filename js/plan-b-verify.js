@@ -8,11 +8,12 @@ const STORAGE_PLAN_PROGRESS = "planBPlanProgressV1";
 const STORAGE_PLAN_TRAINING_DAYS = "planBPlanTrainingDaysV1";
 const STORAGE_PLAN_DAY_RESCHEDULE = "planBPlanDayRescheduleV1";
 const STORAGE_PLAN_TRAINING_SESSION = "planBPlanTrainingSessionV1";
+const STORAGE_PERSON_FOLLOW = "planBPersonFollowingV1";
 
 const grid = document.getElementById("exploreGrid");
 const title = document.getElementById("exploreTitle");
 const sideTabs = document.querySelectorAll(".side-tab");
-const filterTabs = document.querySelectorAll(".filter-tab");
+const exploreViewButtons = document.querySelectorAll(".explore-view-btn");
 const modal = document.getElementById("trainingTypeModal");
 const startTrainingModalBtn = document.getElementById("startTrainingModalBtn");
 const closeTrainingTypeModal = document.getElementById("closeTrainingTypeModal");
@@ -72,7 +73,10 @@ const iwAiPanel = document.getElementById("iwAiPanel");
 const iwAiReadyOverlay = document.getElementById("iwAiReadyOverlay");
 const iwAiReadyPanel = document.getElementById("iwAiReadyPanel");
 const iwRecogStatus = document.getElementById("iwRecogStatus");
+const iwRecogAlert = document.getElementById("iwRecogAlert");
+const iwPersonFollowSwitch = document.getElementById("iwPersonFollowSwitch");
 const iwAiReadyBtn = document.getElementById("iwAiReadyBtn");
+const iwExitWorkoutBtn = document.getElementById("iwExitWorkoutBtn");
 const iwTrainerSelect = document.getElementById("iwTrainerSelect");
 const iwTrainerOptions = Array.from(document.querySelectorAll("#iwTrainerSelect .iw-trainer-option"));
 const iwAiScoreValue = document.getElementById("iwAiScoreValue");
@@ -380,6 +384,8 @@ let selectedTrainer = "";
 let iwRecognitionTimerId = 0;
 const IW_AI_GUIDANCE_DWELL_MS = 2200;
 const IW_AI_SCAN_MS = 800;
+const IW_AI_SUCCESS_DWELL_MS = 900;
+const IW_RECOG_DEMO_ANOMALY = "";
 const adInstallPreviewAsset = {
   image: "assets/show.jpg",
   video: ""
@@ -387,6 +393,7 @@ const adInstallPreviewAsset = {
 
 let currentCategory = "plans";
 let currentFilter = "recommended";
+let exploreViewMode = "list";
 const featuredPlanBanner = document.getElementById("featuredPlanBanner");
 const featuredPlanType = document.getElementById("featuredPlanType");
 const featuredPlanTitle = document.getElementById("featuredPlanTitle");
@@ -1947,6 +1954,7 @@ function openImmersiveWorkout() {
     iwRecognitionTimerId = 0;
   }
   selectedTrainer = "";
+  syncPersonFollowSwitchUI();
   scheduleAutoRecognition();
 }
 
@@ -1985,10 +1993,55 @@ function clearIwRecognitionFlow() {
   if (iwAiReadyPanel) iwAiReadyPanel.classList.remove("is-scanning");
 }
 
+function getPersonFollowingEnabled() {
+  try {
+    const raw = localStorage.getItem(STORAGE_PERSON_FOLLOW);
+    if (raw === null) return true;
+    return raw === "true";
+  } catch (e) {
+    return true;
+  }
+}
+
+function setPersonFollowingEnabled(enabled) {
+  try {
+    localStorage.setItem(STORAGE_PERSON_FOLLOW, enabled ? "true" : "false");
+  } catch (e) {
+    /* ignore */
+  }
+  syncPersonFollowSwitchUI();
+}
+
+function syncPersonFollowSwitchUI() {
+  if (!iwPersonFollowSwitch) return;
+  const on = getPersonFollowingEnabled();
+  iwPersonFollowSwitch.classList.toggle("is-on", on);
+  iwPersonFollowSwitch.setAttribute("aria-checked", String(on));
+}
+
+function applyRecogAnomalyState() {
+  if (!iwRecogAlert) return;
+  if (IW_RECOG_DEMO_ANOMALY === "light") {
+    iwRecogAlert.textContent = "环境光线过暗";
+    iwRecogAlert.hidden = false;
+    return;
+  }
+  if (IW_RECOG_DEMO_ANOMALY === "blocked") {
+    iwRecogAlert.textContent = "相机视线被遮挡";
+    iwRecogAlert.hidden = false;
+    return;
+  }
+  iwRecogAlert.hidden = true;
+}
+
 function scheduleAutoRecognition() {
   clearIwRecognitionFlow();
   setIwReadyStep("env");
-  if (iwRecogStatus) iwRecogStatus.textContent = "Recognizing, please wait…";
+  applyRecogAnomalyState();
+  if (iwRecogStatus) {
+    iwRecogStatus.textContent = "识别中…";
+    iwRecogStatus.classList.remove("is-success");
+  }
   iwRecognitionTimerId = window.setTimeout(beginRecognitionScan, IW_AI_GUIDANCE_DWELL_MS);
 }
 
@@ -1996,18 +2049,40 @@ function beginRecognitionScan() {
   if (!iwAiReadyPanel) return;
   iwRecognitionTimerId = 0;
   iwAiReadyPanel.classList.add("is-scanning");
-  if (iwRecogStatus) iwRecogStatus.textContent = "Detecting your face, please stay standing…";
+  if (iwRecogStatus) iwRecogStatus.textContent = "识别中…";
   iwRecognitionTimerId = window.setTimeout(finishAutoRecognition, IW_AI_SCAN_MS);
 }
 
 function finishAutoRecognition() {
   iwRecognitionTimerId = 0;
   if (iwAiReadyPanel) iwAiReadyPanel.classList.remove("is-scanning");
-  setIwReadyStep("select");
-  if (iwTrainerOptions.length) {
-    const defaultOption = iwTrainerOptions.find((option) => option.classList.contains("is-lg")) || iwTrainerOptions[0];
-    setSelectedTrainer(defaultOption);
+  if (iwRecogStatus) {
+    iwRecogStatus.textContent = "识别成功";
+    iwRecogStatus.classList.add("is-success");
   }
+  iwRecognitionTimerId = window.setTimeout(proceedAfterRecognitionSuccess, IW_AI_SUCCESS_DWELL_MS);
+}
+
+function proceedAfterRecognitionSuccess() {
+  iwRecognitionTimerId = 0;
+  if (getPersonFollowingEnabled()) {
+    setIwReadyStep("select");
+    if (iwTrainerOptions.length) {
+      const defaultOption = iwTrainerOptions.find((option) => option.classList.contains("is-selected")) || iwTrainerOptions[0];
+      setSelectedTrainer(defaultOption);
+    }
+    return;
+  }
+  startIwTrainingAfterReady();
+}
+
+function exitAiWorkoutFromSelect() {
+  closeImmersiveWorkout();
+  if (window.history.length > 1) {
+    window.history.back();
+    return;
+  }
+  window.location.href = "plan-b-move-detail.html";
 }
 
 function startIwTrainingAfterReady() {
@@ -2083,26 +2158,37 @@ function renderGrid() {
   if (!grid || !title) return;
   const items = exploreGridItems(currentCategory, currentFilter);
   title.textContent = exploreGridTitle(currentCategory, currentFilter);
+  grid.dataset.view = exploreViewMode;
   grid.innerHTML = "";
   items.forEach((item, index) => grid.appendChild(createCard(item, index)));
+}
+
+function setExploreViewMode(mode) {
+  if (mode !== "list" && mode !== "waterfall") return;
+  exploreViewMode = mode;
+  if (grid) grid.dataset.view = mode;
+  exploreViewButtons.forEach((btn) => {
+    const active = btn.dataset.view === mode;
+    btn.classList.toggle("active", active);
+    btn.setAttribute("aria-pressed", String(active));
+  });
 }
 
 if (sideTabs.length) {
   sideTabs.forEach((tab) => {
     tab.addEventListener("click", () => {
       currentCategory = tab.dataset.category;
+      currentFilter = "recommended";
       sideTabs.forEach((item) => item.classList.toggle("active", item === tab));
       renderGrid();
     });
   });
 }
 
-if (filterTabs.length) {
-  filterTabs.forEach((tab) => {
+if (exploreViewButtons.length) {
+  exploreViewButtons.forEach((tab) => {
     tab.addEventListener("click", () => {
-      currentFilter = tab.dataset.filter;
-      filterTabs.forEach((item) => item.classList.toggle("active", item === tab));
-      renderGrid();
+      setExploreViewMode(tab.dataset.view);
     });
   });
 }
@@ -2152,6 +2238,15 @@ if (iwEndBtn) iwEndBtn.addEventListener("click", openReportFromIwTraining);
 initIwTrainerSelection();
 if (iwAiReadyBtn) {
   iwAiReadyBtn.addEventListener("click", startIwTrainingAfterReady);
+}
+if (iwExitWorkoutBtn) {
+  iwExitWorkoutBtn.addEventListener("click", exitAiWorkoutFromSelect);
+}
+if (iwPersonFollowSwitch) {
+  iwPersonFollowSwitch.addEventListener("click", () => {
+    setPersonFollowingEnabled(!getPersonFollowingEnabled());
+  });
+  syncPersonFollowSwitchUI();
 }
 if (iwAiRingCard) {
   iwAiRingCard.style.cursor = "pointer";
@@ -2737,7 +2832,14 @@ function initPilatesDashboard() {
   else frameId = requestAnimationFrame(drawChart);
 }
 
-if (grid) renderGrid();
+if (grid) {
+  setExploreViewMode("list");
+  renderGrid();
+  if (PLAN_B_PAGE === "home") {
+    const initView = new URLSearchParams(window.location.search).get("view");
+    if (initView === "waterfall" || initView === "list") setExploreViewMode(initView);
+  }
+}
 
 function initPlanDetailPage() {
   if (PLAN_B_PAGE !== "plan-detail") return;

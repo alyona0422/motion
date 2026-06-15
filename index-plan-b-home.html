@@ -20,7 +20,7 @@
     <div class="vignette" aria-hidden="true"></div>
 
     <section class="content" id="homeScreen">
-      <div class="top-status-row" id="controlCenterHandle" role="button" tabindex="0" aria-label="Open Control Center">
+      <div class="top-status-row">
         <div class="status-pill">
           <div class="status-time">
             <span>10:26 AM</span>
@@ -127,13 +127,13 @@
         <div class="explore-main">
           <div class="explore-head">
             <h3 id="exploreTitle">Plans</h3>
-            <div class="filters">
-              <button class="filter-tab active" type="button" data-filter="recommended" aria-label="Recommended">Recommended</button>
-              <button class="filter-tab" type="button" data-filter="personalized" aria-label="Personalized">Personalized</button>
+            <div class="explore-view-toggle" role="group" aria-label="View mode">
+              <button class="explore-view-btn active" type="button" data-view="list" aria-pressed="true">List</button>
+              <button class="explore-view-btn" type="button" data-view="waterfall" aria-pressed="false">Waterfall</button>
             </div>
           </div>
           <div class="grid-wrap">
-            <div class="grid" id="exploreGrid"></div>
+            <div class="grid" id="exploreGrid" data-view="list"></div>
           </div>
         </div>
       </section>
@@ -277,8 +277,8 @@
         </div>
       </div>
     </section>
-    <button class="cc-fab" id="controlCenterFab" type="button" aria-label="Open Control Center">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-.4-1.1 1.7 1.7 0 0 0-1-.6 1.7 1.7 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H2.8a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.1-.4 1.7 1.7 0 0 0 .6-1 1.7 1.7 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V2.8a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 .4 1.1 1.7 1.7 0 0 0 1 .6 1.7 1.7 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9c0 .39.14.77.4 1.06.29.31.68.49 1.1.5h.1a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.1.44c-.27.3-.41.68-.4 1z"></path></svg>
+    <button class="cc-bottom-handle" id="controlCenterHandle" type="button" aria-label="Open Control Center" aria-expanded="false">
+      <span class="cc-bottom-handle-pill" aria-hidden="true"></span>
     </button>
 
     <nav class="bottom-nav" aria-label="Bottom navigation">
