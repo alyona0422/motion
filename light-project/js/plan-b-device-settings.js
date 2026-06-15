@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const languageModal = document.getElementById('languageModal');
   const closeLanguageModalBtn = document.getElementById('closeLanguageModalBtn');
   const languageConfirmBtn = document.getElementById('languageConfirmBtn');
+  const ambientLightBtn = document.getElementById('ambientLightBtn');
 
   const privacyBtn = document.getElementById('privacyBtn');
   const privacyModal = document.getElementById('privacyModal');
@@ -29,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     en: {
       title: 'DEVICE SETTINGS',
       wifi: 'WI-FI SETTINGS',
+      ambient: '氛围灯设置',
       lang: 'LANGUAGE',
       privacy: 'PRIVACY & AGREEMENT',
       langTitle: 'Language',
@@ -37,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     zh: {
       title: '设备设置',
       wifi: '无线网络设置',
+      ambient: '氛围灯设置',
       lang: '语言',
       privacy: '隐私与协议',
       langTitle: '语言',
@@ -106,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
       statusText.className = 'wifi-status-text';
       statusText.id = `status-text-${network.id}`;
       if (network.connected) {
-        statusText.textContent = 'Connected';
+        statusText.textContent = '已连接';
       }
       
       textDiv.appendChild(nameDiv);
@@ -119,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!network.connected) {
         const connectBtn = document.createElement('button');
         connectBtn.className = 'wifi-connect-btn';
-        connectBtn.textContent = 'Connect';
+        connectBtn.textContent = '连接';
         connectBtn.onclick = () => openPasswordModal(network);
         item.appendChild(connectBtn);
       }
@@ -155,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Simulate refresh delay
-    wifiList.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--muted); font-size: 14px;">Scanning for networks...</div>';
+    wifiList.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--muted); font-size: 14px;">正在扫描网络…</div>';
     
     setTimeout(() => {
       if (svg) {
@@ -199,6 +202,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (languageBtn) languageBtn.addEventListener('click', openLanguageModal);
   if (closeLanguageModalBtn) closeLanguageModalBtn.addEventListener('click', closeLanguageModal);
+  if (ambientLightBtn) {
+    ambientLightBtn.addEventListener('click', () => {
+      window.location.href = 'plan-b-ambient-light-settings.html';
+    });
+  }
 
   if (languageConfirmBtn) {
     languageConfirmBtn.addEventListener('click', () => {
@@ -222,6 +230,234 @@ document.addEventListener('DOMContentLoaded', () => {
   if (privacyBtn) privacyBtn.addEventListener('click', openPrivacyModal);
   if (closePrivacyModalBtn) closePrivacyModalBtn.addEventListener('click', closePrivacyModal);
 
+  // 设备自检
+  const selfCheckBtn = document.getElementById('selfCheckBtn');
+  const selfCheckScreen = document.getElementById('selfCheckScreen');
+  const selfCheckCloseBtn = document.getElementById('selfCheckCloseBtn');
+  const startSelfCheckBtn = document.getElementById('startSelfCheckBtn');
+  const selfCheckDoneBtn = document.getElementById('selfCheckDoneBtn');
+  const selfCheckRingProgress = document.getElementById('selfCheckRingProgress');
+  const selfCheckPercent = document.getElementById('selfCheckPercent');
+  const selfCheckStatusLabel = document.getElementById('selfCheckStatusLabel');
+  const selfCheckCurrentItem = document.getElementById('selfCheckCurrentItem');
+  const selfCheckItemsList = document.getElementById('selfCheckItemsList');
+  const selfCheckIssueModal = document.getElementById('selfCheckIssueModal');
+  const closeSelfCheckIssueBtn = document.getElementById('closeSelfCheckIssueBtn');
+  const selfCheckIssueOkBtn = document.getElementById('selfCheckIssueOkBtn');
+  const selfCheckIssueTitle = document.getElementById('selfCheckIssueTitle');
+  const selfCheckIssueReason = document.getElementById('selfCheckIssueReason');
+  const selfCheckIssueCode = document.getElementById('selfCheckIssueCode');
+  const selfCheckIssueQr = document.getElementById('selfCheckIssueQr');
+
+  const RING_RADIUS = 68;
+  const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
+  const SELF_CHECK_LABELS = {
+    waiting: '等待',
+    checking: '检测中',
+    done: '完成',
+    normal: '正常',
+    abnormal: '异常',
+    complete: '自检完成',
+    idleHint: '点击下方开始自检',
+    runningHint: '自检进行中…',
+    checkingPrefix: '正在检测：'
+  };
+
+  // 将所有项的 ok 设为 true 可演示全部正常时的「完成」路径。
+  const SELF_CHECK_ITEMS = [
+    { id: 'camera', name: '相机', ok: true, code: '', reason: '' },
+    { id: 'motor', name: '电机', ok: true, code: '', reason: '' },
+    { id: 'controlBoard', name: '控制板', ok: false, code: 'E-1203', reason: '主控通信超时' },
+    { id: 'deviceVersion', name: '设备版本', ok: true, code: '', reason: '' }
+  ];
+
+  let selfCheckTimer = null;
+  let selfCheckProgress = 0;
+
+  function setRingProgress(percent) {
+    const clamped = Math.max(0, Math.min(100, percent));
+    const offset = RING_CIRCUMFERENCE - (clamped / 100) * RING_CIRCUMFERENCE;
+    if (selfCheckRingProgress) {
+      selfCheckRingProgress.style.strokeDasharray = `${RING_CIRCUMFERENCE}`;
+      selfCheckRingProgress.style.strokeDashoffset = `${offset}`;
+    }
+    if (selfCheckPercent) selfCheckPercent.textContent = `${Math.round(clamped)}%`;
+  }
+
+  function renderSelfCheckItems(state) {
+    if (!selfCheckItemsList) return;
+    selfCheckItemsList.innerHTML = '';
+
+    SELF_CHECK_ITEMS.forEach((item, index) => {
+      const li = document.createElement('li');
+      li.className = 'self-check-item';
+      li.dataset.itemId = item.id;
+
+      const name = document.createElement('span');
+      name.className = 'self-check-item-name';
+      name.textContent = item.name;
+
+      const status = document.createElement('span');
+      status.className = 'self-check-item-status';
+
+      if (state === 'idle') {
+        status.textContent = SELF_CHECK_LABELS.waiting;
+      } else if (state === 'running') {
+        const itemProgress = ((index + 1) / SELF_CHECK_ITEMS.length) * 100;
+        if (selfCheckProgress >= itemProgress) {
+          status.textContent = SELF_CHECK_LABELS.done;
+        } else if (selfCheckProgress >= (index / SELF_CHECK_ITEMS.length) * 100) {
+          li.classList.add('is-active');
+          status.textContent = SELF_CHECK_LABELS.checking;
+          status.classList.add('is-checking');
+        } else {
+          status.textContent = SELF_CHECK_LABELS.waiting;
+        }
+      } else if (state === 'done') {
+        if (item.ok) {
+          status.textContent = SELF_CHECK_LABELS.normal;
+          status.classList.add('is-normal');
+        } else {
+          status.textContent = SELF_CHECK_LABELS.abnormal;
+          status.classList.add('is-abnormal');
+          status.setAttribute('role', 'button');
+          status.setAttribute('tabindex', '0');
+          status.addEventListener('click', () => openSelfCheckIssueModal(item));
+          status.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              openSelfCheckIssueModal(item);
+            }
+          });
+        }
+      }
+
+      li.appendChild(name);
+      li.appendChild(status);
+      selfCheckItemsList.appendChild(li);
+    });
+  }
+
+  function updateRunningCurrentItem() {
+    const activeIndex = SELF_CHECK_ITEMS.findIndex((_, index) => {
+      const start = (index / SELF_CHECK_ITEMS.length) * 100;
+      const end = ((index + 1) / SELF_CHECK_ITEMS.length) * 100;
+      return selfCheckProgress >= start && selfCheckProgress < end;
+    });
+    const current = activeIndex >= 0 ? SELF_CHECK_ITEMS[activeIndex] : SELF_CHECK_ITEMS[SELF_CHECK_ITEMS.length - 1];
+    if (selfCheckCurrentItem && current) {
+      selfCheckCurrentItem.textContent = `${SELF_CHECK_LABELS.checkingPrefix}${current.name}`;
+    }
+  }
+
+  function resetSelfCheck() {
+    if (selfCheckTimer) {
+      clearInterval(selfCheckTimer);
+      selfCheckTimer = null;
+    }
+    selfCheckProgress = 0;
+    setRingProgress(0);
+    if (selfCheckScreen) {
+      selfCheckScreen.dataset.state = 'idle';
+    }
+    if (selfCheckStatusLabel) selfCheckStatusLabel.textContent = SELF_CHECK_LABELS.idleHint;
+    if (selfCheckCurrentItem) selfCheckCurrentItem.style.display = 'none';
+    renderSelfCheckItems('idle');
+  }
+
+  function openSelfCheckScreen() {
+    resetSelfCheck();
+    if (selfCheckScreen) {
+      selfCheckScreen.classList.add('active');
+      selfCheckScreen.setAttribute('aria-hidden', 'false');
+    }
+  }
+
+  function closeSelfCheckScreen() {
+    if (selfCheckTimer) {
+      clearInterval(selfCheckTimer);
+      selfCheckTimer = null;
+    }
+    if (selfCheckScreen) {
+      selfCheckScreen.classList.remove('active');
+      selfCheckScreen.setAttribute('aria-hidden', 'true');
+    }
+    closeSelfCheckIssueModal();
+    resetSelfCheck();
+  }
+
+  function finishSelfCheck() {
+    if (selfCheckTimer) {
+      clearInterval(selfCheckTimer);
+      selfCheckTimer = null;
+    }
+    selfCheckProgress = 100;
+    setRingProgress(100);
+    if (selfCheckScreen) selfCheckScreen.dataset.state = 'done';
+    if (selfCheckStatusLabel) selfCheckStatusLabel.textContent = SELF_CHECK_LABELS.complete;
+    if (selfCheckCurrentItem) selfCheckCurrentItem.style.display = 'none';
+    renderSelfCheckItems('done');
+  }
+
+  function startSelfCheck() {
+    if (selfCheckTimer) return;
+
+    selfCheckProgress = 0;
+    setRingProgress(0);
+    if (selfCheckScreen) selfCheckScreen.dataset.state = 'running';
+    if (selfCheckStatusLabel) selfCheckStatusLabel.textContent = SELF_CHECK_LABELS.runningHint;
+    if (selfCheckCurrentItem) selfCheckCurrentItem.style.display = 'block';
+    renderSelfCheckItems('running');
+    updateRunningCurrentItem();
+
+    selfCheckTimer = setInterval(() => {
+      selfCheckProgress += 1;
+      setRingProgress(selfCheckProgress);
+      renderSelfCheckItems('running');
+      updateRunningCurrentItem();
+
+      if (selfCheckProgress >= 100) {
+        finishSelfCheck();
+      }
+    }, 40);
+  }
+
+  function buildSelfCheckIssueQrUrl(item) {
+    const payload = JSON.stringify({
+      type: 'device-self-check',
+      code: item.code,
+      item: item.id,
+      reason: item.reason
+    });
+    return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=12&data=${encodeURIComponent(payload)}`;
+  }
+
+  function openSelfCheckIssueModal(item) {
+    if (!selfCheckIssueModal || !item) return;
+    if (selfCheckIssueTitle) selfCheckIssueTitle.textContent = item.name;
+    if (selfCheckIssueReason) selfCheckIssueReason.textContent = item.reason || '未知异常';
+    if (selfCheckIssueCode) selfCheckIssueCode.textContent = item.code || '—';
+    if (selfCheckIssueQr) {
+      selfCheckIssueQr.src = buildSelfCheckIssueQrUrl(item);
+      selfCheckIssueQr.alt = `${item.code || item.name} 异常二维码`;
+    }
+    selfCheckIssueModal.classList.add('active');
+    selfCheckIssueModal.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeSelfCheckIssueModal() {
+    if (!selfCheckIssueModal) return;
+    selfCheckIssueModal.classList.remove('active');
+    selfCheckIssueModal.setAttribute('aria-hidden', 'true');
+  }
+
+  if (selfCheckBtn) selfCheckBtn.addEventListener('click', openSelfCheckScreen);
+  if (selfCheckCloseBtn) selfCheckCloseBtn.addEventListener('click', closeSelfCheckScreen);
+  if (startSelfCheckBtn) startSelfCheckBtn.addEventListener('click', startSelfCheck);
+  if (selfCheckDoneBtn) selfCheckDoneBtn.addEventListener('click', closeSelfCheckScreen);
+  if (closeSelfCheckIssueBtn) closeSelfCheckIssueBtn.addEventListener('click', closeSelfCheckIssueModal);
+  if (selfCheckIssueOkBtn) selfCheckIssueOkBtn.addEventListener('click', closeSelfCheckIssueModal);
+
   // Connect Logic
   if (wifiConnectBtn) wifiConnectBtn.addEventListener('click', () => {
     if (!currentSelectedNetwork) return;
@@ -235,9 +471,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusText = document.getElementById(`status-text-${networkId}`);
     const connectBtn = document.querySelector(`#wifi-item-${networkId} .wifi-connect-btn`);
     
-    if (statusText) statusText.textContent = 'Connecting...';
+    if (statusText) statusText.textContent = '连接中…';
     if (connectBtn) {
-        connectBtn.textContent = 'Connecting';
+        connectBtn.textContent = '连接中';
         connectBtn.disabled = true;
         connectBtn.style.opacity = '0.5';
         connectBtn.style.pointerEvents = 'none';

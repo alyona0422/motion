@@ -19,10 +19,6 @@
     <div class="vignette" aria-hidden="true"></div>
 
 <div class="pilates-view is-active" id="pilatesView" aria-hidden="false">
-      <div class="pilates-bar">
-        <h2>Pilates · Free Training</h2>
-        <button class="back-btn" id="pilatesBackBtn" type="button">Back</button>
-      </div>
       <div class="dashboard" id="pilatesDashboard">
         <header class="top">
           <div class="title-block">
@@ -46,7 +42,7 @@
                 </div>
                 <div class="metric">
                   <label>Total Resistance</label>
-                  <strong><span id="pilatesResistanceValue">42.0</span><small>kg</small></strong>
+                  <strong><span id="pilatesResistanceValue">5</span><small>kg</small></strong>
                 </div>
                 <div class="metric">
                   <label>Energy Output</label>
@@ -59,40 +55,69 @@
               </div>
             </article>
 
-            <article class="panel spring-layout">
-              <h2 class="panel-title">Spring Configuration</h2>
-              <div class="spring-list">
-                <button class="spring is-active" data-kg="5" data-color="green" type="button" aria-label="5kg green spring">
-                  <span class="coil"></span>
-                  <span class="spring-value">5kg</span>
-                  <span class="spring-label">Adaptive</span>
-                </button>
-                <button class="spring is-active" data-kg="6.5" data-color="yellow" type="button" aria-label="6.5kg yellow spring">
-                  <span class="coil"></span>
-                  <span class="spring-value">6.5kg</span>
-                  <span class="spring-label">Dynamic</span>
-                </button>
-                <button class="spring is-active" data-kg="6.5" data-color="yellow" type="button" aria-label="6.5kg yellow spring">
-                  <span class="coil"></span>
-                  <span class="spring-value">6.5kg</span>
-                  <span class="spring-label">Dynamic</span>
-                </button>
-                <button class="spring is-active" data-kg="12" data-color="red" type="button" aria-label="12kg red spring">
-                  <span class="coil"></span>
-                  <span class="spring-value">12kg</span>
-                  <span class="spring-label">Power</span>
-                </button>
-                <button class="spring is-active" data-kg="12" data-color="red" type="button" aria-label="12kg red spring">
-                  <span class="coil"></span>
-                  <span class="spring-value">12kg</span>
-                  <span class="spring-label">Power</span>
-                </button>
+            <article class="panel config-layout">
+              <h2 class="panel-title">Configuration</h2>
+
+              <div class="config-row">
+                <span class="config-label">Training mode</span>
+                <div class="mode-group" id="pilatesModeGroup" role="group" aria-label="Training mode">
+                  <button type="button" class="mode-btn active" data-mode="standard">Standard</button>
+                  <button type="button" class="mode-btn" data-mode="spring">Spring</button>
+                  <button type="button" class="mode-btn" data-mode="eccentric">Eccentric</button>
+                  <button type="button" class="mode-btn" data-mode="isokinetic">Isokinetic</button>
+                </div>
+              </div>
+
+              <div class="config-row flip-row">
+                <span class="config-label">Screen</span>
+                <button type="button" class="flip-btn" id="pilatesFlipBtn">Flip screen</button>
+              </div>
+
+              <div class="config-row resistance-row">
+                <span class="config-label">Resistance</span>
+                <div class="resistance-control">
+                  <button type="button" id="pilatesResistanceMinus" aria-label="Decrease 1kg">−</button>
+                  <div class="iw-dial-container">
+                    <svg class="iw-dial-svg" viewBox="0 0 120 120">
+                      <defs>
+                        <linearGradient id="pilatesDialGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stop-color="#00D4FF"/>
+                          <stop offset="100%" stop-color="#007AFF"/>
+                        </linearGradient>
+                      </defs>
+                      <circle cx="60" cy="60" r="54" class="iw-dial-ticks"></circle>
+                      <circle cx="60" cy="60" r="40" class="iw-dial-track"></circle>
+                      <circle cx="60" cy="60" r="40" class="iw-dial-progress" id="pilatesDialProgress"></circle>
+                    </svg>
+                    <div class="iw-dial-content">
+                      <div class="iw-dial-value" id="pilatesResistanceDisplayVal">5</div>
+                      <div class="iw-dial-unit">kg</div>
+                    </div>
+                  </div>
+                  <button type="button" id="pilatesResistancePlus" aria-label="Increase 1kg">+</button>
+                </div>
+              </div>
+
+              <div class="spring-bar" id="pilatesSpringBar" aria-label="Resistance spring indicator">
+                <div class="spring-bar-coil" id="pilatesSpringCoil"></div>
+                <span class="spring-bar-value" id="pilatesSpringBarValue">5 kg</span>
+              </div>
+
+              <div class="slider-block" id="pilatesSpringSliderBlock">
+                <span class="slider-label" id="pilatesSpringSliderLabel">Level 1</span>
+                <input type="range" id="pilatesSpringSlider" min="1" max="10" step="1" value="1" aria-label="Spring level">
+                <span class="slider-hint">Higher level = stiffer spring; resistance rises more with range.</span>
+              </div>
+
+              <div class="slider-block" id="pilatesIsokineticSliderBlock">
+                <span class="slider-label" id="pilatesIsokineticSliderLabel">Level 1</span>
+                <input type="range" id="pilatesIsokineticSlider" min="1" max="25" step="1" value="1" aria-label="Isokinetic level">
+                <span class="slider-hint" id="pilatesIsokineticSliderHint">Slow/Stability — strong speed limit, suited for strength at lockout.</span>
               </div>
 
               <div class="controls">
                 <button id="pilatesStartBtn" class="start-btn" type="button">Start</button>
                 <button id="pilatesEndBtn" class="end-btn" type="button">End</button>
-                <button id="pilatesFlipBtn" class="flip-btn" type="button">Flip Screen</button>
               </div>
             </article>
           </div>
@@ -121,8 +146,11 @@
 
         <footer class="footer">
           <label>Current Resistance</label>
-          <strong id="pilatesCurrentResistance">42.0kg</strong>
+          <strong id="pilatesCurrentResistance">5kg</strong>
         </footer>
+      </div>
+      <div class="action-dock" aria-label="Page actions">
+        <button class="back-btn" id="pilatesBackBtn" type="button">Back</button>
       </div>
     </div>
   </main>

@@ -26,6 +26,7 @@
   box-shadow: var(--glow-soft), inset 0 0 0 1px rgba(148, 163, 184, 0.14);
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 12px;
 }
 

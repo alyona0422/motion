@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Plan B · All Training</title>
+  <title>Plan B · 全部训练</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -16,69 +16,69 @@
   <link rel="stylesheet" href="css/plan-b-light-medium.css" />
 </head>
 <body class="cream-medium" data-plan-b-page="all-training">
-  <main class="device-shell" aria-label="Plan B All Training">
+  <main class="device-shell" aria-label="Plan B 全部训练">
     <div class="particle-layer" aria-hidden="true"></div>
     <div class="vignette" aria-hidden="true"></div>
 
-    <section class="content all-training-screen" id="allTrainingScreen" aria-label="All Training">
+    <section class="content all-training-screen" id="allTrainingScreen" aria-label="全部训练">
       <div class="all-training-app">
         <header class="all-training-header">
-          <p class="all-training-kicker">Training Library</p>
-          <h1>All Training</h1>
-          <p class="all-training-subtitle">Browse every move, AI move, and plan in one place.</p>
+          <p class="all-training-kicker">训练库</p>
+          <h1>全部训练</h1>
+          <p class="all-training-subtitle">在一个地方浏览所有动作、AI 动作与计划。</p>
         </header>
 
-        <div class="all-training-tabs" role="tablist" aria-label="All training categories">
-          <button class="all-training-tab is-active" type="button" role="tab" aria-selected="true" data-tab="moves">Moves</button>
-          <button class="all-training-tab" type="button" role="tab" aria-selected="false" data-tab="aiMoves">AI Moves</button>
-          <button class="all-training-tab" type="button" role="tab" aria-selected="false" data-tab="plans">Plans</button>
+        <div class="all-training-tabs" role="tablist" aria-label="全部训练分类">
+          <button class="all-training-tab is-active" type="button" role="tab" aria-selected="true" data-tab="moves">动作</button>
+          <button class="all-training-tab" type="button" role="tab" aria-selected="false" data-tab="aiMoves">AI 动作</button>
+          <button class="all-training-tab" type="button" role="tab" aria-selected="false" data-tab="plans">计划</button>
         </div>
 
-        <section class="all-training-tools" aria-label="Search and filter">
+        <section class="all-training-tools" aria-label="搜索与筛选">
           <div class="all-training-tools-row">
             <label class="all-training-search" for="allTrainingSearchInput">
-              <span class="sr-only">Search by name</span>
-              <input id="allTrainingSearchInput" type="search" placeholder="Search by name" autocomplete="off" />
+              <span class="sr-only">按名称搜索</span>
+              <input id="allTrainingSearchInput" type="search" placeholder="按名称搜索" autocomplete="off" />
             </label>
-            <button class="all-training-filter-toggle" id="allTrainingFilterToggle" type="button" aria-expanded="false" aria-controls="allTrainingFilterPanel" aria-label="Expand filters">
+            <button class="all-training-filter-toggle" id="allTrainingFilterToggle" type="button" aria-expanded="false" aria-controls="allTrainingFilterPanel" aria-label="展开筛选">
               <svg class="all-training-filter-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
-              <span class="sr-only">Toggle filters</span>
+              <span class="sr-only">展开/收起筛选</span>
             </button>
           </div>
           <div class="all-training-filter-panel" id="allTrainingFilterPanel" hidden></div>
           <div class="all-training-active-filters" id="allTrainingActiveFilters" aria-live="polite"></div>
         </section>
 
-        <section class="all-training-results" aria-label="Training list">
+        <section class="all-training-results" aria-label="训练列表">
           <div class="all-training-results-head">
-            <strong id="allTrainingResultTitle">Moves</strong>
-            <span id="allTrainingResultCount">0 items</span>
+            <strong id="allTrainingResultTitle">动作</strong>
+            <span id="allTrainingResultCount">0 项</span>
           </div>
           <div class="all-training-list" id="allTrainingList"></div>
-          <p class="all-training-empty" id="allTrainingEmpty" hidden>No items match your current filters.</p>
+          <p class="all-training-empty" id="allTrainingEmpty" hidden>没有符合当前筛选条件的内容。</p>
         </section>
       </div>
     </section>
 
-    <nav class="bottom-nav" aria-label="Bottom navigation">
-      <button class="nav-item" id="homeTabBtn" type="button" aria-label="Home">
+    <nav class="bottom-nav" aria-label="底部导航">
+      <button class="nav-item" id="homeTabBtn" type="button" aria-label="首页">
         <span class="nav-item-inner">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-          <span>Home</span>
+          <span>首页</span>
         </span>
       </button>
-      <button class="nav-item active" id="allTrainingNavBtn" type="button" aria-label="All Training">
+      <button class="nav-item active" id="allTrainingNavBtn" type="button" aria-label="全部训练">
         <span class="nav-item-inner">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
-          <span>All Training</span>
+          <span>全部训练</span>
         </span>
       </button>
-      <button class="nav-item" id="profileTabBtn" type="button" aria-label="Profile">
+      <button class="nav-item" id="profileTabBtn" type="button" aria-label="我的">
         <span class="nav-item-inner">
           <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          <span>Profile</span>
+          <span>我的</span>
         </span>
       </button>
     </nav>

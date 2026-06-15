@@ -61,19 +61,26 @@ const iwParamDisplay = document.getElementById("iwParamDisplay");
 const iwParamSlider = document.getElementById("iwParamSlider");
 const iwParamTip = document.getElementById("iwParamTip");
 const iwParamSubmit = document.getElementById("iwParamSubmit");
+const iwSpringBar = document.getElementById("iwSpringBar");
+const iwSpringCoil = document.getElementById("iwSpringCoil");
+const iwSpringBarValue = document.getElementById("iwSpringBarValue");
+const iwStepNote = document.querySelector(".iw-step-note");
 const iwChartTabs = document.getElementById("iwChartTabs");
 const iwChartCanvas = document.getElementById("iwChartCanvas");
 const iwChartCtx = iwChartCanvas ? iwChartCanvas.getContext("2d") : null;
 const iwAiPanel = document.getElementById("iwAiPanel");
 const iwAiReadyOverlay = document.getElementById("iwAiReadyOverlay");
+const iwAiReadyPanel = document.getElementById("iwAiReadyPanel");
+const iwRecogStatus = document.getElementById("iwRecogStatus");
 const iwAiReadyBtn = document.getElementById("iwAiReadyBtn");
+const iwTrainerSelect = document.getElementById("iwTrainerSelect");
+const iwTrainerOptions = Array.from(document.querySelectorAll("#iwTrainerSelect .iw-trainer-option"));
 const iwAiScoreValue = document.getElementById("iwAiScoreValue");
 const iwAiScoreRing = document.getElementById("iwAiScoreRing");
 const iwAiTierValue = document.getElementById("iwAiTierValue");
 const iwAiHintText = document.getElementById("iwAiHintText");
 const iwAiRingCard = document.querySelector("#iwAiPanel .iw-ai-ring-card");
-const iwAiSkeletonCard = document.getElementById("iwAiSkeletonCard");
-const iwAiSkeletonMessage = document.getElementById("iwAiSkeletonMessage");
+const iwAiResult = document.getElementById("iwAiResult");
 const iwComboBadge = document.getElementById("iwComboBadge");
 const ptProgressTrack = document.getElementById("ptProgressTrack");
 const ptCurrentMoveName = document.getElementById("ptCurrentMoveName");
@@ -96,13 +103,16 @@ const reportDurationValue = document.getElementById("reportDurationValue");
 const reportCapacityValue = document.getElementById("reportCapacityValue");
 const reportCapacityStat = document.getElementById("reportCapacityStat");
 const reportEnergyValue = document.getElementById("reportEnergyValue");
+const reportEnergyLabel = document.getElementById("reportEnergyLabel");
 const reportCaloriesValue = document.getElementById("reportCaloriesValue");
+const reportCaloriesLabel = document.getElementById("reportCaloriesLabel");
 const reportModeLabel = document.getElementById("reportModeLabel");
 const reportEquipmentLabel = document.getElementById("reportEquipmentLabel");
 const reportSceneLabel = document.getElementById("reportSceneLabel");
 const reportIntensityRange = document.getElementById("reportIntensityRange");
 const reportIntensityBar = document.getElementById("reportIntensityBar");
 const reportIntensityLegend = document.getElementById("reportIntensityLegend");
+const reportIntensityLegendNote = document.getElementById("reportIntensityLegendNote");
 const reportConsistency = document.getElementById("reportConsistency");
 const reportCoachNote = document.getElementById("reportCoachNote");
 const reportActionAnalysisBlock = document.getElementById("reportActionAnalysisBlock");
@@ -115,6 +125,14 @@ const reportPowerCurveMeta = document.getElementById("reportPowerCurveMeta");
 const reportPowerCurveTabs = document.getElementById("reportPowerCurveTabs");
 const reportPowerCurveSvg = document.getElementById("reportPowerCurveSvg");
 const reportPowerCurveFoot = document.getElementById("reportPowerCurveFoot");
+const reportPowerScroll = document.getElementById("reportPowerScroll");
+const reportPowerNavPrev = document.getElementById("reportPowerNavPrev");
+const reportPowerNavNext = document.getElementById("reportPowerNavNext");
+const reportAmpSvg = document.getElementById("reportAmpSvg");
+const reportAmpFoot = document.getElementById("reportAmpFoot");
+const reportAmpScroll = document.getElementById("reportAmpScroll");
+const reportAmpNavPrev = document.getElementById("reportAmpNavPrev");
+const reportAmpNavNext = document.getElementById("reportAmpNavNext");
 const reportFinalScoreWrap = document.getElementById("reportFinalScoreWrap");
 const reportFinalScoreValue = document.getElementById("reportFinalScoreValue");
 const reportAccuracyDistBlock = document.getElementById("reportAccuracyDistBlock");
@@ -128,27 +146,27 @@ const reportAgainBtn = document.getElementById("reportAgainBtn");
 const reportHomeBtn = document.getElementById("reportHomeBtn");
 
 const adMeta = {
-  name: "Workout Title",
-  intro: "Loading...",
-  intensity: "Intermediate",
-  sport: "Strength",
-  duration: "12 min",
-  equip: "Smart cable + dual handle",
-  target: "Chest",
+  name: "训练名称",
+  intro: "加载中…",
+  intensity: "中级",
+  sport: "力量",
+  duration: "12 分钟",
+  equip: "智能拉索 + 双手柄",
+  target: "胸部",
   thumb: assetPaths[0],
   video: "assets/workout-demo.mp4",
   keypoints: [
-    "Stable start position; engage pelvis and core first.",
-    "Keep primary muscles driving through the working phase; avoid momentum.",
-    "Return in a controlled tempo with consistent path."
+    "起始姿势稳定，先收紧骨盆与核心。",
+    "在发力阶段保持主要肌群持续发力，避免借力。",
+    "以可控的节奏沿一致的轨迹回放。"
   ],
-  breathing: "Exhale on the concentric phase, inhale on the eccentric; keep ribcage and core coordinated and avoid breath-holding.",
+  breathing: "向心阶段呼气，离心阶段吸气；保持胸廓与核心协调，避免憋气。",
   mistakes: [
-    "Shrugging and neck compensation.",
-    "Moving too fast with poor control.",
-    "Unstable end position and joint path drift."
+    "耸肩与颈部代偿。",
+    "动作过快、控制不足。",
+    "结束姿势不稳、关节轨迹偏移。"
   ],
-  installation: "Check anchor point, cable path, and handle direction before your first rep.",
+  installation: "首次训练前请检查固定点、拉索走向与手柄方向。",
   aiSupported: true
 };
 
@@ -162,8 +180,128 @@ const videoPlayParamConfig = {
   isokinetic: { minLevel: 1, maxLevel: 25, rawMultiplier: 10 }
 };
 
-const iwModeMap = { standard: "Standard", spring: "Spring", eccentric: "Eccentric", isokinetic: "Isokinetic" };
-const iwModeMapReport = { standard: "Standard", spring: "Spring", eccentric: "Eccentric", isokinetic: "Isokinetic" };
+const PILATES_RESISTANCE = { min: 5, max: 45, step: 1, default: 5 };
+
+/** kcal → kJ conversion (Energy Output = Calories × KCAL_TO_KJ). */
+const KCAL_TO_KJ = 4.184;
+const MET_CONST = 0.0175;
+const DEFAULT_WEIGHT_KG = 70;
+const MET_BODYWEIGHT_CARDIO = 6;
+const MET_RESISTANCE_CARDIO_FALLBACK = 7;
+
+function energyKjFromCalories(caloriesKcal) {
+  return Math.max(0, Number(caloriesKcal) || 0) * KCAL_TO_KJ;
+}
+
+function caloriesFromFixedMet(met, weightKg, durationSeconds) {
+  const durationMin = Math.max(0, Number(durationSeconds) || 0) / 60;
+  const safeWeight = Math.max(1, Number(weightKg) || DEFAULT_WEIGHT_KG);
+  const safeMet = Math.max(0, Number(met) || 0);
+  return safeMet * MET_CONST * safeWeight * durationMin;
+}
+
+function caloriesFromCapacityKg(capacityKg) {
+  return Math.max(0, Number(capacityKg) || 0) * 0.38 * 0.24;
+}
+
+function isBodyweightCardioPayload(payload, reportContext) {
+  const scene = payload?.reportFromScene || "";
+  const trainingType = payload?.trainingType || "";
+  const context = `${scene} ${reportContext || ""} ${trainingType}`;
+  return scene === "bodyweight-cardio"
+    || trainingType === "cardio"
+    || trainingType === "bodyweight_cardio"
+    || /bodyweight[_\s-]*cardio|non[-\s]*resistance[_\s-]*cardio/i.test(context);
+}
+
+function resolveSessionCaloriesKcal(payload, durationSeconds, capacityKg) {
+  const reportContext = `${payload?.reportFromScene || ""} ${payload?.sceneLabel || ""} ${payload?.trainingType || ""}`;
+  if (isBodyweightCardioPayload(payload, reportContext)) {
+    return caloriesFromFixedMet(MET_BODYWEIGHT_CARDIO, payload?.weightKg || DEFAULT_WEIGHT_KG, durationSeconds);
+  }
+  const capacityBased = caloriesFromCapacityKg(capacityKg);
+  if (capacityBased <= 0 && (payload?.trainingType === "resistance_cardio" || /resistance[_\s-]*cardio/i.test(reportContext))) {
+    return caloriesFromFixedMet(MET_RESISTANCE_CARDIO_FALLBACK, payload?.weightKg || DEFAULT_WEIGHT_KG, durationSeconds);
+  }
+  return capacityBased;
+}
+
+function isPilatesSport(sport) {
+  return /pilates/i.test(String(sport || ""));
+}
+
+function isIwPilatesContext() {
+  return isPilatesSport(adMeta.sport);
+}
+
+function getIwBounds() {
+  if (isIwPilatesContext()) {
+    return {
+      min: PILATES_RESISTANCE.min,
+      max: PILATES_RESISTANCE.max,
+      step: PILATES_RESISTANCE.step,
+      default: PILATES_RESISTANCE.default
+    };
+  }
+  return {
+    min: videoPlayParamConfig.minWeight,
+    max: videoPlayParamConfig.maxWeight,
+    step: videoPlayParamConfig.weightStep,
+    default: videoPlayParamConfig.defaultWeight
+  };
+}
+
+function springHue(kg, min, max) {
+  const span = max - min;
+  if (span <= 0) return 120;
+  const ratio = Math.max(0, Math.min(1, (kg - min) / span));
+  return 120 * (1 - ratio);
+}
+
+function springColor(kg, min, max) {
+  const hue = springHue(kg, min, max);
+  return `hsl(${hue}, 75%, 55%)`;
+}
+
+function updateSpringBarVisual(coilEl, valueEl, kg, min, max) {
+  if (!coilEl) return;
+  const color = springColor(kg, min, max);
+  coilEl.style.setProperty("--spring-color", color);
+  coilEl.style.background = color;
+  if (valueEl) {
+    const display = Number.isInteger(kg) ? String(kg) : kg.toFixed(1);
+    valueEl.textContent = `${display} kg`;
+  }
+}
+
+function formatResistanceDisplay(kg, bounds) {
+  if (bounds.step >= 1) return String(Math.round(kg));
+  return kg.toFixed(1);
+}
+
+function snapshotUserSetWeightKg(weightValue, bounds) {
+  const boundsSafe = bounds || getIwBounds();
+  const clamped = clamp(Number(weightValue) || 0, boundsSafe.min, boundsSafe.max);
+  return boundsSafe.step >= 1 ? Math.round(clamped) : Math.round(clamped * 10) / 10;
+}
+
+function syncIwSpringBarUI() {
+  if (!iwSpringBar || iwSpringBar.hidden) return;
+  const bounds = getIwBounds();
+  updateSpringBarVisual(iwSpringCoil, iwSpringBarValue, iwState.weight, bounds.min, bounds.max);
+}
+
+function applyIwPilatesContext() {
+  const bounds = getIwBounds();
+  const isPilates = isIwPilatesContext();
+  if (iwSpringBar) iwSpringBar.hidden = !isPilates;
+  if (iwStepNote) iwStepNote.textContent = `步进：${bounds.step} kg`;
+  if (isPilates) iwState.weight = bounds.default;
+  syncIwWeightUI();
+}
+
+const iwModeMap = { standard: "标准", spring: "弹簧", eccentric: "离心", isokinetic: "等速" };
+const iwModeMapReport = { standard: "标准", spring: "弹簧", eccentric: "离心", isokinetic: "等速" };
 const iwState = {
   mode: videoPlayParamConfig.defaultMode,
   equipment: "barbell",
@@ -204,13 +342,14 @@ const IW_AI_RING_PALETTE = {
   better: ["#7db6ff", "#2563eb"],
   perfect: ["#ffc48a", "#ff8f3f"]
 };
-const IW_AI_OUT_OF_ZONE_TIER = "Out of tracking zone";
-const IW_AI_OUT_OF_ZONE_HINT = "Move back into the camera view to continue AI tracking.";
+const IW_AI_OUT_OF_ZONE_TIER = "超出识别范围";
+const IW_AI_OUT_OF_ZONE_HINT = "请回到摄像头识别区域以继续 AI 跟踪。";
+const TIER_LABELS = { Miss: "未识别", Better: "待加强", Good: "良好", Perfect: "完美" };
 const IW_AI_CLICK_STATES = [
-  { score: 0, tier: "Miss", hint: "Action not recognized.", personVisible: true },
-  { score: 94, tier: "Perfect", hint: "Your form is very standard.", personVisible: true },
-  { score: 86, tier: "Better", hint: "Lift your leg a bit higher", personVisible: true },
-  { score: 80, tier: "Good", hint: "Lift your leg a bit higher", personVisible: true },
+  { score: 0, tier: "Miss", hint: "未识别到动作。", personVisible: true },
+  { score: 94, tier: "Perfect", hint: "你的动作非常标准。", personVisible: true },
+  { score: 86, tier: "Better", hint: "腿再抬高一点", personVisible: true },
+  { score: 80, tier: "Good", hint: "腿再抬高一点", personVisible: true },
   { score: null, scoreDisplay: "--", tier: IW_AI_OUT_OF_ZONE_TIER, tierKey: "out-of-zone", hint: IW_AI_OUT_OF_ZONE_HINT, personVisible: false }
 ];
 const ptState = {
@@ -226,7 +365,7 @@ const ptState = {
   restTimerId: 0,
   restRemaining: 30,
   sessionElapsedSeconds: 0,
-  sessionName: "Plan Training",
+  sessionName: "计划训练",
   sessionMoves: [],
   moveResults: [],
   sessionTotalSeconds: 0
@@ -238,6 +377,10 @@ const reportUser = {
 let reportFromScene = "";
 let reportPowerCurveSelectedKey = "session";
 let pilatesEndTrainingFn = null;
+let selectedTrainer = "";
+let iwRecognitionTimerId = 0;
+const IW_AI_GUIDANCE_DWELL_MS = 2200;
+const IW_AI_SCAN_MS = 800;
 const adInstallPreviewAsset = {
   image: "assets/show.jpg",
   video: ""
@@ -278,19 +421,19 @@ function exploreGridItems(category, filter) {
 
 function exploreGridTitle(category, filter) {
   const filterKey = resolveExploreFilter(category, filter);
-  if (category === "plans") return filterKey === "personalized" ? "Personalized" : "Plans";
-  if (category === "aiMoves") return "AI Moves";
+  if (category === "plans") return filterKey === "personalized" ? "个性化" : "训练计划";
+  if (category === "aiMoves") return "AI 动作";
   const bucket = libraryData[category];
   return bucket && bucket.title ? bucket.title : "";
 }
 
 function resolveFeaturedPlan() {
   const plans = libraryData.plans && libraryData.plans.recommended ? libraryData.plans.recommended : [];
-  const targetIdx = plans.findIndex((item) => item && item[0] === "Lean Strength 21");
+  const targetIdx = plans.findIndex((item) => item && item[0] === "精瘦力量 21");
   const idx = targetIdx >= 0 ? targetIdx : 0;
-  const plan = plans[idx] || ["Lean Strength 21", "", "21 days"];
+  const plan = plans[idx] || ["精瘦力量 21", "", "21 天"];
   const titleText = plan[0];
-  const typeText = /pilates/i.test(titleText) ? "Pilates" : "Strength Training";
+  const typeText = /pilates|普拉提/i.test(titleText) ? "普拉提" : "力量训练";
   const thumb = "assets/card3.jpg";
   return { idx, plan, titleText, typeText, thumb };
 }
@@ -298,7 +441,7 @@ function resolveFeaturedPlan() {
 function deriveJoinedPlansFromLibrary() {
   const plans = libraryData.plans && libraryData.plans.recommended ? libraryData.plans.recommended : [];
   if (!plans.length) return [];
-  const leanIndex = plans.findIndex((item) => item && item[0] === "Lean Strength 21");
+  const leanIndex = plans.findIndex((item) => item && item[0] === "精瘦力量 21");
   const preferredOrder = [];
   if (leanIndex >= 0) preferredOrder.push(leanIndex);
   plans.forEach((_, index) => {
@@ -309,9 +452,9 @@ function deriveJoinedPlansFromLibrary() {
     return {
       index,
       item,
-      title: item[0] || "Untitled Plan",
-      summary: item[1] || "Training session",
-      duration: item[2] || "14 days"
+      title: item[0] || "未命名计划",
+      summary: item[1] || "训练课程",
+      duration: item[2] || "14 天"
     };
   });
 }
@@ -333,7 +476,7 @@ function resolveHomeTrainingState(now = new Date(), joinedPlans = []) {
 
 function buildTodaySessions(joinedPlans, now = new Date()) {
   const dayOfMonth = now.getDate();
-  const labels = ["Mobility", "Core", "Power", "Tempo", "Conditioning", "Recovery", "Technique"];
+  const labels = ["灵活性", "核心", "力量", "节奏", "体能", "恢复", "技术"];
   return joinedPlans
     .map((plan) => {
       const slotSeed = (plan.index * 37 + dayOfMonth * 17) % 5;
@@ -410,8 +553,8 @@ function renderTodayPlanReminder(nowInput) {
 
   if (homeState === "joined_rest") {
     todayPlanReminder.classList.add("is-rest");
-    todayPlanTitle.textContent = "Today is Rest Day";
-    todayPlanSubtitle.textContent = "You can still choose free training today.";
+    todayPlanTitle.textContent = "今天是休息日";
+    todayPlanSubtitle.textContent = "今天你仍可以选择自由训练。";
     todayPlanActionBtn.hidden = true;
     todayPlanActionBtn.onclick = null;
     const fallbackPlan = joinedPlans[0] || resolveFeaturedPlan();
@@ -436,12 +579,12 @@ function renderTodayPlanReminder(nowInput) {
 
   const todaySessions = buildTodaySessions(joinedPlans, now);
   todayPlanReminder.classList.remove("is-rest");
-  todayPlanTitle.textContent = todaySessions.length > 1 ? "Today has 2 planned sessions" : "Today has 1 planned session";
-  todayPlanSubtitle.textContent = "Based on plans you joined.";
+  todayPlanTitle.textContent = todaySessions.length > 1 ? "今天有 2 节计划训练" : "今天有 1 节计划训练";
+  todayPlanSubtitle.textContent = "根据你加入的计划生成。";
 
-  const statusLabels = ["Not Finished", "Completed", "Incomplete", "Skipped"];
+  const statusLabels = ["待完成", "已完成", "未完成", "已跳过"];
   const isDay14WithTwoPlans = now.getDate() === 14 && todaySessions.length >= 2;
-  const day14StatusOverride = ["Skipped", "Incomplete"];
+  const day14StatusOverride = ["已跳过", "未完成"];
   const progressSamples = ["30%", "70%"];
   const progressToneClasses = [
     "today-plan-item--tone-1",
@@ -459,7 +602,7 @@ function renderTodayPlanReminder(nowInput) {
     meta.className = "today-plan-status";
     const sessionPlanId = resolvePlanIdFromSelection(session.item, session.index);
     if (hasSkippedDayStatus(sessionPlanId)) {
-      meta.textContent = "Skipped";
+      meta.textContent = "已跳过";
     } else if (isDay14WithTwoPlans && index < day14StatusOverride.length) {
       meta.textContent = day14StatusOverride[index];
     } else {
@@ -470,7 +613,7 @@ function renderTodayPlanReminder(nowInput) {
   });
 
   todayPlanActionBtn.hidden = false;
-  todayPlanActionBtn.textContent = "Start Training";
+  todayPlanActionBtn.textContent = "开始训练";
   todayPlanActionBtn.onclick = () => {
     currentCategory = "plans";
     currentFilter = "recommended";
@@ -483,7 +626,7 @@ function wireFeaturedPlanBanner() {
   const featuredPlan = resolveFeaturedPlan();
   if (featuredPlanTitle) featuredPlanTitle.textContent = featuredPlan.titleText;
   if (featuredPlanType) featuredPlanType.textContent = featuredPlan.typeText;
-  featuredPlanBanner.setAttribute("aria-label", `Open plan detail for ${featuredPlan.titleText}`);
+  featuredPlanBanner.setAttribute("aria-label", `查看 ${featuredPlan.titleText} 计划详情`);
   featuredPlanBanner.style.backgroundImage =
     `linear-gradient(to top, rgba(2, 6, 23, 0.94), rgba(2, 6, 23, 0.52) 48%, rgba(2, 6, 23, 0.2)), url("${featuredPlan.thumb}")`;
 
@@ -507,8 +650,8 @@ function randomInt(min, max) {
 }
 
 function metricTrendText(change) {
-  if (change === 0) return "Same as last day";
-  return `${change > 0 ? "+" : ""}${change}% vs last day`;
+  if (change === 0) return "与昨日持平";
+  return `${change > 0 ? "+" : ""}${change}% 较昨日`;
 }
 
 function updateDailySnapshot() {
@@ -521,7 +664,7 @@ function updateDailySnapshot() {
   const metricTrends = dailyCard.querySelectorAll(".weekly-metric p");
   if (!dial || !dialInner || !dialValue || metricValues.length < 3 || metricTrends.length < 3) return;
 
-  if (dialLabel) dialLabel.textContent = "Daily";
+  if (dialLabel) dialLabel.textContent = "每日";
 
   const effort = randomInt(180, 520);
   const time = randomInt(8, 45);
@@ -532,9 +675,9 @@ function updateDailySnapshot() {
   const progressPct = Math.round(((effortPct + timePct + freqPct) / 3) * 100);
 
   dialValue.textContent = `${progressPct}%`;
-  metricValues[0].innerHTML = `${effort}<small>cal</small>`;
-  metricValues[1].innerHTML = `${time}<small>min</small>`;
-  metricValues[2].innerHTML = `${freq}<small>days</small>`;
+  metricValues[0].innerHTML = `${effort}<small>千卡</small>`;
+  metricValues[1].innerHTML = `${time}<small>分钟</small>`;
+  metricValues[2].innerHTML = `${freq}<small>天</small>`;
 
   metricTrends[0].textContent = metricTrendText(randomInt(-18, 24));
   metricTrends[1].textContent = metricTrendText(randomInt(-15, 20));
@@ -634,11 +777,11 @@ function syncActionDetail() {
   if (adTargetValue) adTargetValue.textContent = adMeta.target;
   if (adActionHero) {
     adActionHero.src = adMeta.thumb;
-    adActionHero.alt = `Illustration for ${adMeta.name}`;
+    adActionHero.alt = `${adMeta.name} 动作示意图`;
   }
   if (adInstallVisual) {
     adInstallVisual.src = adInstallPreviewAsset.image;
-    adInstallVisual.alt = `Equipment setup illustration for ${adMeta.name}`;
+    adInstallVisual.alt = `${adMeta.name} 器械安装示意图`;
   }
   if (adVideoFallback) adVideoFallback.textContent = "";
   
@@ -683,26 +826,26 @@ function openMoveDetail(item, index) {
   const objectItem = item && !Array.isArray(item) && typeof item === "object" ? item : null;
   const [nameFromArray, descFromArray, tagFromArray] = Array.isArray(item) ? item : [];
   const safeAssetLength = Math.max(1, assetPaths.length);
-  adMeta.name = (objectItem && objectItem.name) || nameFromArray || "Workout Title";
-  adMeta.intro = (objectItem && (objectItem.summary || objectItem.intro)) || descFromArray || "Training session";
-  adMeta.intensity = (objectItem && objectItem.difficulty) || tagFromArray || "Intermediate";
-  adMeta.sport = (objectItem && objectItem.scene) || "Strength";
-  adMeta.duration = (objectItem && objectItem.cycleWeeks) || "12 min";
-  adMeta.equip = (objectItem && objectItem.equipment) || "Smart cable + dual handle";
-  adMeta.target = (objectItem && objectItem.target) || "Chest";
+  adMeta.name = (objectItem && objectItem.name) || nameFromArray || "训练名称";
+  adMeta.intro = (objectItem && (objectItem.summary || objectItem.intro)) || descFromArray || "训练课程";
+  adMeta.intensity = (objectItem && objectItem.difficulty) || tagFromArray || "中级";
+  adMeta.sport = (objectItem && objectItem.scene) || "力量";
+  adMeta.duration = (objectItem && objectItem.cycleWeeks) || "12 分钟";
+  adMeta.equip = (objectItem && objectItem.equipment) || "智能拉索 + 双手柄";
+  adMeta.target = (objectItem && objectItem.target) || "胸部";
   adMeta.thumb = (objectItem && objectItem.thumb) || assetPaths[index % safeAssetLength];
   adMeta.keypoints = (objectItem && objectItem.keypoints) || [
-    "Stable start position; engage pelvis and core first.",
-    "Keep primary muscles driving through the working phase; avoid momentum.",
-    "Return in a controlled tempo with consistent path."
+    "起始姿势稳定，先收紧骨盆与核心。",
+    "在发力阶段保持主要肌群持续发力，避免借力。",
+    "以可控的节奏沿一致的轨迹回放。"
   ];
-  adMeta.breathing = objectItem && objectItem.breathing !== undefined ? objectItem.breathing : "Exhale on the concentric phase, inhale on the eccentric; keep ribcage and core coordinated and avoid breath-holding.";
+  adMeta.breathing = objectItem && objectItem.breathing !== undefined ? objectItem.breathing : "向心阶段呼气，离心阶段吸气；保持胸廓与核心协调，避免憋气。";
   adMeta.mistakes = objectItem && objectItem.mistakes !== undefined ? objectItem.mistakes : [
-    "Shrugging and neck compensation.",
-    "Moving too fast with poor control.",
-    "Unstable end position and joint path drift."
+    "耸肩与颈部代偿。",
+    "动作过快、控制不足。",
+    "结束姿势不稳、关节轨迹偏移。"
   ];
-  adMeta.installation = objectItem && objectItem.installation !== undefined ? objectItem.installation : "Check anchor point, cable path, and handle direction before your first rep.";
+  adMeta.installation = objectItem && objectItem.installation !== undefined ? objectItem.installation : "首次训练前请检查固定点、拉索走向与手柄方向。";
   adMeta.aiSupported = objectItem && Object.prototype.hasOwnProperty.call(objectItem, "supportsAi") ? Boolean(objectItem.supportsAi) : true;
   adMeta.video = "assets/workout-demo.mp4";
   syncActionDetail();
@@ -746,15 +889,10 @@ function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }
 
-function buildSyntheticTimeline(durationSeconds, baseResistance, mode) {
+function buildSyntheticTimeline(durationSeconds, baseResistance) {
   const total = Math.max(1, Math.floor(durationSeconds));
-  const modeBias = mode === "spring" ? 6 : mode === "isokinetic" ? 5 : mode === "eccentric" ? 4 : 2;
-  const result = [];
-  for (let i = 0; i < total; i += 1) {
-    const swing = Math.sin(i / 2.6) * 4.2 + Math.cos(i / 6.8) * 2.1;
-    result.push(Math.round(clamp(baseResistance + modeBias + swing, 0, 120) * 10) / 10);
-  }
-  return result;
+  const userKg = snapshotUserSetWeightKg(baseResistance);
+  return Array.from({ length: total }, () => userKg);
 }
 
 function computeDistribution(timeline, maxResistance) {
@@ -789,9 +927,9 @@ function calcConsistency(timeline, maxResistance) {
 
 function getCoachNote(consistency, peakResistance, maxResistance) {
   const peakRatio = peakResistance / Math.max(1, maxResistance);
-  if (consistency >= 86 && peakRatio >= 0.7) return "Excellent pacing. Keep this output profile and increase peak resistance by 2-5kg next session.";
-  if (consistency >= 72) return "Great control overall. Try extending your high-intensity phase to improve total work capacity.";
-  return "Your intensity fluctuated more than expected. Focus on smoother tempo and steady force application next round.";
+  if (consistency >= 86 && peakRatio >= 0.7) return "节奏把控很棒。保持当前的输出曲线，下次训练可将峰值阻力提高 2-5kg。";
+  if (consistency >= 72) return "整体控制不错。尝试延长高强度阶段，以提升总训练容量。";
+  return "本次强度波动比预期更大。下一轮请专注更平稳的节奏与稳定的发力。";
 }
 
 function sumResistanceTimeline(timeline) {
@@ -832,7 +970,7 @@ function resetIwAiCapture() {
     iwAiState.comboHideTimer = 0;
   }
   if (iwComboBadge) iwComboBadge.hidden = true;
-  updateIwAiPanel(0, "Miss", "Action not recognized.", { personVisible: true });
+  updateIwAiPanel(0, "Miss", "未识别到动作。", { personVisible: true });
 }
 
 function resolveIwAiClickState(step) {
@@ -843,15 +981,15 @@ function resolveIwAiClickState(step) {
 function resolveIwAiCycleState(second) {
   const cycle = Math.max(0, Number(second) || 0) % 8;
   if (cycle < 2) {
-    return { score: 0, tier: "Miss", hint: "Action not recognized." };
+    return { score: 0, tier: "Miss", hint: "未识别到动作。" };
   }
   if (cycle < 4) {
-    return { score: 94, tier: "Perfect", hint: "Your form is very standard." };
+    return { score: 94, tier: "Perfect", hint: "你的动作非常标准。" };
   }
   if (cycle < 6) {
-    return { score: 86, tier: "Better", hint: "Lift your leg a bit higher" };
+    return { score: 86, tier: "Better", hint: "腿再抬高一点" };
   }
-  return { score: 80, tier: "Good", hint: "Lift your leg a bit higher" };
+  return { score: 80, tier: "Good", hint: "腿再抬高一点" };
 }
 
 function ensureIwAiRingGradient() {
@@ -901,11 +1039,11 @@ function resolveAiTier(score) {
 }
 
 function resolveAiHint(second, score) {
-  if (score >= 88) return "Great stability, keep it up.";
+  if (score >= 88) return "稳定性很好，继续保持。";
   const hints = [
-    "Lift your leg a bit higher.",
-    "Brace your core a bit tighter.",
-    "Slow down the return phase slightly."
+    "腿再抬高一点。",
+    "核心再收紧一些。",
+    "回放阶段稍微放慢一点。"
   ];
   return hints[Math.abs(second) % hints.length];
 }
@@ -920,7 +1058,7 @@ function updateIwAiRing(score) {
 
 function showIwComboBadge(comboCount) {
   if (!iwComboBadge) return;
-  iwComboBadge.textContent = `Combo * ${comboCount}`;
+  iwComboBadge.textContent = `连击 × ${comboCount}`;
   iwComboBadge.hidden = false;
   iwComboBadge.style.animation = "none";
   // restart animation
@@ -934,15 +1072,16 @@ function showIwComboBadge(comboCount) {
 
 function updateIwAiSkeletonPresence(personVisible, message) {
   const isVisible = personVisible !== false;
-  if (iwAiSkeletonCard) {
-    iwAiSkeletonCard.dataset.personVisible = isVisible ? "true" : "false";
+  if (iwAiResult) {
+    iwAiResult.dataset.personVisible = isVisible ? "true" : "false";
   }
-  if (iwAiSkeletonMessage) {
-    iwAiSkeletonMessage.hidden = isVisible;
-    if (!isVisible) {
-      iwAiSkeletonMessage.textContent = message || IW_AI_OUT_OF_ZONE_HINT;
-    }
+  if (iwAiHintText && !isVisible) {
+    iwAiHintText.textContent = message || IW_AI_OUT_OF_ZONE_HINT;
   }
+}
+
+function tierDisplayLabel(tier) {
+  return TIER_LABELS[tier] || tier;
 }
 
 function updateIwAiPanel(score, tier, hint, options = {}) {
@@ -955,7 +1094,7 @@ function updateIwAiPanel(score, tier, hint, options = {}) {
   if (iwAiScoreValue) iwAiScoreValue.textContent = scoreDisplay;
   updateIwAiRing(safeScore);
   if (iwAiTierValue) {
-    iwAiTierValue.textContent = tier;
+    iwAiTierValue.textContent = tierDisplayLabel(tier);
     iwAiTierValue.dataset.tier = tierKey;
   }
   if (iwAiPanel) {
@@ -963,7 +1102,7 @@ function updateIwAiPanel(score, tier, hint, options = {}) {
   }
   updateIwAiRingGradient(personVisible ? tier : "Miss");
   if (iwAiHintText) {
-    iwAiHintText.textContent = hint || "Lift your leg a bit higher.";
+    iwAiHintText.textContent = hint || "腿再抬高一点。";
   }
   updateIwAiSkeletonPresence(personVisible, hint);
 }
@@ -1005,8 +1144,6 @@ function openReportFromIwTraining() {
     : buildSyntheticTimeline(Math.max(18, measuredDuration || Math.round(iwVideo.currentTime || 0)), iwState.weight, iwState.mode);
   const durationSeconds = Math.max(1, measuredDuration || timeline.length);
   const capacityKg = sumResistanceTimeline(timeline);
-  const energyKj = capacityKg * 0.38;
-  const caloriesKcal = energyKj * 0.24;
   const scoreSamples = Math.max(0, Number(iwAiState.scoreSamples) || 0);
   const finalAiScore = scoreSamples > 0
     ? Math.round(iwAiState.scoreSum / scoreSamples)
@@ -1024,23 +1161,28 @@ function openReportFromIwTraining() {
   if (distSum !== 100) {
     accuracyDistribution.better = Math.max(0, accuracyDistribution.better + (100 - distSum));
   }
-  const aiSummary = `Better ${accuracyDistribution.better}% · Good ${accuracyDistribution.good}% · Perfect ${accuracyDistribution.perfect}%`;
-  const reportPayload = {
+  const aiSummary = `待加强 ${accuracyDistribution.better}% · 良好 ${accuracyDistribution.good}% · 完美 ${accuracyDistribution.perfect}%`;
+  const reportPayloadBase = {
     reportFromScene: "immersive",
     userName: reportUser.name,
     userAvatar: reportUser.avatar,
-    sceneLabel: "Action Training",
+    sceneLabel: "动作训练",
     durationSeconds,
     capacityKg,
-    energyKj,
-    caloriesKcal,
-    modeLabel: iwModeMapReport[iwState.mode] || "Standard",
-    equipmentLabel: iwState.equipment === "barbell" ? "Barbell" : "No Barbell",
+    modeLabel: iwModeMapReport[iwState.mode] || "标准",
+    equipmentLabel: iwState.equipment === "barbell" ? "杠铃" : "无杠铃",
     maxResistance: 120,
     timeline,
     finalAiScore,
     accuracyDistribution,
     aiSummary
+  };
+  const caloriesKcal = resolveSessionCaloriesKcal(reportPayloadBase, durationSeconds, capacityKg);
+  const energyKj = energyKjFromCalories(caloriesKcal);
+  const reportPayload = {
+    ...reportPayloadBase,
+    energyKj,
+    caloriesKcal
   };
   if (PLAN_B_PAGE === "immersive") {
     try {
@@ -1082,13 +1224,115 @@ function buildPowerSeries(resistanceSeries) {
   });
 }
 
+const INTENSITY_ZONE_CLASSES = [
+  "tr-intensity-z1",
+  "tr-intensity-z2",
+  "tr-intensity-z3",
+  "tr-intensity-z4",
+  "tr-intensity-z5"
+];
+
+function roundResistanceBucket(value) {
+  const numeric = Number(value) || 0;
+  if (numeric <= 0) return 0;
+  return Math.round(numeric);
+}
+
+function intensityClassForResistance(resistanceKg, sessionMin, sessionMax) {
+  if (sessionMax <= sessionMin) return INTENSITY_ZONE_CLASSES[2];
+  const position = (resistanceKg - sessionMin) / (sessionMax - sessionMin);
+  const idx = Math.min(
+    INTENSITY_ZONE_CLASSES.length - 1,
+    Math.round(position * (INTENSITY_ZONE_CLASSES.length - 1))
+  );
+  return INTENSITY_ZONE_CLASSES[idx];
+}
+
+function formatDurationCompact(seconds) {
+  const safe = Math.max(0, Math.floor(Number(seconds) || 0));
+  const m = Math.floor(safe / 60);
+  const s = safe % 60;
+  if (m > 0 && s > 0) return `${m}分 ${s}秒`;
+  if (m > 0) return `${m}分`;
+  return `${s}秒`;
+}
+
+function buildIntensityDistribution(timeline) {
+  const samples = (Array.isArray(timeline) ? timeline : [])
+    .map((value) => Number(value) || 0)
+    .filter((value) => value > 0);
+  const bucketCounts = new Map();
+
+  samples.forEach((value) => {
+    const kg = roundResistanceBucket(value);
+    if (kg <= 0) return;
+    bucketCounts.set(kg, (bucketCounts.get(kg) || 0) + 1);
+  });
+
+  if (!bucketCounts.size) {
+    return { zones: [], ceiling: 0, settingsCount: 0, workingSeconds: 0, sessionSpan: "" };
+  }
+
+  const total = [...bucketCounts.values()].reduce((sum, count) => sum + count, 0) || 1;
+  const entries = [...bucketCounts.entries()]
+    .map(([resistanceKg, count]) => ({
+      resistanceKg,
+      seconds: count,
+      ratio: count / total
+    }))
+    .sort((a, b) => a.resistanceKg - b.resistanceKg);
+
+  const sessionMin = entries[0].resistanceKg;
+  const sessionMax = entries[entries.length - 1].resistanceKg;
+  let dominantRatio = 0;
+  entries.forEach((entry) => { if (entry.ratio > dominantRatio) dominantRatio = entry.ratio; });
+
+  const zones = entries.map((entry) => ({
+    className: intensityClassForResistance(entry.resistanceKg, sessionMin, sessionMax),
+    label: `${entry.resistanceKg}kg`,
+    resistanceKg: entry.resistanceKg,
+    ratio: entry.ratio,
+    seconds: entry.seconds,
+    durationLabel: formatDurationCompact(entry.seconds),
+    dominant: entry.ratio === dominantRatio
+  }));
+
+  return {
+    zones,
+    ceiling: sessionMax,
+    settingsCount: zones.length,
+    workingSeconds: total,
+    sessionSpan: sessionMin === sessionMax ? `${sessionMin}kg` : `${sessionMin}-${sessionMax}kg`
+  };
+}
+
+function buildAmplitudeSeries(sourceSeries) {
+  const safe = (Array.isArray(sourceSeries) ? sourceSeries : []).map((value) => Number(value) || 0);
+  if (!safe.length) return [];
+  const maxValue = Math.max(1, ...safe);
+  // Range of motion tends to run inversely to load and oscillate per rep,
+  // so derive a plausible amplitude curve from the available load/power series.
+  const rough = safe.map((value, idx) => {
+    const normalized = value / maxValue;
+    const wave = Math.sin(idx * 0.55) * 0.16 + Math.sin(idx * 0.21 + 0.8) * 0.1;
+    const base = 0.92 - normalized * 0.42;
+    return Math.max(0.18, base + wave);
+  });
+  return rough.map((_, idx) => {
+    const from = Math.max(0, idx - 1);
+    const to = Math.min(rough.length - 1, idx + 1);
+    const segment = rough.slice(from, to + 1);
+    return segment.reduce((sum, item) => sum + item, 0) / segment.length;
+  });
+}
+
 function buildAiQualitySnapshot(move, actualReps, actualSets) {
   const seed = hashTextSeed((move && move.name) || "") + actualReps * 11 + actualSets * 7;
   const perfectRate = Math.max(58, Math.min(96, 68 + (seed % 24)));
   const errorRate = Math.max(4, 100 - perfectRate);
   const errorTypes = (move && move.aiQualityTemplate && Array.isArray(move.aiQualityTemplate.errorTypes) && move.aiQualityTemplate.errorTypes.length)
     ? move.aiQualityTemplate.errorTypes
-    : ["Knee Valgus", "Short Range", "Core Instability"];
+    : ["膝盖内扣", "幅度不足", "核心不稳"];
   const weights = errorTypes.map((_, idx) => ((seed + (idx + 1) * 13) % 10) + 1);
   const totalWeight = weights.reduce((sum, item) => sum + item, 0) || 1;
   let usedPercent = 0;
@@ -1103,16 +1347,19 @@ function buildAiQualitySnapshot(move, actualReps, actualSets) {
     .slice()
     .sort((a, b) => b.percent - a.percent)
     .slice(0, 2);
-  const summary = `Across ${Math.max(1, actualSets)} sets of ${(move && move.name) || "this move"}, ${errorRate}% reps showed form errors.`;
+  const summary = `在 ${(move && move.name) || "该动作"} 的 ${Math.max(1, actualSets)} 组中，有 ${errorRate}% 的次数出现了动作误差。`;
   return { perfectRate, errorStats, summary, topErrors };
 }
 
-function buildPowerCurvePath(series) {
+const POWER_CURVE_HEIGHT = 140;
+const POWER_CURVE_PX_PER_POINT = 14;
+const POWER_CURVE_MIN_WIDTH = 320;
+const AMPLITUDE_DISPLAY_CM = 40;
+
+function buildPowerCurvePoints(series, width, height) {
   const points = Array.isArray(series) ? series : [];
-  const width = 320;
-  const height = 140;
   const padX = 8;
-  const padY = 10;
+  const padY = 12;
   if (!points.length) return "";
   const maxValue = Math.max(1, ...points);
   const minValue = Math.min(...points);
@@ -1125,18 +1372,85 @@ function buildPowerCurvePath(series) {
   }).join(" ");
 }
 
+function renderScrollableCurve(svgEl, footEl, series, accent, unit, displayScale) {
+  if (!svgEl) return;
+  const points = Array.isArray(series) ? series : [];
+  const width = Math.max(POWER_CURVE_MIN_WIDTH, points.length * POWER_CURVE_PX_PER_POINT);
+  const height = POWER_CURVE_HEIGHT;
+  svgEl.setAttribute("viewBox", `0 0 ${width} ${height}`);
+  svgEl.setAttribute("width", String(width));
+  svgEl.style.width = `${width}px`;
+  const linePoints = buildPowerCurvePoints(points, width, height);
+  if (!linePoints) {
+    svgEl.innerHTML = "";
+    if (footEl) footEl.textContent = "未采集到数据";
+    return;
+  }
+  const areaPoints = `8,${height} ${linePoints} ${(width - 8).toFixed(2)},${height}`;
+  svgEl.innerHTML = `
+    <polygon points="${areaPoints}" fill="${accent.fill}" stroke="none"></polygon>
+    <polyline points="${linePoints}" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"></polyline>
+    <polyline points="${linePoints}" fill="none" stroke="${accent.line}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></polyline>
+  `;
+  if (footEl) {
+    const scale = Number(displayScale) || 1;
+    const peak = Math.max(...points) * scale;
+    const avg = (points.reduce((sum, item) => sum + item, 0) / points.length) * scale;
+    footEl.textContent = `峰值 ${peak.toFixed(0)}${unit} · 平均 ${avg.toFixed(0)}${unit}`;
+  }
+}
+
+function bindChartScrollNav(scrollEl, prevBtn, nextBtn) {
+  if (!scrollEl || scrollEl.dataset.navBound === "1") return;
+  scrollEl.dataset.navBound = "1";
+
+  const updateNav = () => {
+    const overflow = scrollEl.scrollWidth - scrollEl.clientWidth > 6;
+    if (!overflow) {
+      if (prevBtn) prevBtn.hidden = true;
+      if (nextBtn) nextBtn.hidden = true;
+      return;
+    }
+    const atStart = scrollEl.scrollLeft <= 6;
+    const atEnd = scrollEl.scrollLeft + scrollEl.clientWidth >= scrollEl.scrollWidth - 6;
+    if (prevBtn) prevBtn.hidden = atStart;
+    if (nextBtn) nextBtn.hidden = atEnd;
+  };
+
+  scrollEl.addEventListener("scroll", updateNav, { passive: true });
+  if (prevBtn) {
+    prevBtn.addEventListener("click", () => {
+      scrollEl.scrollBy({ left: -(Math.round(scrollEl.clientWidth * 0.75) || 200), behavior: "smooth" });
+    });
+  }
+  if (nextBtn) {
+    nextBtn.addEventListener("click", () => {
+      scrollEl.scrollBy({ left: Math.round(scrollEl.clientWidth * 0.75) || 200, behavior: "smooth" });
+    });
+  }
+  scrollEl._chartNavUpdate = updateNav;
+}
+
+function syncChartScrollNav(scrollEl) {
+  if (!scrollEl) return;
+  scrollEl.scrollLeft = 0;
+  requestAnimationFrame(() => {
+    if (typeof scrollEl._chartNavUpdate === "function") scrollEl._chartNavUpdate();
+  });
+}
+
 function renderReportPowerCurve(payload) {
-  if (!reportPowerCurveBlock || !reportPowerCurveSvg || !reportPowerCurveTabs || !reportPowerCurveFoot || !reportPowerCurveMeta) return;
-  const sessionSeries = buildPowerSeries(payload && payload.timeline);
+  if (!reportPowerCurveBlock || !reportPowerCurveSvg || !reportPowerCurveTabs || !reportPowerCurveMeta) return;
+  const sessionPower = buildPowerSeries(payload && payload.timeline);
   const moveRows = Array.isArray(payload && payload.planMovesData) ? payload.planMovesData : [];
   const moveOptions = moveRows
     .filter((row) => Array.isArray(row && row.powerSeries) && row.powerSeries.length)
     .map((row, idx) => ({
       key: `move-${idx}`,
-      label: row.name || `Move ${idx + 1}`,
+      label: row.name || `动作 ${idx + 1}`,
       series: row.powerSeries
     }));
-  const options = [{ key: "session", label: "Session", series: sessionSeries }, ...moveOptions];
+  const options = [{ key: "session", label: "本次训练", series: sessionPower }, ...moveOptions];
   reportPowerCurveBlock.hidden = !options.some((item) => item.series.length);
   if (reportPowerCurveBlock.hidden) return;
   if (!options.some((item) => item.key === reportPowerCurveSelectedKey)) {
@@ -1155,16 +1469,31 @@ function renderReportPowerCurve(payload) {
     reportPowerCurveTabs.appendChild(btn);
   });
   const active = options.find((item) => item.key === reportPowerCurveSelectedKey) || options[0];
-  const points = Array.isArray(active.series) ? active.series : [];
-  const pathPoints = buildPowerCurvePath(points);
-  const peak = points.length ? Math.max(...points) : 0;
-  const avg = points.length ? points.reduce((sum, item) => sum + item, 0) / points.length : 0;
-  reportPowerCurveSvg.innerHTML = `
-    <polyline points="${pathPoints}" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"></polyline>
-    <polyline points="${pathPoints}" fill="none" stroke="rgba(94,234,255,0.95)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></polyline>
-  `;
-  reportPowerCurveMeta.textContent = active.key === "session" ? "Session" : active.label;
-  reportPowerCurveFoot.textContent = `Peak ${peak.toFixed(1)} · Avg ${avg.toFixed(1)}`;
+  const powerPoints = Array.isArray(active.series) ? active.series : [];
+  const amplitudePoints = buildAmplitudeSeries(powerPoints);
+  reportPowerCurveMeta.textContent = active.key === "session" ? "本次训练" : active.label;
+
+  renderScrollableCurve(
+    reportPowerCurveSvg,
+    reportPowerCurveFoot,
+    powerPoints,
+    { line: "rgba(255,171,99,0.96)", fill: "rgba(255,140,70,0.16)" },
+    "W",
+    1
+  );
+  renderScrollableCurve(
+    reportAmpSvg,
+    reportAmpFoot,
+    amplitudePoints,
+    { line: "rgba(94,234,255,0.96)", fill: "rgba(94,234,255,0.16)" },
+    "cm",
+    AMPLITUDE_DISPLAY_CM
+  );
+
+  bindChartScrollNav(reportPowerScroll, reportPowerNavPrev, reportPowerNavNext);
+  bindChartScrollNav(reportAmpScroll, reportAmpNavPrev, reportAmpNavNext);
+  syncChartScrollNav(reportPowerScroll);
+  syncChartScrollNav(reportAmpScroll);
 }
 
 function renderReportActionCompletion(planMovesData) {
@@ -1175,13 +1504,13 @@ function renderReportActionCompletion(planMovesData) {
   if (!safeMoves.length) {
     const empty = document.createElement("p");
     empty.className = "tr-coach-note";
-    empty.textContent = "No move completion data available for this plan day.";
+    empty.textContent = "本计划日暂无动作完成数据。";
     reportActionList.appendChild(empty);
     return;
   }
   safeMoves.forEach((item, idx) => {
     const row = item && typeof item === "object" ? item : {};
-    const moveName = row.name || `Move ${idx + 1}`;
+    const moveName = row.name || `动作 ${idx + 1}`;
     const targetSets = Math.max(0, Number(row.targetSets) || 0);
     const targetReps = Math.max(0, Number(row.targetReps) || 0);
     const actualSets = Math.max(0, Number(row.actualSets) || 0);
@@ -1201,21 +1530,21 @@ function renderReportActionCompletion(planMovesData) {
         <span class="tr-action-time">${formatTime(durationSeconds)}</span>
       </div>
       <div class="tr-action-meta">
-        <span class="tr-action-metric"><em>Target Reps</em>${targetReps}</span>
-        <span class="tr-action-metric"><em>Actual Reps</em>${actualReps}</span>
-        <span class="tr-action-metric"><em>Target Sets</em>${targetSets}</span>
-        <span class="tr-action-metric"><em>Actual Sets</em>${actualSets}</span>
+        <span class="tr-action-metric"><em>目标次数</em>${targetReps}</span>
+        <span class="tr-action-metric"><em>实际次数</em>${actualReps}</span>
+        <span class="tr-action-metric"><em>目标组数</em>${targetSets}</span>
+        <span class="tr-action-metric"><em>实际组数</em>${actualSets}</span>
       </div>
       ${aiSupported && quality ? `
       <div class="tr-quality">
         <div class="tr-quality-head">
-          <span>Perfect Ratio</span>
+          <span>完美率</span>
           <span>${perfectRate}%</span>
         </div>
         <div class="tr-quality-bar"><i style="width:${perfectRate}%"></i></div>
         <div class="tr-quality-errors">
           ${summaryText ? `<p>${summaryText}</p>` : ""}
-          ${topErrors.map((entry) => `<p>${entry.label}: ${entry.percent}% occurrences</p>`).join("")}
+          ${topErrors.map((entry) => `<p>${entry.label}：${entry.percent}% 出现</p>`).join("")}
         </div>
       </div>` : ""}
     `;
@@ -1229,13 +1558,13 @@ function renderReportActionCompletion(planMovesData) {
     const expandBtn = document.createElement("button");
     expandBtn.type = "button";
     expandBtn.className = "tr-btn tr-btn--ghost tr-action-expand-btn";
-    expandBtn.textContent = "Show All Moves";
+    expandBtn.textContent = "展开全部动作";
     expandBtn.setAttribute("aria-expanded", "false");
     expandBtn.addEventListener("click", () => {
       const isExpanded = expandBtn.getAttribute("aria-expanded") === "true";
       hiddenCards.forEach((card) => { card.hidden = isExpanded; });
       expandBtn.setAttribute("aria-expanded", isExpanded ? "false" : "true");
-      expandBtn.textContent = isExpanded ? "Show All Moves" : "Collapse Moves";
+      expandBtn.textContent = isExpanded ? "展开全部动作" : "收起动作";
     });
     reportActionList.appendChild(expandBtn);
   }
@@ -1258,9 +1587,9 @@ function renderReportAccuracyDistribution(distribution) {
   reportAccuracyBetter.style.width = `${betterPct}%`;
   reportAccuracyGood.style.width = `${goodPct}%`;
   reportAccuracyPerfect.style.width = `${perfectPct}%`;
-  if (reportAccuracyBetterLabel) reportAccuracyBetterLabel.textContent = `Better ${betterPct}%`;
-  if (reportAccuracyGoodLabel) reportAccuracyGoodLabel.textContent = `Good ${goodPct}%`;
-  if (reportAccuracyPerfectLabel) reportAccuracyPerfectLabel.textContent = `Perfect ${perfectPct}%`;
+  if (reportAccuracyBetterLabel) reportAccuracyBetterLabel.textContent = `待加强 ${betterPct}%`;
+  if (reportAccuracyGoodLabel) reportAccuracyGoodLabel.textContent = `良好 ${goodPct}%`;
+  if (reportAccuracyPerfectLabel) reportAccuracyPerfectLabel.textContent = `完美 ${perfectPct}%`;
   reportAccuracyDistBlock.hidden = false;
 }
 
@@ -1291,20 +1620,18 @@ function showTrainingReport(payload) {
   const isPlanTrainingReport = reportFromScene === "plan-training";
   const reportContext = `${reportFromScene || ""} ${sceneLabel || ""} ${modeLabel || ""} ${equipmentLabel || ""} ${planName || ""} ${payload.trainingType || ""}`;
   const isPilatesReport = reportFromScene === "pilates" || /\bpilates\b/i.test(reportContext);
-  const isBodyweightCardioReport = reportFromScene === "bodyweight-cardio"
-    || /bodyweight[_\s-]*cardio|non[-\s]*resistance[_\s-]*cardio/i.test(reportContext);
+  const isBodyweightCardioReport = isBodyweightCardioPayload(payload, reportContext);
   const hideResistanceMetrics = isPilatesReport || isBodyweightCardioReport;
-  const reportIntensityDistribution = [
-    { className: "tr-intensity-z1", label: "0-24kg", ratio: 0.6 },
-    { className: "tr-intensity-z2", label: "24-48kg", ratio: 0.2 },
-    { className: "tr-intensity-z3", label: "48-72kg", ratio: 0.2 }
-  ];
+  const effectiveCaloriesKcal = resolveSessionCaloriesKcal(payload, durationSeconds, capacityKg);
+  const useEstimatedBurnLabels = isBodyweightCardioReport || payload?.isEstimatedBurn === true;
+  const intensity = buildIntensityDistribution(timeline);
+  const reportIntensityDistribution = intensity.zones;
   if (reportUserAvatar) reportUserAvatar.textContent = String(userAvatar || "A").slice(0, 1).toUpperCase();
-  if (reportCongratsTitle) reportCongratsTitle.textContent = `Great Job, ${userName}`;
+  if (reportCongratsTitle) reportCongratsTitle.textContent = `干得漂亮，${userName}`;
   if (reportSessionMeta) {
     reportSessionMeta.textContent = isPlanTrainingReport
-      ? `Training completed • ${planName || "Plan Training"} • ${planDayName || "Week 1, Day 1"}`
-      : `Session complete • ${sceneLabel}`;
+      ? `训练完成 • ${planName || "计划训练"} • ${planDayName || "第 1 周，第 1 天"}`
+      : `训练完成 • ${sceneLabel}`;
   }
   const hasFinalAiScore = Number.isFinite(Number(finalAiScore));
   if (reportActionAnalysisBlock) reportActionAnalysisBlock.hidden = !hasFinalAiScore;
@@ -1312,18 +1639,52 @@ function showTrainingReport(payload) {
   if (reportFinalScoreValue && hasFinalAiScore) reportFinalScoreValue.textContent = `${Math.round(Number(finalAiScore))}`;
   if (reportDurationValue) reportDurationValue.textContent = formatTime(durationSeconds);
   if (reportCapacityValue) reportCapacityValue.textContent = Number(capacityKg).toFixed(1);
-  if (reportEnergyValue) reportEnergyValue.textContent = String(Math.max(0, Math.round(energyKj)));
-  if (reportCaloriesValue) reportCaloriesValue.textContent = String(Math.max(0, Math.round(caloriesKcal)));
+  if (reportEnergyLabel) reportEnergyLabel.textContent = useEstimatedBurnLabels ? "预估能量输出" : "能量输出";
+  if (reportCaloriesLabel) reportCaloriesLabel.textContent = useEstimatedBurnLabels ? "预估卡路里" : "卡路里";
+  if (reportEnergyValue) reportEnergyValue.textContent = String(Math.max(0, Math.round(energyKjFromCalories(effectiveCaloriesKcal))));
+  if (reportCaloriesValue) reportCaloriesValue.textContent = String(Math.max(0, Math.round(effectiveCaloriesKcal)));
   if (reportModeLabel) reportModeLabel.textContent = modeLabel;
   if (reportEquipmentLabel) reportEquipmentLabel.textContent = equipmentLabel;
   if (reportSceneLabel) reportSceneLabel.textContent = sceneLabel;
-  if (reportIntensityRange) reportIntensityRange.textContent = `Max Resistance ${Math.round(maxResistance)}kg`;
-  if (reportIntensityBar) reportIntensityBar.innerHTML = reportIntensityDistribution
-    .map((zone) => `<span class="tr-intensity-segment ${zone.className}" style="width:${(zone.ratio * 100).toFixed(2)}%"></span>`)
-    .join("");
-  if (reportIntensityLegend) reportIntensityLegend.innerHTML = reportIntensityDistribution
-    .map((zone) => `<div class="tr-legend-item"><span class="tr-legend-dot ${zone.className}"></span><span>${zone.label} · ${Math.round(zone.ratio * 100)}%</span></div>`)
-    .join("");
+  if (reportIntensityRange) {
+    if (!intensity.settingsCount) {
+      reportIntensityRange.textContent = "未记录阻力";
+    } else {
+      reportIntensityRange.textContent = intensity.settingsCount > 1
+        ? `${intensity.settingsCount} 档设置 · ${intensity.sessionSpan}`
+        : `1 档设置 · ${intensity.sessionSpan}`;
+    }
+  }
+  if (reportIntensityBar) {
+    if (!reportIntensityDistribution.length) {
+      reportIntensityBar.innerHTML = `<span class="tr-intensity-empty">本次训练没有阻力数据。</span>`;
+    } else {
+      reportIntensityBar.innerHTML = reportIntensityDistribution
+        .map((zone) => {
+          const pct = Math.round(zone.ratio * 100);
+          const showLabel = zone.ratio >= 0.08;
+          const segmentLabel = showLabel
+            ? (zone.ratio >= 0.14 ? `${zone.label} · ${pct}%` : `${pct}%`)
+            : "";
+          return `<span class="tr-intensity-segment ${zone.className}${zone.dominant ? " is-dominant" : ""}" style="width:${(zone.ratio * 100).toFixed(2)}%" role="img" aria-label="${zone.label}，${zone.durationLabel}，占有效时长 ${pct}%">${segmentLabel ? `<b class="tr-intensity-segment-label">${segmentLabel}</b>` : ""}</span>`;
+        })
+        .join("");
+    }
+  }
+  if (reportIntensityLegend) {
+    if (!reportIntensityDistribution.length) {
+      reportIntensityLegend.innerHTML = "";
+    } else {
+      reportIntensityLegend.innerHTML = reportIntensityDistribution
+        .map((zone) => `<div class="tr-legend-item${zone.dominant ? " is-dominant" : ""}"><span class="tr-legend-dot ${zone.className}"></span><span>${zone.label} · ${zone.durationLabel} · ${Math.round(zone.ratio * 100)}%${zone.dominant ? " · 最高" : ""}</span></div>`)
+        .join("");
+    }
+  }
+  if (reportIntensityLegendNote) {
+    reportIntensityLegendNote.textContent = reportIntensityDistribution.length
+      ? "每一行代表你本次训练中设置的一个阻力档位。色块按从低到高排列，颜色表示相对强度。"
+      : "完成一次力量训练，即可查看你使用过的阻力档位以及各自的时长。";
+  }
   if (reportCapacityStat) reportCapacityStat.hidden = hideResistanceMetrics;
   if (reportModeSetupBlock) reportModeSetupBlock.hidden = isPlanTrainingReport || hideResistanceMetrics;
   if (reportStrengthPowerBlock) reportStrengthPowerBlock.hidden = hideResistanceMetrics;
@@ -1345,11 +1706,8 @@ function sampleIwTraining(currentSeconds) {
   const second = Math.floor(currentSeconds);
   if (second === iwTrainingState.lastSecond) return;
   iwTrainingState.lastSecond = second;
-  const modeOffset = iwState.mode === "spring" ? 6 : iwState.mode === "isokinetic" ? 5 : iwState.mode === "eccentric" ? 4 : 2;
-  const equipOffset = iwState.equipment === "barbell" ? 2 : -1;
-  const sway = Math.sin(second / 2.4) * 4 + Math.cos(second / 5.4) * 2.2;
-  const resistance = clamp(iwState.weight + modeOffset + equipOffset + sway, 0, 120);
-  iwTrainingState.resistanceTimeline.push(Math.round(resistance * 10) / 10);
+  const bounds = getIwBounds();
+  iwTrainingState.resistanceTimeline.push(snapshotUserSetWeightKg(iwState.weight, bounds));
   if (iwTrainingState.resistanceTimeline.length > 7200) iwTrainingState.resistanceTimeline.shift();
   // AI score state now changes by clicking the score card.
 }
@@ -1366,19 +1724,26 @@ function updateIwTimeUI() {
 
 function syncIwWeightUI() {
   if (!iwWeightValue) return;
-  const clamped = Math.min(videoPlayParamConfig.maxWeight, Math.max(videoPlayParamConfig.minWeight, iwState.weight));
-  iwState.weight = Math.round(clamped * 10) / 10;
-  const v = iwState.weight.toFixed(1);
+  const bounds = getIwBounds();
+  const clamped = Math.min(bounds.max, Math.max(bounds.min, iwState.weight));
+  if (bounds.step >= 1) {
+    iwState.weight = Math.round(clamped);
+  } else {
+    iwState.weight = Math.round(clamped * 10) / 10;
+  }
+  const v = formatResistanceDisplay(iwState.weight, bounds);
   iwWeightValue.textContent = v;
   if (iwSummaryWeight) iwSummaryWeight.textContent = v;
-  
+
   const iwDialProgress = document.getElementById("iwDialProgress");
   if (iwDialProgress) {
-    const percent = (iwState.weight - videoPlayParamConfig.minWeight) / (videoPlayParamConfig.maxWeight - videoPlayParamConfig.minWeight);
-    const dasharray = 339.29; // 2 * PI * 54
-    const offset = dasharray - (dasharray * percent);
+    const span = bounds.max - bounds.min;
+    const percent = span > 0 ? (iwState.weight - bounds.min) / span : 0;
+    const dasharray = 339.29;
+    const offset = dasharray - (dasharray * Math.max(0, Math.min(1, percent)));
     iwDialProgress.style.strokeDashoffset = offset;
   }
+  syncIwSpringBarUI();
 }
 
 function springLevelToRaw(level) {
@@ -1391,44 +1756,44 @@ function isokineticLevelToRaw(level) {
 }
 
 function getIsoTip(level) {
-  if (level <= 5) return "Slow / stability — strong speed limit, good for peak-force work.";
-  if (level <= 15) return "Standard / hypertrophy — simulates typical gym tempo.";
-  return "Power / sport — allows fast start, minimal speed limit.";
+  if (level <= 5) return "慢速 / 稳定——限速强，适合峰值力量训练。";
+  if (level <= 15) return "标准 / 增肌——模拟常规健身房节奏。";
+  return "爆发 / 运动——允许快速启动，限速最小。";
 }
 
 function updateIwParamPanel() {
   if (!iwParamPanel || !iwMetaChip || !iwParamLabel || !iwParamSlider || !iwParamDisplay || !iwParamTip || !iwParamSubmit) return;
   if (iwState.mode === "spring") {
     iwParamPanel.classList.add("show");
-    iwParamLabel.textContent = "Spring level";
+    iwParamLabel.textContent = "弹簧档位";
     iwParamSlider.min = String(videoPlayParamConfig.spring.minLevel);
     iwParamSlider.max = String(videoPlayParamConfig.spring.maxLevel);
     iwParamSlider.value = String(iwState.springLevel);
-    iwParamDisplay.textContent = `Level ${iwState.springLevel}`;
-    iwParamTip.textContent = "Higher level = stiffer spring, resistance rises more with range.";
-    iwParamSubmit.textContent = `Submit springCoefficient = ${springLevelToRaw(iwState.springLevel)}`;
-    iwMetaChip.textContent = "Spring resistance";
+    iwParamDisplay.textContent = `档位 ${iwState.springLevel}`;
+    iwParamTip.textContent = "档位越高，弹簧越硬，阻力随幅度增加得越多。";
+    iwParamSubmit.textContent = `提交弹簧系数 = ${springLevelToRaw(iwState.springLevel)}`;
+    iwMetaChip.textContent = "弹簧阻力";
   } else if (iwState.mode === "isokinetic") {
     iwParamPanel.classList.add("show");
-    iwParamLabel.textContent = "Isokinetic level";
+    iwParamLabel.textContent = "等速档位";
     iwParamSlider.min = String(videoPlayParamConfig.isokinetic.minLevel);
     iwParamSlider.max = String(videoPlayParamConfig.isokinetic.maxLevel);
     iwParamSlider.value = String(iwState.isokineticLevel);
-    iwParamDisplay.textContent = `Level ${iwState.isokineticLevel}`;
+    iwParamDisplay.textContent = `档位 ${iwState.isokineticLevel}`;
     iwParamTip.textContent = getIsoTip(iwState.isokineticLevel);
-    iwParamSubmit.textContent = `Submit isokineticRaw = ${isokineticLevelToRaw(iwState.isokineticLevel)}`;
-    iwMetaChip.textContent = "Speed limit";
+    iwParamSubmit.textContent = `提交等速阻力 = ${isokineticLevelToRaw(iwState.isokineticLevel)}`;
+    iwMetaChip.textContent = "限速";
   } else {
     iwParamPanel.classList.remove("show");
-    iwMetaChip.textContent = "Power stable";
+    iwMetaChip.textContent = "功率稳定";
   }
 }
 
 function setIwMode(mode) {
   if (!iwModeGroup || !iwSummaryMode || !iwModeChip) return;
   iwState.mode = mode;
-  iwSummaryMode.textContent = iwModeMap[mode] || "Standard";
-  iwModeChip.textContent = iwModeMap[mode] || "Standard";
+  iwSummaryMode.textContent = iwModeMap[mode] || "标准";
+  iwModeChip.textContent = iwModeMap[mode] || "标准";
   iwModeGroup.querySelectorAll(".iw-mode-btn").forEach((btn) => btn.classList.toggle("active", btn.dataset.mode === mode));
   updateIwParamPanel();
 }
@@ -1560,7 +1925,7 @@ function openImmersiveWorkout() {
   iwVideoSource.src = adMeta.video;
   iwVideo.load();
   iwVideo.pause();
-  iwPlayBtn.textContent = "Play";
+  iwPlayBtn.textContent = "播放";
   iwState.playing = false;
   if (shell) shell.classList.add("app-immersive-active");
   immersiveWorkoutScreen.classList.add("active");
@@ -1570,6 +1935,7 @@ function openImmersiveWorkout() {
   iwTrainingState.lastSecond = -1;
   iwTrainingState.resistanceTimeline = [];
   resetIwAiCapture();
+  applyIwPilatesContext();
   if (!iwState.rafId && iwChartCtx) drawIwChartFrame();
   
   // Default to drawer open
@@ -1581,6 +1947,12 @@ function openImmersiveWorkout() {
     iwAiReadyOverlay.classList.add("is-visible");
     iwAiReadyOverlay.setAttribute("aria-hidden", "false");
   }
+  if (iwRecognitionTimerId) {
+    clearTimeout(iwRecognitionTimerId);
+    iwRecognitionTimerId = 0;
+  }
+  selectedTrainer = "";
+  scheduleAutoRecognition();
 }
 
 function closeImmersiveWorkout() {
@@ -1600,14 +1972,60 @@ function closeImmersiveWorkout() {
     iwAiReadyOverlay.classList.remove("is-visible");
     iwAiReadyOverlay.setAttribute("aria-hidden", "true");
   }
+  clearIwRecognitionFlow();
+  setIwReadyStep("env");
+}
+
+function setIwReadyStep(step) {
+  if (!iwAiReadyPanel) return;
+  const nextStep = step === "select" ? "select" : "env";
+  iwAiReadyPanel.dataset.currentStep = nextStep;
+}
+
+function clearIwRecognitionFlow() {
+  if (iwRecognitionTimerId) {
+    clearTimeout(iwRecognitionTimerId);
+    iwRecognitionTimerId = 0;
+  }
+  if (iwAiReadyPanel) iwAiReadyPanel.classList.remove("is-scanning");
+}
+
+function scheduleAutoRecognition() {
+  clearIwRecognitionFlow();
+  setIwReadyStep("env");
+  if (iwRecogStatus) iwRecogStatus.textContent = "系统正在识别中，请稍候…";
+  iwRecognitionTimerId = window.setTimeout(beginRecognitionScan, IW_AI_GUIDANCE_DWELL_MS);
+}
+
+function beginRecognitionScan() {
+  if (!iwAiReadyPanel) return;
+  iwRecognitionTimerId = 0;
+  iwAiReadyPanel.classList.add("is-scanning");
+  if (iwRecogStatus) iwRecogStatus.textContent = "正在识别人脸，请保持站立…";
+  iwRecognitionTimerId = window.setTimeout(finishAutoRecognition, IW_AI_SCAN_MS);
+}
+
+function finishAutoRecognition() {
+  iwRecognitionTimerId = 0;
+  if (iwAiReadyPanel) iwAiReadyPanel.classList.remove("is-scanning");
+  setIwReadyStep("select");
+  if (iwTrainerOptions.length) {
+    const defaultOption = iwTrainerOptions.find((option) => option.classList.contains("is-lg")) || iwTrainerOptions[0];
+    setSelectedTrainer(defaultOption);
+  }
 }
 
 function startIwTrainingAfterReady() {
   if (!iwVideo || !iwPlayBtn) return;
+  if (!selectedTrainer && iwTrainerOptions.length) {
+    const defaultOption = iwTrainerOptions.find((option) => option.classList.contains("is-selected")) || iwTrainerOptions[0];
+    selectedTrainer = defaultOption ? String(defaultOption.dataset.trainer || "") : "";
+  }
   if (iwAiReadyOverlay) {
     iwAiReadyOverlay.classList.remove("is-visible");
     iwAiReadyOverlay.setAttribute("aria-hidden", "true");
   }
+  if (iwAiReadyPanel) iwAiReadyPanel.classList.remove("is-scanning");
   iwAiState.ready = true;
   iwAiState.cycleStep = 0;
   iwAiState.lastSecond = -1;
@@ -1615,8 +2033,29 @@ function startIwTrainingAfterReady() {
   const initialAiState = resolveIwAiClickState(0);
   updateIwAiPanel(initialAiState.score, initialAiState.tier, initialAiState.hint, initialAiState);
   iwVideo.play().catch(() => {});
-  iwPlayBtn.textContent = "Pause";
+  iwPlayBtn.textContent = "暂停";
   iwState.playing = true;
+}
+
+function setSelectedTrainer(option) {
+  if (!option || !iwTrainerOptions.length) return;
+  iwTrainerOptions.forEach((item) => {
+    const isCurrent = item === option;
+    item.classList.toggle("is-selected", isCurrent);
+    item.setAttribute("aria-checked", String(isCurrent));
+  });
+  selectedTrainer = String(option.dataset.trainer || "");
+}
+
+function initIwTrainerSelection() {
+  if (!iwTrainerSelect || !iwTrainerOptions.length) return;
+  const defaultOption = iwTrainerOptions.find((option) => option.classList.contains("is-selected")) || iwTrainerOptions[0];
+  setSelectedTrainer(defaultOption);
+  iwTrainerOptions.forEach((option) => {
+    option.addEventListener("click", () => {
+      setSelectedTrainer(option);
+    });
+  });
 }
 
 function createCard(item, index) {
@@ -1634,7 +2073,7 @@ function createCard(item, index) {
   `;
   card.setAttribute("role", "button");
   card.setAttribute("tabindex", "0");
-  card.setAttribute("aria-label", `${name} detail`);
+  card.setAttribute("aria-label", `${name} 详情`);
   card.addEventListener("click", () => openMoveDetail(item, index));
   card.addEventListener("keydown", (e) => {
     if (e.key === "Enter" || e.key === " ") {
@@ -1710,11 +2149,12 @@ if (adStartTrainingBtn) adStartTrainingBtn.addEventListener("click", openImmersi
 
 if (adActionHero && adVideoFallback) {
   adActionHero.addEventListener("error", () => {
-    adVideoFallback.textContent = "Preview image unavailable.";
+    adVideoFallback.textContent = "预览图片暂不可用。";
   });
 }
 
 if (iwEndBtn) iwEndBtn.addEventListener("click", openReportFromIwTraining);
+initIwTrainerSelection();
 if (iwAiReadyBtn) {
   iwAiReadyBtn.addEventListener("click", startIwTrainingAfterReady);
 }
@@ -1738,11 +2178,11 @@ if (iwPlayBtn && iwVideo) {
     if (iwVideo.paused) {
       iwVideo.play().catch(() => {});
       iwState.playing = true;
-      iwPlayBtn.textContent = "Pause";
+      iwPlayBtn.textContent = "暂停";
     } else {
       iwVideo.pause();
       iwState.playing = false;
-      iwPlayBtn.textContent = "Play";
+      iwPlayBtn.textContent = "播放";
     }
   });
 }
@@ -1753,13 +2193,15 @@ if (iwVideo) {
 }
 if (iwDecreaseBtn) {
   iwDecreaseBtn.addEventListener("click", () => {
-    iwState.weight -= videoPlayParamConfig.weightStep;
+    const bounds = getIwBounds();
+    iwState.weight -= bounds.step;
     syncIwWeightUI();
   });
 }
 if (iwIncreaseBtn) {
   iwIncreaseBtn.addEventListener("click", () => {
-    iwState.weight += videoPlayParamConfig.weightStep;
+    const bounds = getIwBounds();
+    iwState.weight += bounds.step;
     syncIwWeightUI();
   });
 }
@@ -1962,10 +2404,14 @@ if (pilatesBackBtn) {
   });
 }
 
+let pilatesDashboardWired = false;
+
 function initPilatesDashboard() {
   const root = document.getElementById("pilatesView");
   if (!root || !root.classList.contains("is-active")) return;
-  const springs = Array.from(root.querySelectorAll(".spring"));
+  if (pilatesDashboardWired) return;
+  pilatesDashboardWired = true;
+
   const dashboard = root.querySelector("#pilatesDashboard");
   const durationValue = document.getElementById("pilatesDurationValue");
   const resistanceValue = document.getElementById("pilatesResistanceValue");
@@ -1975,13 +2421,37 @@ function initPilatesDashboard() {
   const startBtn = document.getElementById("pilatesStartBtn");
   const endBtn = document.getElementById("pilatesEndBtn");
   const flipBtn = document.getElementById("pilatesFlipBtn");
+  const resistanceMinus = document.getElementById("pilatesResistanceMinus");
+  const resistancePlus = document.getElementById("pilatesResistancePlus");
+  const resistanceDisplayVal = document.getElementById("pilatesResistanceDisplayVal");
+  const dialProgress = document.getElementById("pilatesDialProgress");
+  const springCoil = document.getElementById("pilatesSpringCoil");
+  const springBarValue = document.getElementById("pilatesSpringBarValue");
+  const modeBtns = Array.from(root.querySelectorAll(".mode-btn"));
+  const springSliderBlock = document.getElementById("pilatesSpringSliderBlock");
+  const springSlider = document.getElementById("pilatesSpringSlider");
+  const springSliderLabel = document.getElementById("pilatesSpringSliderLabel");
+  const isokineticSliderBlock = document.getElementById("pilatesIsokineticSliderBlock");
+  const isokineticSlider = document.getElementById("pilatesIsokineticSlider");
+  const isokineticSliderLabel = document.getElementById("pilatesIsokineticSliderLabel");
+  const isokineticSliderHint = document.getElementById("pilatesIsokineticSliderHint");
   const canvas = document.getElementById("romPowerCanvas");
   if (!canvas) return;
   const ctx = canvas.getContext("2d");
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  const bounds = {
+    min: PILATES_RESISTANCE.min,
+    max: PILATES_RESISTANCE.max,
+    step: PILATES_RESISTANCE.step,
+    default: PILATES_RESISTANCE.default
+  };
+
+  let trainingMode = "standard";
+  let resistanceKg = bounds.default;
+  let springLevel = 1;
+  let isokineticLevel = 1;
   let elapsedSeconds = 0;
-  let outputEnergy = 0;
   let calories = 0;
   let isRunning = false;
   let timerId = null;
@@ -1999,17 +2469,66 @@ function initPilatesDashboard() {
     return `${min}:${sec}`;
   }
 
-  function getResistanceSum() {
-    return springs
-      .filter((item) => item.classList.contains("is-active"))
-      .reduce((sum, item) => sum + Number(item.dataset.kg), 0);
+  function renderResistance() {
+    if (resistanceValue) resistanceValue.textContent = String(resistanceKg);
+    if (currentResistance) currentResistance.textContent = `${resistanceKg}kg`;
+    if (resistanceDisplayVal) resistanceDisplayVal.textContent = String(resistanceKg);
+    if (dialProgress) {
+      const span = bounds.max - bounds.min;
+      const percent = span > 0 ? (resistanceKg - bounds.min) / span : 0;
+      const dasharray = 213.63;
+      dialProgress.style.strokeDashoffset = dasharray - (dasharray * Math.max(0, Math.min(1, percent)));
+    }
+    updateSpringBarVisual(springCoil, springBarValue, resistanceKg, bounds.min, bounds.max);
+    return resistanceKg;
   }
 
-  function renderResistance() {
-    const total = getResistanceSum();
-    if (resistanceValue) resistanceValue.textContent = total.toFixed(1);
-    if (currentResistance) currentResistance.textContent = `${total.toFixed(1)}kg`;
-    return total;
+  function setTrainingMode(mode) {
+    trainingMode = mode;
+    modeBtns.forEach((btn) => btn.classList.toggle("active", btn.dataset.mode === mode));
+    if (springSliderBlock) springSliderBlock.classList.toggle("visible", mode === "spring");
+    if (isokineticSliderBlock) isokineticSliderBlock.classList.toggle("visible", mode === "isokinetic");
+  }
+
+  function getPilatesIsokineticHint(level) {
+    if (level >= 1 && level <= 5) return "慢速/稳定——限速强，适合锁定位的力量训练。";
+    if (level >= 6 && level <= 15) return "标准/增肌——模拟常规健身房节奏。";
+    return "爆发/运动——允许极快启动；限速最小。";
+  }
+
+  modeBtns.forEach((btn) => {
+    btn.addEventListener("click", () => setTrainingMode(btn.dataset.mode || "standard"));
+  });
+
+  if (resistanceMinus) {
+    resistanceMinus.addEventListener("click", () => {
+      if (resistanceKg > bounds.min) {
+        resistanceKg = Math.max(bounds.min, resistanceKg - bounds.step);
+        renderResistance();
+      }
+    });
+  }
+  if (resistancePlus) {
+    resistancePlus.addEventListener("click", () => {
+      if (resistanceKg < bounds.max) {
+        resistanceKg = Math.min(bounds.max, resistanceKg + bounds.step);
+        renderResistance();
+      }
+    });
+  }
+
+  if (springSlider) {
+    springSlider.addEventListener("input", () => {
+      springLevel = parseInt(springSlider.value, 10);
+      if (springSliderLabel) springSliderLabel.textContent = `档位 ${springLevel}`;
+    });
+  }
+  if (isokineticSlider) {
+    isokineticSlider.addEventListener("input", () => {
+      isokineticLevel = parseInt(isokineticSlider.value, 10);
+      if (isokineticSliderLabel) isokineticSliderLabel.textContent = `档位 ${isokineticLevel}`;
+      if (isokineticSliderHint) isokineticSliderHint.textContent = getPilatesIsokineticHint(isokineticLevel);
+    });
   }
 
   function valueNoise(x) {
@@ -2135,13 +2654,12 @@ function initPilatesDashboard() {
     if (!isRunning) return;
     elapsedSeconds += 1;
     const resistance = renderResistance();
-    resistanceTimeline.push(Math.round(resistance * 10) / 10);
+    resistanceTimeline.push(resistance);
     if (resistanceTimeline.length > 7200) resistanceTimeline.shift();
     targetPowerPercent = Math.max(20, Math.min(100, 20 + resistance * 1.15 + Math.random() * 26));
     const energyStep = resistance * (0.42 + targetPowerPercent / 188);
-    outputEnergy += energyStep;
     calories += energyStep * 0.24;
-    if (energyValue) energyValue.textContent = outputEnergy.toFixed(0);
+    if (energyValue) energyValue.textContent = energyKjFromCalories(calories).toFixed(0);
     if (calorieValue) calorieValue.textContent = calories.toFixed(0);
     if (durationValue) durationValue.textContent = formatDuration(elapsedSeconds);
   }
@@ -2168,20 +2686,21 @@ function initPilatesDashboard() {
     setIdleWave();
     const timeline = resistanceTimeline.length
       ? resistanceTimeline.slice()
-      : buildSyntheticTimeline(Math.max(12, elapsedSeconds), renderResistance(), "spring");
+      : buildSyntheticTimeline(Math.max(12, elapsedSeconds), renderResistance(), trainingMode);
     const capacityKg = sumResistanceTimeline(timeline);
+    const modeLabel = iwModeMapReport[trainingMode] || "标准";
     const pilatesReportPayload = {
       reportFromScene: "pilates",
       userName: reportUser.name,
       userAvatar: reportUser.avatar,
-      sceneLabel: "Free Training",
+      sceneLabel: "自由训练",
       durationSeconds: Math.max(1, elapsedSeconds || timeline.length),
       capacityKg,
-      energyKj: outputEnergy,
+      energyKj: energyKjFromCalories(calories),
       caloriesKcal: calories,
-      modeLabel: "Spring",
-      equipmentLabel: "No Barbell",
-      maxResistance: 120,
+      modeLabel,
+      equipmentLabel: "无杠铃",
+      maxResistance: bounds.max,
       timeline
     };
     if (PLAN_B_PAGE === "pilates") {
@@ -2197,12 +2716,6 @@ function initPilatesDashboard() {
     showTrainingReport(pilatesReportPayload);
   }
 
-  springs.forEach((spring) => {
-    spring.addEventListener("click", () => {
-      spring.classList.toggle("is-active");
-      renderResistance();
-    });
-  });
   if (startBtn) startBtn.addEventListener("click", startTraining);
   if (endBtn) {
     endBtn.addEventListener("click", () => {
@@ -2218,6 +2731,8 @@ function initPilatesDashboard() {
     });
   }
 
+  setTrainingMode("standard");
+  if (isokineticSliderHint) isokineticSliderHint.textContent = getPilatesIsokineticHint(1);
   renderResistance();
   if (durationValue) durationValue.textContent = formatDuration(elapsedSeconds);
   setIdleWave();
@@ -2285,7 +2800,7 @@ function initPlanDetailPage() {
   const sessionsPerWeekCount = parseLeadingInt(overview.sessionsPerWeek, 3);
 
   function buildFallbackSchedule() {
-    const safePool = movePool.length ? movePool : [{ name: "Base Move", equipment: "Bodyweight", difficulty: "Beginner" }];
+    const safePool = movePool.length ? movePool : [{ name: "基础动作", equipment: "Bodyweight", difficulty: "Beginner" }];
     const weeks = [];
     for (let w = 1; w <= cycleWeeksCount; w += 1) {
       const days = [];
@@ -2300,9 +2815,9 @@ function initPlanDetailPage() {
           const rest = 30 + ((seed + idx) % 4) * 10;
           const hasWeight = !/bodyweight/i.test(String(item.equipment || ""));
           return {
-            name: item.name || "Move",
+            name: item.name || "动作",
             sets,
-            repsOrDuration: `${reps} reps`,
+            repsOrDuration: `${reps} 次`,
             restSeconds: rest,
             weightKg: hasWeight ? 10 + ((seed + idx) % 8) * 2 : undefined
           };
@@ -2319,8 +2834,8 @@ function initPlanDetailPage() {
 
   const mergedPlan = {
     id: overview.id,
-    name: (pickedDetail && pickedDetail.name) || overview.name || "Plan Name",
-    intro: (pickedDetail && pickedDetail.intro) || overview.summary || "Plan description is coming soon.",
+    name: (pickedDetail && pickedDetail.name) || overview.name || "计划名称",
+    intro: (pickedDetail && pickedDetail.intro) || overview.summary || "计划介绍即将上线。",
     scene: (pickedDetail && pickedDetail.scene) || overview.scene || "Strength Training",
     cycleWeeks: (pickedDetail && pickedDetail.cycleWeeks) || overview.cycleWeeks || `${cycleWeeksCount} Weeks`,
     sessionsPerWeek: (pickedDetail && pickedDetail.sessionsPerWeek) || overview.sessionsPerWeek || `${sessionsPerWeekCount} Sessions`,
@@ -2336,7 +2851,7 @@ function initPlanDetailPage() {
   sessionsEl.textContent = mergedPlan.sessionsPerWeek;
   difficultyEl.textContent = mergedPlan.difficulty;
   coverEl.src = mergedPlan.cover || assetPaths[0] || "";
-  coverEl.alt = `${mergedPlan.name} cover image`;
+  coverEl.alt = `${mergedPlan.name} 封面图`;
 
   const slugifyMetaValue = (value) => String(value || "")
     .trim()
@@ -2357,7 +2872,7 @@ function initPlanDetailPage() {
   if (planTypeChipEl && planTypeEl) {
     planTypeChipEl.hidden = !showPersonalizedType;
     if (showPersonalizedType) {
-      planTypeEl.textContent = "Personalized";
+      planTypeEl.textContent = "个性化";
       syncMetaChipClass(planTypeChipEl, "plan-type", "Personalized");
     }
   }
@@ -2576,20 +3091,20 @@ function initPlanDetailPage() {
     const top = document.createElement("div");
     top.className = "plan-detail-move-top";
     const name = document.createElement("h4");
-    name.textContent = move.name || "Move";
+    name.textContent = move.name || "动作";
     top.appendChild(name);
     card.appendChild(top);
     const tags = document.createElement("div");
     tags.className = "plan-detail-move-tags";
     const setsChip = document.createElement("span");
     setsChip.className = "plan-detail-tag";
-    setsChip.textContent = `${Number(move.sets || 3)} sets`;
+    setsChip.textContent = `${Number(move.sets || 3)} 组`;
     const repsChip = document.createElement("span");
     repsChip.className = "plan-detail-tag";
-    repsChip.textContent = move.repsOrDuration || "10 reps";
+    repsChip.textContent = move.repsOrDuration || "10 次";
     const restChip = document.createElement("span");
     restChip.className = "plan-detail-tag";
-    restChip.textContent = `${Number(move.restSeconds || 30)}s rest`;
+    restChip.textContent = `休息 ${Number(move.restSeconds || 30)}s`;
     tags.append(setsChip, repsChip, restChip);
     if (Number.isFinite(Number(move.weightKg))) {
       const weightChip = document.createElement("span");
@@ -2606,7 +3121,7 @@ function initPlanDetailPage() {
     const dayNode = Array.isArray(weekNode.days) ? weekNode.days[state.dayIndex] : null;
     const weekLabel = String(weekNode.week || state.weekIndex + 1);
     const dayLabel = String((dayNode && dayNode.day) || state.dayIndex + 1).padStart(2, "0");
-    hintEl.textContent = `Week ${weekLabel} · Day ${dayLabel}`;
+    hintEl.textContent = `第 ${weekLabel} 周 · 第 ${dayLabel} 天`;
     movesListEl.innerHTML = "";
     if (movesTitleEl) movesTitleEl.hidden = false;
 
@@ -2648,10 +3163,10 @@ function initPlanDetailPage() {
       const title = document.createElement("h4");
       title.className = "plan-detail-group-title";
       const sourceDate = baseDateMap[dayKey] || resolveDateKey(dayKey) || currentDateKey;
-      title.textContent = `${sourceDate} W${meta.weekValue} Day${meta.dayValue}`;
+      title.textContent = `${sourceDate} 第${meta.weekValue}周 第${meta.dayValue}天`;
       const count = document.createElement("p");
       count.className = "plan-detail-group-count";
-      count.textContent = `${moves.length} ${moves.length === 1 ? "move" : "moves"}`;
+      count.textContent = `${moves.length} 个动作`;
       groupHead.append(title, count);
       group.appendChild(groupHead);
 
@@ -2688,7 +3203,7 @@ function initPlanDetailPage() {
       const dayStatus = dayStatusMap[dayKey];
       const isFinished = dayStatus === "finished";
       const isSkipped = dayStatus === "skipped";
-      btn.textContent = isFinished ? "Finished" : isSkipped ? "Skip" : `Day ${String(dayValue).padStart(2, "0")}`;
+      btn.textContent = isFinished ? "已完成" : isSkipped ? "跳过" : `第 ${String(dayValue).padStart(2, "0")} 天`;
       btn.classList.toggle("is-finished", isFinished);
       btn.classList.toggle("is-skipped", isSkipped);
       btn.setAttribute("role", "tab");
@@ -2710,7 +3225,7 @@ function initPlanDetailPage() {
       btn.type = "button";
       btn.className = "plan-detail-tab-btn";
       if (idx === state.weekIndex) btn.classList.add("is-active");
-      btn.textContent = `W${weekItem.week || idx + 1}`;
+      btn.textContent = `第${weekItem.week || idx + 1}周`;
       btn.setAttribute("role", "tab");
       btn.setAttribute("aria-selected", String(idx === state.weekIndex));
       btn.addEventListener("click", () => {
@@ -2819,7 +3334,7 @@ function initPlanDetailPage() {
     const syncPlanActionButtons = () => {
       const joined = isJoinedPlan();
       primaryBtn.disabled = false;
-      primaryBtn.textContent = joined ? "Start Training" : "Join Plan";
+      primaryBtn.textContent = joined ? "开始训练" : "加入计划";
       primaryBtn.classList.toggle("is-joined", false);
       primaryBtn.setAttribute("aria-pressed", String(joined));
       if (moreBtn) moreBtn.hidden = !joined;
@@ -2904,7 +3419,7 @@ function initPlanDetailPage() {
     const renderRescheduleCalendar = () => {
       if (!rescheduleGridEl || !rescheduleWeekdaysEl || !rescheduleConfirmBtn) return;
       const weekdaySet = resolveTrainingWeekdaySet();
-      const weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      const weekdayLabels = ["日", "一", "二", "三", "四", "五", "六"];
       rescheduleWeekdaysEl.innerHTML = "";
       weekdayLabels.forEach((label) => {
         const node = document.createElement("span");
@@ -2972,14 +3487,14 @@ function initPlanDetailPage() {
       dayActionsEl.hidden = false;
       const isSkipped = statusMap[dayKey] === "skipped";
       daySkipBtn.disabled = isSkipped;
-      daySkipBtn.textContent = isSkipped ? "Skipped" : "Skip";
+      daySkipBtn.textContent = isSkipped ? "已跳过" : "跳过";
       dayRescheduleBtn.disabled = false;
       const rescheduleMap = readPlanDayRescheduleMap(mergedPlan.id);
       if (rescheduleMap[dayKey]) {
         const date = new Date(rescheduleMap[dayKey]);
         if (!Number.isNaN(date.getTime())) {
           dayActionHintEl.hidden = false;
-          dayActionHintEl.textContent = `Rescheduled to ${date.getMonth() + 1}/${date.getDate()}`;
+          dayActionHintEl.textContent = `已改期至 ${date.getMonth() + 1}/${date.getDate()}`;
         } else {
           dayActionHintEl.hidden = true;
           dayActionHintEl.textContent = "";
@@ -3058,7 +3573,7 @@ function initPlanDetailPage() {
         const d = new Date(start);
         d.setDate(start.getDate() + i);
         const dateKey = formatLocalDateKey(d);
-        const weekdayText = d.toLocaleDateString("en-US", { weekday: "short" });
+        const weekdayText = d.toLocaleDateString("zh-CN", { weekday: "short" });
         const month = d.getMonth() + 1;
         const dayNum = d.getDate();
 
@@ -3128,7 +3643,7 @@ function initPlanDetailPage() {
         const { dayKey } = getCurrentDayMeta();
         const statusMap = readPlanDayStatusMap(mergedPlan.id);
         if (statusMap[dayKey] === "skipped") return;
-        openPlanDetailConfirm("Skip this training day? This will not affect the schedule of other training days.", () => {
+        openPlanDetailConfirm("跳过这一训练日？这不会影响其他训练日的安排。", () => {
           statusMap[dayKey] = "skipped";
           writePlanDayStatusMap(mergedPlan.id, statusMap);
           renderDayTabs();
@@ -3246,7 +3761,7 @@ function initPlanDetailPage() {
     if (quitBtn) {
       quitBtn.addEventListener("click", () => {
         closeMoreSheet();
-        openPlanDetailConfirm("Are you sure you want to quit this plan? You will need to join again before training.", () => {
+        openPlanDetailConfirm("确定要退出该计划吗？再次训练前需要重新加入。", () => {
           const ids = readJoinedIds().filter((id) => id !== mergedPlan.id);
           writeJoinedIds(ids);
           clearPlanProgress(mergedPlan.id);
@@ -3276,7 +3791,7 @@ function initPlanDetailPage() {
     if (resetBtn) {
       resetBtn.addEventListener("click", () => {
         closeMoreSheet();
-        openPlanDetailConfirm("Are you sure you want to reset this plan? Your progress will be recalculated.", () => {
+        openPlanDetailConfirm("确定要重置该计划吗？你的进度将被重新计算。", () => {
           writePlanDayStatusMap(mergedPlan.id, {});
           state.weekIndex = 0;
           state.dayIndex = 0;
@@ -3339,6 +3854,8 @@ function initImmersivePage() {
     /* ignore */
   }
   syncActionDetail();
+  applyIwPilatesContext();
+  if (iwModeGroup && iwSummaryMode && iwModeChip) setIwMode(videoPlayParamConfig.defaultMode);
   openImmersiveWorkout();
 }
 initImmersivePage();
@@ -3375,9 +3892,9 @@ function initPlanTrainingPage() {
     const sets = Math.max(1, Number(move && move.sets) || 3);
     const qualityTemplate = move && move.aiQualityTemplate && typeof move.aiQualityTemplate === "object"
       ? move.aiQualityTemplate
-      : { errorTypes: ["Knee Valgus", "Short Range", "Core Instability"] };
+      : { errorTypes: ["膝盖内扣", "幅度不足", "核心不稳"] };
     return {
-      name: (move && move.name) || `Move ${idx + 1}`,
+      name: (move && move.name) || `动作 ${idx + 1}`,
       targetReps,
       sets,
       restSeconds: Math.max(0, Number(move && move.restSeconds) || 30),
@@ -3392,10 +3909,10 @@ function initPlanTrainingPage() {
     const firstDay = firstWeek && Array.isArray(firstWeek.days) ? firstWeek.days[0] : null;
     const moves = Array.isArray(firstDay && firstDay.moves) ? firstDay.moves : [];
     return {
-      planName: (firstPlan && firstPlan.name) || "Plan Training",
+      planName: (firstPlan && firstPlan.name) || "计划训练",
       week: Number((firstWeek && firstWeek.week) || 1),
       day: Number((firstDay && firstDay.day) || 1),
-      moves: moves.length ? moves : [{ name: "Kettlebell Squat", sets: 3, repsOrDuration: "10 reps", restSeconds: 30 }]
+      moves: moves.length ? moves : [{ name: "壶铃深蹲", sets: 3, repsOrDuration: "10 次", restSeconds: 30 }]
     };
   };
   const readSessionPayload = () => {
@@ -3420,7 +3937,7 @@ function initPlanTrainingPage() {
     const query = params.toString();
     window.location.href = query ? `plan-b-plan-detail.html?${query}` : "plan-b-plan-detail.html";
   };
-  ptState.sessionName = payload.planName || "Plan Training";
+  ptState.sessionName = payload.planName || "计划训练";
   ptState.sessionMoves = payload.moves.map(normalizeMove);
   ptState.moveProgress = ptState.sessionMoves.map(() => 0);
   ptState.moveIndex = 0;
@@ -3468,12 +3985,12 @@ function initPlanTrainingPage() {
   const setControlState = (started) => {
     ptRunningControls.hidden = false;
     ptEndTrainingBtn.disabled = false;
-    ptEndTrainingBtn.textContent = started ? "End Training" : "Back";
+    ptEndTrainingBtn.textContent = started ? "结束训练" : "返回";
     if (!started) {
-      ptPauseTrainingBtn.textContent = "Start Training";
+      ptPauseTrainingBtn.textContent = "开始训练";
       return;
     }
-    ptPauseTrainingBtn.textContent = ptState.paused ? "Resume" : "Pause";
+    ptPauseTrainingBtn.textContent = ptState.paused ? "继续" : "暂停";
   };
   const updateTopTime = () => {
     const total = Math.max(1, ptState.sessionTotalSeconds);
@@ -3499,8 +4016,8 @@ function initPlanTrainingPage() {
     const nextMove = ptState.sessionMoves[ptState.moveIndex + 1] || null;
     iwActionTitle.textContent = `${ptState.sessionName} · ${move.name}`;
     ptCurrentMoveName.textContent = move.name;
-    ptCurrentMoveMeta.textContent = `${ptState.repsCompleted} / ${move.targetReps} reps · Set 1 / ${move.sets}`;
-    ptNextMovePreview.textContent = nextMove ? `Next: ${nextMove.name}` : "Next: Last move";
+    ptCurrentMoveMeta.textContent = `${ptState.repsCompleted} / ${move.targetReps} 次 · 第 1 组 / 共 ${move.sets} 组`;
+    ptNextMovePreview.textContent = nextMove ? `下一个：${nextMove.name}` : "下一个：最后一个动作";
     updateTopTime();
     renderProgressSegments();
   };
@@ -3519,8 +4036,13 @@ function initPlanTrainingPage() {
         : buildSyntheticTimeline(Math.max(18, measuredDuration || ptState.sessionElapsedSeconds || 30), iwState.weight, iwState.mode);
       const durationSeconds = Math.max(1, measuredDuration || ptState.sessionElapsedSeconds || timeline.length);
       const capacityKg = sumResistanceTimeline(timeline);
-      const energyKj = capacityKg * 0.38;
-      const caloriesKcal = energyKj * 0.24;
+      const reportPayloadDraft = {
+        reportFromScene: "plan-training",
+        durationSeconds,
+        capacityKg
+      };
+      const caloriesKcal = resolveSessionCaloriesKcal(reportPayloadDraft, durationSeconds, capacityKg);
+      const energyKj = energyKjFromCalories(caloriesKcal);
       const weekNumber = Math.max(1, Number(payload && payload.week) || 1);
       const dayNumber = Math.max(1, Number(payload && payload.day) || 1);
       const moveResultMap = new Map(
@@ -3557,22 +4079,22 @@ function initPlanTrainingPage() {
         }, { better: 0, good: 0, perfect: 0 })
         : null;
       const aiSummary = aiPerfectRates.length
-        ? `AI reviewed ${aiPerfectRates.length} moves. Average form score ${finalAiScore}.`
+        ? `AI 已分析 ${aiPerfectRates.length} 个动作。平均动作评分 ${finalAiScore}。`
         : "";
       const reportPayload = {
         reportFromScene: "plan-training",
         userName: reportUser.name,
         userAvatar: reportUser.avatar,
-        sceneLabel: "Plan Training",
+        sceneLabel: "计划训练",
         planName: payload.planName || ptState.sessionName,
-        planDayName: `Week ${weekNumber}, Day ${dayNumber}`,
+        planDayName: `第 ${weekNumber} 周，第 ${dayNumber} 天`,
         planMovesData,
         durationSeconds,
         capacityKg,
         energyKj,
         caloriesKcal,
-        modeLabel: iwModeMapReport[iwState.mode] || "Standard",
-        equipmentLabel: "Plan Flow",
+        modeLabel: iwModeMapReport[iwState.mode] || "标准",
+        equipmentLabel: "计划流程",
         maxResistance: 120,
         timeline,
         finalAiScore,
@@ -3595,8 +4117,8 @@ function initPlanTrainingPage() {
     iwVideo.pause();
     const nextMove = ptState.sessionMoves[ptState.moveIndex + 1] || null;
     ptState.restRemaining = 30;
-    ptRestCountdown.textContent = `${ptState.restRemaining}s`;
-    ptRestNextMove.textContent = nextMove ? `Up next: ${nextMove.name}` : "Next move is preparing";
+    ptRestCountdown.textContent = `${ptState.restRemaining}秒`;
+    ptRestNextMove.textContent = nextMove ? `即将进行：${nextMove.name}` : "下一个动作准备中";
     ptRestOverlay.classList.add("is-visible");
     ptRestOverlay.setAttribute("aria-hidden", "false");
     clearRestTimer();
@@ -3605,7 +4127,7 @@ function initPlanTrainingPage() {
       ptState.sessionElapsedSeconds += 1;
       ptState.restRemaining -= 1;
       updateTopTime();
-      ptRestCountdown.textContent = `${Math.max(0, ptState.restRemaining)}s`;
+      ptRestCountdown.textContent = `${Math.max(0, ptState.restRemaining)}秒`;
       if (ptState.restRemaining <= 0) {
         clearRestTimer();
         ptState.inRest = false;

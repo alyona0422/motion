@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Plan B · Register</title>
+  <title>Plan B · 注册</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -16,56 +16,56 @@
   <link rel="stylesheet" href="css/plan-b-light-medium.css" />
 </head>
 <body class="cream-medium" data-plan-b-page="register">
-  <main class="device-shell" aria-label="Plan B register page">
+  <main class="device-shell" aria-label="Plan B 注册页">
     <div class="particle-layer" aria-hidden="true"></div>
     <div class="vignette" aria-hidden="true"></div>
 
-    <section class="auth-screen" aria-label="Register">
-      <div class="auth-topbar">
-        <button class="auth-back-btn" data-auth-back="plan-b-login.html" type="button" aria-label="Back">←</button>
-      </div>
+    <section class="auth-screen" aria-label="注册">
 
       <section class="auth-card">
-        <h1 class="auth-title">Create Account</h1>
-        <p class="auth-subtitle">Set up your Plan B account in two steps.</p>
+        <h1 class="auth-title">创建账号</h1>
+        <p class="auth-subtitle">两步即可创建你的 Plan B 账号。</p>
 
         <div class="auth-form">
           <div class="auth-field">
-            <label for="registerUsername">Username</label>
-            <input class="auth-input" id="registerUsername" type="text" placeholder="Enter username" />
+            <label for="registerUsername">用户名</label>
+            <input class="auth-input" id="registerUsername" type="text" placeholder="请输入用户名" />
           </div>
 
           <div class="auth-field">
-            <label for="registerEmail">Email</label>
+            <label for="registerEmail">邮箱</label>
             <input class="auth-input" id="registerEmail" type="email" placeholder="name@email.com" />
           </div>
 
           <div class="auth-field">
-            <label for="registerCode">Verification Code</label>
+            <label for="registerCode">验证码</label>
             <div class="auth-input-row">
-              <input class="auth-input" id="registerCode" type="text" placeholder="6-digit code" />
-              <button class="auth-secondary-btn" type="button">Send Code</button>
+              <input class="auth-input" id="registerCode" type="text" placeholder="6 位验证码" />
+              <button class="auth-secondary-btn" type="button">发送验证码</button>
             </div>
           </div>
 
           <div class="auth-field">
-            <label for="registerPassword">Password</label>
-            <input class="auth-input" id="registerPassword" type="password" placeholder="Set your password" />
+            <label for="registerPassword">密码</label>
+            <input class="auth-input" id="registerPassword" type="password" placeholder="请设置密码" />
           </div>
 
           <div class="auth-field">
-            <label for="registerConfirmPassword">Confirm Password</label>
-            <input class="auth-input" id="registerConfirmPassword" type="password" placeholder="Re-enter your password" />
+            <label for="registerConfirmPassword">确认密码</label>
+            <input class="auth-input" id="registerConfirmPassword" type="password" placeholder="请再次输入密码" />
           </div>
 
           <label class="auth-check-row" for="registerPolicyAgree">
             <input id="registerPolicyAgree" type="checkbox" />
-            <span>I have read and agree to the <a href="#" aria-label="User Agreement">User Agreement</a> and <a href="#" aria-label="Privacy Policy">Privacy Policy</a>.</span>
+            <span>我已阅读并同意<a href="#" aria-label="用户协议">用户协议</a>与<a href="#" aria-label="隐私政策">隐私政策</a>。</span>
           </label>
 
-          <button class="auth-primary-btn" id="registerNextBtn" type="button">Next</button>
+          <button class="auth-primary-btn" id="registerNextBtn" type="button">下一步</button>
         </div>
       </section>
+      <div class="action-dock" aria-label="页面操作">
+        <button class="auth-back-btn" data-auth-back="plan-b-login.html" type="button" aria-label="返回">←</button>
+      </div>
     </section>
 
     <div class="auth-toast is-hidden" id="authToast" aria-live="polite"></div>

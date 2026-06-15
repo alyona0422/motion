@@ -27,14 +27,14 @@
   };
 
   const MODE_LABELS = {
-    Strength: "力量",
-    Pilates: "普拉提",
-    Cardio: "有氧"
+    Strength: "Strength",
+    Pilates: "Pilates",
+    Cardio: "Cardio"
   };
 
   const SOURCE_LABELS = {
-    "Plan Follow": "计划跟练",
-    "Free Training": "自由训练"
+    "Plan Follow": "Plan Follow",
+    "Free Training": "Free Training"
   };
 
   function getModeLabel(mode) {
@@ -46,13 +46,13 @@
   }
 
   function getFilterTypeLabel(type) {
-    if (type === "mode") return "模式";
-    if (type === "source") return "来源";
+    if (type === "mode") return "Mode";
+    if (type === "source") return "Source";
     return type;
   }
 
   const WEEK_DATA = {
-      labels: ["周一", "周二", "周三", "周四", "周五", "周六", "周日"],
+      labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
       /* Underlying stats: limited strength samples (overlays only in Week; charts use demo series). */
       volumeByType: {
         Strength: [0, 0, 0, 0, 0, 0, 0],
@@ -80,17 +80,17 @@
         hamstrings: 54
       },
       records: [
-        { title: "力量：全身训练", time: "今天 08:30", duration: "45m", metric: "8,200 kg", mode: "Strength", source: "Plan Follow" },
-        { title: "普拉提：核心流", time: "昨天 19:20", duration: "32m", metric: "1,120 kg", mode: "Pilates", source: "Free Training" },
-        { title: "力量：上肢强化", time: "周五 07:40", duration: "56m", metric: "10,500 kg", mode: "Strength", source: "Plan Follow" },
-        { title: "有氧：划船HIIT", time: "周四 18:05", duration: "28m", metric: "420 kcal", mode: "Cardio", source: "Free Training" },
-        { title: "力量：下肢链路", time: "周二 08:00", duration: "42m", metric: "7,600 kg", mode: "Strength", source: "Plan Follow" },
-        { title: "普拉提：脊柱重置", time: "周一 20:12", duration: "35m", metric: "980 kg", mode: "Pilates", source: "Plan Follow" }
+        { title: "Strength: Full-body workout", time: "Today 08:30", duration: "45m", metric: "8,200 kg", mode: "Strength", source: "Plan Follow" },
+        { title: "Pilates: Core flow", time: "Yesterday 19:20", duration: "32m", metric: "1,120 kg", mode: "Pilates", source: "Free Training" },
+        { title: "Strength: Upper-body strength", time: "Fri 07:40", duration: "56m", metric: "10,500 kg", mode: "Strength", source: "Plan Follow" },
+        { title: "Cardio: Rowing HIIT", time: "Thu 18:05", duration: "28m", metric: "420 kcal", mode: "Cardio", source: "Free Training" },
+        { title: "Strength: Lower-body chain", time: "Tue 08:00", duration: "42m", metric: "7,600 kg", mode: "Strength", source: "Plan Follow" },
+        { title: "Pilates: Spine reset", time: "Mon 20:12", duration: "35m", metric: "980 kg", mode: "Pilates", source: "Plan Follow" }
       ]
     };
 
   const MONTH_DATA = {
-      labels: ["第1周", "第2周", "第3周", "第4周"],
+      labels: ["W1", "W2", "W3", "W4"],
       volumeByType: {
         Strength: [0, 0, 0, 0],
         Pilates: [0, 0, 0, 0],
@@ -117,21 +117,21 @@
         hamstrings: 65
       },
       records: [
-        { title: "有氧：耐力骑行", time: "4月02日 07:55", duration: "35m", metric: "530 kcal", mode: "Cardio", source: "Free Training" },
-        { title: "有氧：爬坡冲刺", time: "4月05日 18:40", duration: "25m", metric: "410 kcal", mode: "Cardio", source: "Free Training" },
-        { title: "有氧：节奏划船", time: "4月10日 07:28", duration: "31m", metric: "460 kcal", mode: "Cardio", source: "Free Training" },
-        { title: "有氧：骑行构建", time: "4月13日 19:10", duration: "38m", metric: "590 kcal", mode: "Cardio", source: "Plan Follow" },
-        { title: "有氧：恢复跑", time: "4月16日 06:58", duration: "27m", metric: "350 kcal", mode: "Cardio", source: "Free Training" }
+        { title: "Cardio: Endurance ride", time: "Apr 2 07:55", duration: "35m", metric: "530 kcal", mode: "Cardio", source: "Free Training" },
+        { title: "Cardio: Hill sprints", time: "Apr 5 18:40", duration: "25m", metric: "410 kcal", mode: "Cardio", source: "Free Training" },
+        { title: "Cardio: Tempo rowing", time: "Apr 10 07:28", duration: "31m", metric: "460 kcal", mode: "Cardio", source: "Free Training" },
+        { title: "Cardio: Ride builder", time: "Apr 13 19:10", duration: "38m", metric: "590 kcal", mode: "Cardio", source: "Plan Follow" },
+        { title: "Cardio: Recovery run", time: "Apr 16 06:58", duration: "27m", metric: "350 kcal", mode: "Cardio", source: "Free Training" }
       ]
     };
 
   const LEGACY_YEAR_RECORDS = [
-    { title: "力量：渐进推举", time: "3月20日 08:12", duration: "53m", metric: "9,850 kg", mode: "Strength", source: "Plan Follow" },
-    { title: "普拉提：平衡控制", time: "3月18日 19:03", duration: "33m", metric: "1,230 kg", mode: "Pilates", source: "Plan Follow" },
-    { title: "有氧：二区骑行", time: "3月15日 07:35", duration: "42m", metric: "620 kcal", mode: "Cardio", source: "Free Training" },
-    { title: "力量：拉力能力", time: "3月10日 08:24", duration: "49m", metric: "8,900 kg", mode: "Strength", source: "Free Training" },
-    { title: "力量：腿部爆发", time: "3月07日 07:50", duration: "58m", metric: "10,980 kg", mode: "Strength", source: "Plan Follow" },
-    { title: "普拉提：灵活性重置", time: "3月02日 20:02", duration: "37m", metric: "1,420 kg", mode: "Pilates", source: "Free Training" }
+    { title: "Strength: Progressive press", time: "Mar 20 08:12", duration: "53m", metric: "9,850 kg", mode: "Strength", source: "Plan Follow" },
+    { title: "Pilates: Balance control", time: "Mar 18 19:03", duration: "33m", metric: "1,230 kg", mode: "Pilates", source: "Plan Follow" },
+    { title: "Cardio: Zone 2 ride", time: "Mar 15 07:35", duration: "42m", metric: "620 kcal", mode: "Cardio", source: "Free Training" },
+    { title: "Strength: Pulling power", time: "Mar 10 08:24", duration: "49m", metric: "8,900 kg", mode: "Strength", source: "Free Training" },
+    { title: "Strength: Leg explosiveness", time: "Mar 7 07:50", duration: "58m", metric: "10,980 kg", mode: "Strength", source: "Plan Follow" },
+    { title: "Pilates: Mobility reset", time: "Mar 2 20:02", duration: "37m", metric: "1,420 kg", mode: "Pilates", source: "Free Training" }
   ];
 
   function mergeUniqueRecords(recordGroups) {
@@ -172,7 +172,7 @@
     if (!window.echarts) {
       Object.values(chartEls).forEach((el) => {
         if (!el) return;
-        el.innerHTML = "<p style='padding:12px;color:#9fb0c6;font-size:12px;'>图表库加载失败。</p>";
+        el.innerHTML = "<p style='padding:12px;color:#9fb0c6;font-size:12px;'>Chart library failed to load.</p>";
       });
       return;
     }
@@ -346,11 +346,11 @@
         splitLine: { lineStyle: { color: "rgba(148,163,184,0.14)" } }
       },
       series: [
-        { name: "力量", type: "bar", stack: "volume", barMaxWidth: 22, itemStyle: { color: TYPE_COLORS.Strength, borderRadius: [4, 4, 0, 0] }, data: strengthSeries },
-        { name: "普拉提", type: "bar", stack: "volume", barMaxWidth: 22, itemStyle: { color: TYPE_COLORS.Pilates, borderRadius: [4, 4, 0, 0] }, data: pilatesSeries },
-        { name: "有氧", type: "bar", stack: "volume", barMaxWidth: 22, itemStyle: { color: TYPE_COLORS.Cardio, borderRadius: [4, 4, 0, 0] }, data: cardioSeries },
+        { name: "Strength", type: "bar", stack: "volume", barMaxWidth: 22, itemStyle: { color: TYPE_COLORS.Strength, borderRadius: [4, 4, 0, 0] }, data: strengthSeries },
+        { name: "Pilates", type: "bar", stack: "volume", barMaxWidth: 22, itemStyle: { color: TYPE_COLORS.Pilates, borderRadius: [4, 4, 0, 0] }, data: pilatesSeries },
+        { name: "Cardio", type: "bar", stack: "volume", barMaxWidth: 22, itemStyle: { color: TYPE_COLORS.Cardio, borderRadius: [4, 4, 0, 0] }, data: cardioSeries },
         {
-          name: "移动均值",
+          name: "Moving Avg",
           type: "line",
           smooth: true,
           symbolSize: 5,
@@ -383,7 +383,7 @@
         splitLine: { lineStyle: { color: "rgba(148,163,184,0.14)" } }
       },
       series: [{
-        name: "AI评分",
+        name: "AI Score",
         type: "line",
         smooth: true,
         connectNulls: false,
@@ -408,7 +408,7 @@
       }),
       title: {
         text: String(total),
-        subtext: "次训练",
+        subtext: "sessions",
         left: "center",
         top: "35%",
         textStyle: { color: "#f8fafc", fontSize: 18, fontWeight: 700 },
@@ -440,8 +440,8 @@
 
   function renderStructureCharts(data) {
     if (!charts.source || !charts.mode) return;
-    charts.source.setOption(buildRingOption(data.sourceSplit, "来源占比"));
-    charts.mode.setOption(buildRingOption(data.modeSplit, "模式占比"));
+    charts.source.setOption(buildRingOption(data.sourceSplit, "Source mix"));
+    charts.mode.setOption(buildRingOption(data.modeSplit, "Mode mix"));
   }
 
   function toSourceClass(source) {
@@ -510,7 +510,7 @@
     clearFilterBtn.hidden = !hasFilter;
     activeFilterHint.hidden = !hasFilter;
     if (hasFilter) {
-      activeFilterHint.textContent = "按" + getFilterTypeLabel(state.filter.type) + "筛选：" + (state.filter.type === "mode" ? getModeLabel(state.filter.value) : getSourceLabel(state.filter.value));
+      activeFilterHint.textContent = "Filtered by " + getFilterTypeLabel(state.filter.type) + ": " + (state.filter.type === "mode" ? getModeLabel(state.filter.value) : getSourceLabel(state.filter.value));
     }
   }
 

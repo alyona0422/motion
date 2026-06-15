@@ -10,6 +10,8 @@
   const historyEmpty = document.getElementById("historyEmpty");
   const volumeEmptyOverlay = document.getElementById("volumeEmptyOverlay");
   const qualityEmptyOverlay = document.getElementById("qualityEmptyOverlay");
+  const chartsView = document.getElementById("trChartsView");
+  const listView = document.getElementById("trListView");
 
   const chartEls = {
     volume: document.getElementById("volumeChart"),
@@ -24,9 +26,33 @@
     Cardio: "#ff974d"
   };
 
-  const PERIOD_DATA = {
-    week: {
-      labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+  const MODE_LABELS = {
+    Strength: "力量",
+    Pilates: "普拉提",
+    Cardio: "有氧"
+  };
+
+  const SOURCE_LABELS = {
+    "Plan Follow": "计划跟练",
+    "Free Training": "自由训练"
+  };
+
+  function getModeLabel(mode) {
+    return MODE_LABELS[mode] || mode;
+  }
+
+  function getSourceLabel(source) {
+    return SOURCE_LABELS[source] || source;
+  }
+
+  function getFilterTypeLabel(type) {
+    if (type === "mode") return "模式";
+    if (type === "source") return "来源";
+    return type;
+  }
+
+  const WEEK_DATA = {
+      labels: ["周一", "周二", "周三", "周四", "周五", "周六", "周日"],
       /* Underlying stats: limited strength samples (overlays only in Week; charts use demo series). */
       volumeByType: {
         Strength: [0, 0, 0, 0, 0, 0, 0],
@@ -54,16 +80,17 @@
         hamstrings: 54
       },
       records: [
-        { title: "Strength: Full Body", time: "Today 08:30", duration: "45m", metric: "8,200 kg", mode: "Strength", source: "Plan Follow" },
-        { title: "Pilates: Core Flow", time: "Yesterday 19:20", duration: "32m", metric: "1,120 kg", mode: "Pilates", source: "Free Training" },
-        { title: "Strength: Upper Focus", time: "Fri 07:40", duration: "56m", metric: "10,500 kg", mode: "Strength", source: "Plan Follow" },
-        { title: "Cardio: Rower HIIT", time: "Thu 18:05", duration: "28m", metric: "420 kcal", mode: "Cardio", source: "Free Training" },
-        { title: "Strength: Lower Chain", time: "Tue 08:00", duration: "42m", metric: "7,600 kg", mode: "Strength", source: "Plan Follow" },
-        { title: "Pilates: Spine Reset", time: "Mon 20:12", duration: "35m", metric: "980 kg", mode: "Pilates", source: "Plan Follow" }
+        { title: "力量：全身训练", time: "今天 08:30", duration: "45分钟", metric: "8,200 kg", mode: "Strength", source: "Plan Follow" },
+        { title: "普拉提：核心流动", time: "昨天 19:20", duration: "32分钟", metric: "1,120 kg", mode: "Pilates", source: "Free Training" },
+        { title: "力量：上肢专项", time: "周五 07:40", duration: "56分钟", metric: "10,500 kg", mode: "Strength", source: "Plan Follow" },
+        { title: "有氧：划船 HIIT", time: "周四 18:05", duration: "28分钟", metric: "420 kcal", mode: "Cardio", source: "Free Training" },
+        { title: "力量：下肢链条", time: "周二 08:00", duration: "42分钟", metric: "7,600 kg", mode: "Strength", source: "Plan Follow" },
+        { title: "普拉提：脊柱重置", time: "周一 20:12", duration: "35分钟", metric: "980 kg", mode: "Pilates", source: "Plan Follow" }
       ]
-    },
-    month: {
-      labels: ["W1", "W2", "W3", "W4"],
+    };
+
+  const MONTH_DATA = {
+      labels: ["第1周", "第2周", "第3周", "第4周"],
       volumeByType: {
         Strength: [0, 0, 0, 0],
         Pilates: [0, 0, 0, 0],
@@ -90,48 +117,42 @@
         hamstrings: 65
       },
       records: [
-        { title: "Cardio: Endurance Ride", time: "Apr 02 07:55", duration: "35m", metric: "530 kcal", mode: "Cardio", source: "Free Training" },
-        { title: "Cardio: Hill Sprint", time: "Apr 05 18:40", duration: "25m", metric: "410 kcal", mode: "Cardio", source: "Free Training" },
-        { title: "Cardio: Tempo Row", time: "Apr 10 07:28", duration: "31m", metric: "460 kcal", mode: "Cardio", source: "Free Training" },
-        { title: "Cardio: Bike Builder", time: "Apr 13 19:10", duration: "38m", metric: "590 kcal", mode: "Cardio", source: "Plan Follow" },
-        { title: "Cardio: Recovery Run", time: "Apr 16 06:58", duration: "27m", metric: "350 kcal", mode: "Cardio", source: "Free Training" }
+        { title: "有氧：耐力骑行", time: "4月2日 07:55", duration: "35分钟", metric: "530 kcal", mode: "Cardio", source: "Free Training" },
+        { title: "有氧：爬坡冲刺", time: "4月5日 18:40", duration: "25分钟", metric: "410 kcal", mode: "Cardio", source: "Free Training" },
+        { title: "有氧：节奏划船", time: "4月10日 07:28", duration: "31分钟", metric: "460 kcal", mode: "Cardio", source: "Free Training" },
+        { title: "有氧：单车构建", time: "4月13日 19:10", duration: "38分钟", metric: "590 kcal", mode: "Cardio", source: "Plan Follow" },
+        { title: "有氧：恢复跑", time: "4月16日 06:58", duration: "27分钟", metric: "350 kcal", mode: "Cardio", source: "Free Training" }
       ]
-    },
-    year: {
-      labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-      volumeByType: {
-        Strength: [18400, 22000, 25100, 23200, 26700, 27900],
-        Pilates: [4200, 5100, 4800, 6300, 5900, 7100],
-        Cardio: [6900, 7300, 8100, 7900, 8800, 9100]
-      },
-      qualityScore: [82, 84, 86, 88, 89, 90],
-      sourceSplit: [
-        { name: "Plan Follow", value: 43 },
-        { name: "Free Training", value: 21 }
-      ],
-      modeSplit: [
-        { name: "Strength", value: 36 },
-        { name: "Pilates", value: 14 },
-        { name: "Cardio", value: 14 }
-      ],
-      bodyLoad: {
-        chest: 84,
-        core: 72,
-        arms: 88,
-        glutes: 71,
-        legs: 82,
-        back: 79,
-        rearShoulders: 66,
-        hamstrings: 64
-      },
-      records: [
-        { title: "Strength: Progressive Push", time: "Mar 20 08:12", duration: "53m", metric: "9,850 kg", mode: "Strength", source: "Plan Follow" },
-        { title: "Pilates: Balance Control", time: "Mar 18 19:03", duration: "33m", metric: "1,230 kg", mode: "Pilates", source: "Plan Follow" },
-        { title: "Cardio: Zone 2 Ride", time: "Mar 15 07:35", duration: "42m", metric: "620 kcal", mode: "Cardio", source: "Free Training" },
-        { title: "Strength: Pull Capacity", time: "Mar 10 08:24", duration: "49m", metric: "8,900 kg", mode: "Strength", source: "Free Training" },
-        { title: "Strength: Legs Power", time: "Mar 07 07:50", duration: "58m", metric: "10,980 kg", mode: "Strength", source: "Plan Follow" },
-        { title: "Pilates: Mobility Reset", time: "Mar 02 20:02", duration: "37m", metric: "1,420 kg", mode: "Pilates", source: "Free Training" }
-      ]
+    };
+
+  const LEGACY_YEAR_RECORDS = [
+    { title: "力量：渐进推举", time: "3月20日 08:12", duration: "53分钟", metric: "9,850 kg", mode: "Strength", source: "Plan Follow" },
+    { title: "普拉提：平衡控制", time: "3月18日 19:03", duration: "33分钟", metric: "1,230 kg", mode: "Pilates", source: "Plan Follow" },
+    { title: "有氧：Zone 2 骑行", time: "3月15日 07:35", duration: "42分钟", metric: "620 kcal", mode: "Cardio", source: "Free Training" },
+    { title: "力量：拉力容量", time: "3月10日 08:24", duration: "49分钟", metric: "8,900 kg", mode: "Strength", source: "Free Training" },
+    { title: "力量：腿部爆发", time: "3月7日 07:50", duration: "58分钟", metric: "10,980 kg", mode: "Strength", source: "Plan Follow" },
+    { title: "普拉提：灵活性重置", time: "3月2日 20:02", duration: "37分钟", metric: "1,420 kg", mode: "Pilates", source: "Free Training" }
+  ];
+
+  function mergeUniqueRecords(recordGroups) {
+    var allRecords = [];
+    var seen = new Set();
+    recordGroups.forEach(function (group) {
+      (group || []).forEach(function (record) {
+        var key = [record.title, record.time, record.duration, record.metric, record.mode, record.source].join("|");
+        if (seen.has(key)) return;
+        seen.add(key);
+        allRecords.push(record);
+      });
+    });
+    return allRecords;
+  }
+
+  const PERIOD_DATA = {
+    week: WEEK_DATA,
+    month: MONTH_DATA,
+    all: {
+      records: mergeUniqueRecords([WEEK_DATA.records, MONTH_DATA.records, LEGACY_YEAR_RECORDS])
     }
   };
 
@@ -151,7 +172,7 @@
     if (!window.echarts) {
       Object.values(chartEls).forEach((el) => {
         if (!el) return;
-        el.innerHTML = "<p style='padding:12px;color:#9fb0c6;font-size:12px;'>Chart library failed to load.</p>";
+        el.innerHTML = "<p style='padding:12px;color:#9fb0c6;font-size:12px;'>图表库加载失败。</p>";
       });
       return;
     }
@@ -203,6 +224,7 @@
       button.classList.toggle("is-active", active);
       button.setAttribute("aria-selected", String(active));
     });
+    applyViewMode();
     renderAll();
   }
 
@@ -220,6 +242,17 @@
     return PERIOD_DATA[state.range] || PERIOD_DATA.week;
   }
 
+  function applyViewMode() {
+    var isAllRange = state.range === "all";
+    if (chartsView) chartsView.hidden = isAllRange;
+    if (listView) listView.hidden = !isAllRange;
+    if (!isAllRange) {
+      requestAnimationFrame(function () {
+        resizeAllCharts();
+      });
+    }
+  }
+
   function buildDemoVolumeSeries(range, labels) {
     var presets = {
       week: {
@@ -231,11 +264,6 @@
         Strength: [16800, 18200, 19600, 20500],
         Pilates: [3900, 4300, 4700, 5200],
         Cardio: [6100, 6800, 7200, 7600]
-      },
-      year: {
-        Strength: [18200, 20100, 22400, 23600, 25700, 27900],
-        Pilates: [4100, 4600, 5200, 5900, 6400, 7100],
-        Cardio: [6300, 6900, 7600, 8100, 8700, 9300]
       }
     };
     var base = presets[range] || presets.week;
@@ -250,8 +278,7 @@
   function buildDemoQualitySeries(range, labels) {
     var presets = {
       week: [84, 86, 88, 89, 91, 92, 93],
-      month: [83, 85, 87, 89],
-      year: [80, 82, 84, 86, 88, 90]
+      month: [83, 85, 87, 89]
     };
     var base = presets[range] || presets.week;
     return base.slice(0, labels.length);
@@ -274,7 +301,7 @@
     return !Array.isArray(data.qualityScore) || data.qualityScore.length === 0;
   }
 
-  /** Week-only overlays; Month/Year always hide regardless of underlying stats. */
+  /** Week-only overlays; Month/All always hide regardless of underlying stats. */
   function updateEmptyOverlays(data) {
     if (volumeEmptyOverlay) {
       var showVolume = state.range === "week" && shouldShowVolumeEmptyOverlay(data);
@@ -319,11 +346,11 @@
         splitLine: { lineStyle: { color: "rgba(148,163,184,0.14)" } }
       },
       series: [
-        { name: "Strength", type: "bar", stack: "volume", barMaxWidth: 22, itemStyle: { color: TYPE_COLORS.Strength, borderRadius: [4, 4, 0, 0] }, data: strengthSeries },
-        { name: "Pilates", type: "bar", stack: "volume", barMaxWidth: 22, itemStyle: { color: TYPE_COLORS.Pilates, borderRadius: [4, 4, 0, 0] }, data: pilatesSeries },
-        { name: "Cardio", type: "bar", stack: "volume", barMaxWidth: 22, itemStyle: { color: TYPE_COLORS.Cardio, borderRadius: [4, 4, 0, 0] }, data: cardioSeries },
+        { name: "力量", type: "bar", stack: "volume", barMaxWidth: 22, itemStyle: { color: TYPE_COLORS.Strength, borderRadius: [4, 4, 0, 0] }, data: strengthSeries },
+        { name: "普拉提", type: "bar", stack: "volume", barMaxWidth: 22, itemStyle: { color: TYPE_COLORS.Pilates, borderRadius: [4, 4, 0, 0] }, data: pilatesSeries },
+        { name: "有氧", type: "bar", stack: "volume", barMaxWidth: 22, itemStyle: { color: TYPE_COLORS.Cardio, borderRadius: [4, 4, 0, 0] }, data: cardioSeries },
         {
-          name: "Moving Avg",
+          name: "移动均值",
           type: "line",
           smooth: true,
           symbolSize: 5,
@@ -356,7 +383,7 @@
         splitLine: { lineStyle: { color: "rgba(148,163,184,0.14)" } }
       },
       series: [{
-        name: "AI Score",
+        name: "AI 评分",
         type: "line",
         smooth: true,
         connectNulls: false,
@@ -381,7 +408,7 @@
       }),
       title: {
         text: String(total),
-        subtext: "Sessions",
+        subtext: "次训练",
         left: "center",
         top: "35%",
         textStyle: { color: "#f8fafc", fontSize: 18, fontWeight: 700 },
@@ -401,15 +428,20 @@
         center: ["50%", "42%"],
         itemStyle: { borderColor: "rgba(2,6,23,0.9)", borderWidth: 2 },
         label: { show: false },
-        data: dataset
+        data: dataset.map(function (item) {
+          return {
+            name: SOURCE_LABELS[item.name] || MODE_LABELS[item.name] || item.name,
+            value: item.value
+          };
+        })
       }]
     };
   }
 
   function renderStructureCharts(data) {
     if (!charts.source || !charts.mode) return;
-    charts.source.setOption(buildRingOption(data.sourceSplit, "Source"));
-    charts.mode.setOption(buildRingOption(data.modeSplit, "Mode"));
+    charts.source.setOption(buildRingOption(data.sourceSplit, "来源占比"));
+    charts.mode.setOption(buildRingOption(data.modeSplit, "模式占比"));
   }
 
   function toSourceClass(source) {
@@ -463,11 +495,11 @@
 
       var sourceChip = document.createElement("span");
       sourceChip.className = "tr-chip " + toSourceClass(record.source);
-      sourceChip.textContent = record.source;
+      sourceChip.textContent = getSourceLabel(record.source);
 
       var modeChip = document.createElement("span");
       modeChip.className = "tr-chip " + toModeClass(record.mode);
-      modeChip.textContent = record.mode;
+      modeChip.textContent = getModeLabel(record.mode);
 
       meta.append(sourceChip, modeChip);
       row.append(top, meta);
@@ -478,35 +510,29 @@
     clearFilterBtn.hidden = !hasFilter;
     activeFilterHint.hidden = !hasFilter;
     if (hasFilter) {
-      activeFilterHint.textContent = "Filtered by " + state.filter.type + ": " + state.filter.value;
+      activeFilterHint.textContent = "已按" + getFilterTypeLabel(state.filter.type) + "筛选：" + (state.filter.type === "mode" ? getModeLabel(state.filter.value) : getSourceLabel(state.filter.value));
     }
   }
 
   function renderAll() {
     var data = getCurrentData();
+    if (state.range === "all") {
+      if (volumeEmptyOverlay) volumeEmptyOverlay.hidden = true;
+      if (qualityEmptyOverlay) qualityEmptyOverlay.hidden = true;
+      renderHistory();
+      return;
+    }
     updateEmptyOverlays(data);
     renderVolumeChart(data);
     renderQualityChart(data);
     renderStructureCharts(data);
     applyBodyMap(data.bodyLoad || {});
-    renderHistory();
   }
 
   function wireChartEvents() {
-    charts.volume.on("click", function (params) {
-      if (params.seriesType !== "bar") return;
-      setFilter({ type: "mode", value: params.seriesName });
-    });
-
-    charts.mode.on("click", function (params) {
-      if (!params.name) return;
-      setFilter({ type: "mode", value: params.name });
-    });
-
-    charts.source.on("click", function (params) {
-      if (!params.name) return;
-      setFilter({ type: "source", value: params.name });
-    });
+    /* Intentionally left blank:
+     * chart-click-to-filter behavior was removed when list moved to All Training tab.
+     */
   }
 
   function wireEvents() {
@@ -559,6 +585,7 @@
   }
 
   initCharts();
+  applyViewMode();
   wireEvents();
   renderAll();
   requestAnimationFrame(function () {

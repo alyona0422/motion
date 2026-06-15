@@ -18,13 +18,23 @@
   gap: 10px;
 }
 
+#trChartsView {
+  display: grid;
+  gap: 10px;
+}
+
+#trChartsView[hidden],
+#trListView[hidden] {
+  display: none !important;
+}
+
 .tr-header {
   border-radius: 16px;
   padding: 10px 12px;
   background: linear-gradient(120deg, rgba(0, 122, 255, 0.14), rgba(10, 17, 29, 0.72));
   box-shadow: var(--glow-soft), inset 0 0 0 1px rgba(148, 163, 184, 0.14);
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: 1fr;
   gap: 10px;
   align-items: center;
 }

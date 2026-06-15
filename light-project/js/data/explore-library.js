@@ -11,76 +11,76 @@ window.PlanBDemo.assetPaths = [
 ];
 window.PlanBDemo.libraryData = {
   moves: {
-    title: "Recommended Moves",
+    title: "推荐动作",
     recommended: [
-      ["Kettlebell Squat", "Lower body power &amp; stability", "Intermediate"],
-      ["Power Row", "Back &amp; core chain", "Beginner–Intermediate"],
-      ["Shoulder Press", "Upper body push control", "Intermediate–Advanced"],
-      ["Pilates Core Flow", "Core stability &amp; breathing", "Beginner"],
-      ["Battle Rope Burn", "Endurance &amp; power cycle", "Intermediate–Advanced"],
-      ["Deadlift Basics", "Posterior chain focus", "Intermediate"]
+      ["壶铃深蹲", "下肢力量与稳定性", "中级"],
+      ["爆发划船", "背部与核心链条", "初级–中级"],
+      ["肩上推举", "上肢推的控制", "中级–高级"],
+      ["普拉提核心流动", "核心稳定与呼吸", "初级"],
+      ["战绳燃脂", "耐力与爆发循环", "中级–高级"],
+      ["硬拉基础", "后链专项", "中级"]
     ],
     latest: [
-      ["Single Arm Row", "Unilateral stability &amp; drive", "Latest"],
-      ["Glute Bridge", "Glute activation &amp; control", "Beginner"],
-      ["Chest Press", "Upper push &amp; tempo", "Intermediate"],
-      ["Side Plank Lift", "Lateral chain stability", "Beginner–Intermediate"],
-      ["Goblet Lunge", "Gait &amp; balance control", "Intermediate"],
-      ["Breath Reset", "Breathing &amp; recovery", "Beginner"]
+      ["单臂划船", "单侧稳定与发力", "最新"],
+      ["臀桥", "臀部激活与控制", "初级"],
+      ["胸部推举", "上肢推与节奏", "中级"],
+      ["侧平板抬升", "侧链稳定", "初级–中级"],
+      ["高脚杯箭步蹲", "步态与平衡控制", "中级"],
+      ["呼吸重置", "呼吸与恢复", "初级"]
     ]
   },
   courses: {
-    title: "Recommended Courses",
+    title: "推荐课程",
     recommended: [
-      ["Strength Starter", "Full-body strength intro", "6 sessions"],
-      ["Pilates Reset", "Core &amp; breath reset", "8 sessions"],
-      ["Upper Power Block", "Upper body focus", "5 sessions"],
-      ["Leg Focus Camp", "Lower body camp", "7 sessions"],
-      ["Cardio Sculpt", "Cardio &amp; sculpt", "9 sessions"],
-      ["Core Stability Lab", "Core stability lab", "6 sessions"]
+      ["力量入门", "全身力量入门", "6 次训练"],
+      ["普拉提重置", "核心与呼吸重置", "8 次训练"],
+      ["上肢力量模块", "上肢专项", "5 次训练"],
+      ["腿部专项营", "下肢训练营", "7 次训练"],
+      ["有氧塑形", "有氧与塑形", "9 次训练"],
+      ["核心稳定实验室", "核心稳定实验室", "6 次训练"]
     ],
     latest: [
-      ["Hybrid Burn", "Strength &amp; cardio blend", "10 sessions"],
-      ["Athletic Posture", "Posture &amp; control", "6 sessions"],
-      ["Explosive Lower", "Lower body power", "5 sessions"],
-      ["Core Breath Sync", "Core &amp; breath sync", "4 sessions"],
-      ["Tempo Strength", "Tempo strength", "7 sessions"],
-      ["Weekend Reset", "Weekend recovery", "3 sessions"]
+      ["混合燃脂", "力量与有氧结合", "10 次训练"],
+      ["运动体态", "体态与控制", "6 次训练"],
+      ["爆发下肢", "下肢爆发力", "5 次训练"],
+      ["核心呼吸同步", "核心与呼吸同步", "4 次训练"],
+      ["节奏力量", "节奏力量", "7 次训练"],
+      ["周末重置", "周末恢复", "3 次训练"]
     ]
   },
   plans: {
-    title: "Recommended Plans",
+    title: "推荐计划",
     recommended: [
-      ["Week 1 Build", "7-day beginner build", "7 days"],
-      ["Core First Plan", "Core-first cycle", "14 days"],
-      ["Lean Strength 21", "21-day lean strength", "21 days"],
-      ["Pilates Habit", "Pilates habit", "14 days"],
-      ["Power Progression", "Power progression", "28 days"],
-      ["Desk Reset", "Desk reset plan", "7 days"]
+      ["第1周构建", "7 天初学者构建", "7 天"],
+      ["核心优先计划", "核心优先周期", "14 天"],
+      ["精瘦力量 21", "21 天精瘦力量", "21 天"],
+      ["普拉提习惯", "普拉提习惯", "14 天"],
+      ["力量进阶", "力量进阶", "28 天"],
+      ["久坐重置", "久坐重置计划", "7 天"]
     ],
     personalized: [
-      ["Spring Cut Plan", "Spring cut plan", "30 days"],
-      ["Starter Week", "One-week starter", "7 days"],
-      ["Core Rehab Lite", "Light core rehab", "10 days"],
-      ["Push Pull Split", "Push-pull cycle", "21 days"],
-      ["Pilates Daily", "Daily Pilates", "14 days"],
-      ["Weekend Athlete", "Weekend athlete", "8 days"]
+      ["春季减脂计划", "春季减脂计划", "30 天"],
+      ["入门一周", "一周入门", "7 天"],
+      ["轻核心康复", "轻度核心康复", "10 天"],
+      ["推拉分化", "推拉循环", "21 天"],
+      ["每日普拉提", "每日普拉提", "14 天"],
+      ["周末运动者", "周末运动者", "8 天"]
     ],
     latest: [
-      ["Spring Cut Plan", "Spring cut plan", "30 days"],
-      ["Starter Week", "One-week starter", "7 days"],
-      ["Core Rehab Lite", "Light core rehab", "10 days"],
-      ["Push Pull Split", "Push-pull cycle", "21 days"],
-      ["Pilates Daily", "Daily Pilates", "14 days"],
-      ["Weekend Athlete", "Weekend athlete", "8 days"]
+      ["春季减脂计划", "春季减脂计划", "30 天"],
+      ["入门一周", "一周入门", "7 天"],
+      ["轻核心康复", "轻度核心康复", "10 天"],
+      ["推拉分化", "推拉循环", "21 天"],
+      ["每日普拉提", "每日普拉提", "14 天"],
+      ["周末运动者", "周末运动者", "8 天"]
     ]
   },
   allTraining: {
     moves: [
       {
         id: "move-kettlebell-squat",
-        name: "Kettlebell Squat",
-        summary: "Lower-body strength and bracing control.",
+        name: "壶铃深蹲",
+        summary: "下肢力量与支撑控制。",
         scene: "Strength Training",
         equipment: "Handle",
         targetArea: "Legs",
@@ -89,8 +89,8 @@ window.PlanBDemo.libraryData = {
       },
       {
         id: "move-power-row",
-        name: "Power Row",
-        summary: "Back chain drive with stable core.",
+        name: "爆发划船",
+        summary: "背部链条发力，核心稳定。",
         scene: "Strength Training",
         equipment: "Dual Cable",
         targetArea: "Back",
@@ -99,8 +99,8 @@ window.PlanBDemo.libraryData = {
       },
       {
         id: "move-shoulder-press",
-        name: "Shoulder Press",
-        summary: "Overhead pressing for upper-body power.",
+        name: "肩上推举",
+        summary: "过头推举，提升上肢力量。",
         scene: "Strength Training",
         equipment: "Barbell",
         targetArea: "Shoulders",
@@ -109,8 +109,8 @@ window.PlanBDemo.libraryData = {
       },
       {
         id: "move-pilates-core-flow",
-        name: "Pilates Core Flow",
-        summary: "Breath-led flow for deep core engagement.",
+        name: "普拉提核心流动",
+        summary: "以呼吸引导的深层核心激活流动。",
         scene: "Pilates",
         equipment: "Bodyweight",
         targetArea: "Full Body",
@@ -119,8 +119,8 @@ window.PlanBDemo.libraryData = {
       },
       {
         id: "move-battle-rope-burn",
-        name: "Battle Rope Burn",
-        summary: "Fast intervals for cardio endurance.",
+        name: "战绳燃脂",
+        summary: "快速间歇提升有氧耐力。",
         scene: "Cardio Fat Burn",
         equipment: "Dual Cable",
         targetArea: "Upper Limbs",
@@ -129,8 +129,8 @@ window.PlanBDemo.libraryData = {
       },
       {
         id: "move-deadlift-basics",
-        name: "Deadlift Basics",
-        summary: "Posterior chain mechanics and tempo control.",
+        name: "硬拉基础",
+        summary: "后链发力机制与节奏控制。",
         scene: "Strength Training",
         equipment: "Barbell",
         targetArea: "Back",
@@ -139,8 +139,8 @@ window.PlanBDemo.libraryData = {
       },
       {
         id: "move-glute-bridge",
-        name: "Glute Bridge",
-        summary: "Hip extension and glute activation practice.",
+        name: "臀桥",
+        summary: "髋伸展与臀部激活练习。",
         scene: "Stretch Recovery",
         equipment: "Bodyweight",
         targetArea: "Glutes",
@@ -149,8 +149,8 @@ window.PlanBDemo.libraryData = {
       },
       {
         id: "move-side-plank-lift",
-        name: "Side Plank Lift",
-        summary: "Lateral chain stability for shoulder and core.",
+        name: "侧平板抬升",
+        summary: "强化肩部与核心的侧链稳定。",
         scene: "Pilates",
         equipment: "Bodyweight",
         targetArea: "Shoulders",
@@ -159,8 +159,8 @@ window.PlanBDemo.libraryData = {
       },
       {
         id: "move-goblet-lunge",
-        name: "Goblet Lunge",
-        summary: "Single-leg control and posture training.",
+        name: "高脚杯箭步蹲",
+        summary: "单腿控制与体态训练。",
         scene: "Strength Training",
         equipment: "Handle",
         targetArea: "Legs",
@@ -169,8 +169,8 @@ window.PlanBDemo.libraryData = {
       },
       {
         id: "move-breath-reset",
-        name: "Breath Reset",
-        summary: "Gentle breathing sequence for recovery.",
+        name: "呼吸重置",
+        summary: "舒缓的呼吸序列，帮助恢复。",
         scene: "Stretch Recovery",
         equipment: "Bodyweight",
         targetArea: "Full Body",
@@ -181,8 +181,8 @@ window.PlanBDemo.libraryData = {
     aiMoves: [
       {
         id: "ai-smart-squat-coach",
-        name: "Smart Squat Coach",
-        summary: "AI feedback for depth, hip shift, and rhythm.",
+        name: "智能深蹲教练",
+        summary: "针对深度、髋部偏移与节奏的 AI 反馈。",
         scene: "Strength Training",
         equipment: "Barbell",
         targetArea: "Legs",
@@ -190,8 +190,8 @@ window.PlanBDemo.libraryData = {
       },
       {
         id: "ai-form-row-guide",
-        name: "Form Row Guide",
-        summary: "AI-guided pull path and shoulder alignment.",
+        name: "划船姿态指导",
+        summary: "AI 指导拉的轨迹与肩部对齐。",
         scene: "Strength Training",
         equipment: "Dual Cable",
         targetArea: "Back",
@@ -199,8 +199,8 @@ window.PlanBDemo.libraryData = {
       },
       {
         id: "ai-pilates-breath-sync",
-        name: "Pilates Breath Sync",
-        summary: "Breathing cadence coaching with core cues.",
+        name: "普拉提呼吸同步",
+        summary: "呼吸节奏指导，配合核心提示。",
         scene: "Pilates",
         equipment: "Bodyweight",
         targetArea: "Full Body",
@@ -208,8 +208,8 @@ window.PlanBDemo.libraryData = {
       },
       {
         id: "ai-lunge-balance-assist",
-        name: "Lunge Balance Assist",
-        summary: "AI helps keep stable pelvis and knee track.",
+        name: "箭步蹲平衡辅助",
+        summary: "AI 帮助保持骨盆稳定与膝盖轨迹。",
         scene: "Strength Training",
         equipment: "Handle",
         targetArea: "Legs",
@@ -217,8 +217,8 @@ window.PlanBDemo.libraryData = {
       },
       {
         id: "ai-cardio-pulse-trainer",
-        name: "Cardio Pulse Trainer",
-        summary: "Pace and effort cues for fat-burn intervals.",
+        name: "有氧心率训练",
+        summary: "燃脂间歇的配速与强度提示。",
         scene: "Cardio Fat Burn",
         equipment: "Dual Cable",
         targetArea: "Full Body",
@@ -226,8 +226,8 @@ window.PlanBDemo.libraryData = {
       },
       {
         id: "ai-posture-reset",
-        name: "Posture Reset Coach",
-        summary: "Real-time corrections for neck and upper back.",
+        name: "体态重置教练",
+        summary: "针对颈部与上背的实时纠正。",
         scene: "Stretch Recovery",
         equipment: "Bodyweight",
         targetArea: "Upper Limbs",
@@ -235,8 +235,8 @@ window.PlanBDemo.libraryData = {
       },
       {
         id: "ai-shoulder-control-lab",
-        name: "Shoulder Control Lab",
-        summary: "Scapular timing analysis for safer pressing.",
+        name: "肩部控制实验室",
+        summary: "肩胛时序分析，让推举更安全。",
         scene: "Strength Training",
         equipment: "Handle",
         targetArea: "Shoulders",
@@ -244,8 +244,8 @@ window.PlanBDemo.libraryData = {
       },
       {
         id: "ai-glute-drive-monitor",
-        name: "Glute Drive Monitor",
-        summary: "Hip drive quality scoring for bridge patterns.",
+        name: "臀部发力监测",
+        summary: "臀桥动作的髋部发力质量评分。",
         scene: "Stretch Recovery",
         equipment: "Bodyweight",
         targetArea: "Glutes",
@@ -255,8 +255,8 @@ window.PlanBDemo.libraryData = {
     plans: [
       {
         id: "plan-strength-2w-3x",
-        name: "Strength Primer 2W",
-        summary: "Build foundational strength in two weeks.",
+        name: "力量启蒙 2周",
+        summary: "两周内打好全身力量基础。",
         scene: "Strength Training",
         cycleWeeks: "2 Weeks",
         sessionsPerWeek: "3 Sessions",
@@ -265,8 +265,8 @@ window.PlanBDemo.libraryData = {
       },
       {
         id: "plan-lean-lower-3w-4x",
-        name: "Lean Lower Builder",
-        summary: "Focused lower-body progression cycle.",
+        name: "精瘦下肢塑造",
+        summary: "专注下肢的进阶训练周期。",
         scene: "Strength Training",
         cycleWeeks: "3 Weeks",
         sessionsPerWeek: "4 Sessions",
@@ -276,8 +276,8 @@ window.PlanBDemo.libraryData = {
       },
       {
         id: "plan-pilates-core-4w-5x",
-        name: "Pilates Core Habit",
-        summary: "Daily core stability and breath practice.",
+        name: "普拉提核心习惯",
+        summary: "每日核心稳定与呼吸练习。",
         scene: "Pilates",
         cycleWeeks: "4 Weeks",
         sessionsPerWeek: "5 Sessions",
@@ -286,8 +286,8 @@ window.PlanBDemo.libraryData = {
       },
       {
         id: "plan-back-posture-2w-4x",
-        name: "Back Posture Reset",
-        summary: "Restore upper-back posture and endurance.",
+        name: "背部体态重置",
+        summary: "恢复上背体态与耐力。",
         scene: "Stretch Recovery",
         cycleWeeks: "2 Weeks",
         sessionsPerWeek: "4 Sessions",
@@ -296,8 +296,8 @@ window.PlanBDemo.libraryData = {
       },
       {
         id: "plan-shoulder-power-3w-5x",
-        name: "Shoulder Power Block",
-        summary: "Increase overhead capacity and control.",
+        name: "肩部力量模块",
+        summary: "提升过头能力与控制。",
         scene: "Strength Training",
         cycleWeeks: "3 Weeks",
         sessionsPerWeek: "5 Sessions",
@@ -306,8 +306,8 @@ window.PlanBDemo.libraryData = {
       },
       {
         id: "plan-cardio-burn-4w-4x",
-        name: "Cardio Burn Builder",
-        summary: "Progressive cardio sessions for fat burn.",
+        name: "有氧燃脂构建",
+        summary: "渐进式有氧训练，助力燃脂。",
         scene: "Cardio Fat Burn",
         cycleWeeks: "4 Weeks",
         sessionsPerWeek: "4 Sessions",
@@ -317,8 +317,8 @@ window.PlanBDemo.libraryData = {
       },
       {
         id: "plan-upper-control-2w-3x",
-        name: "Upper Control Basics",
-        summary: "Upper-limb patterning and posture rhythm.",
+        name: "上肢控制基础",
+        summary: "上肢动作模式与体态节奏。",
         scene: "Pilates",
         cycleWeeks: "2 Weeks",
         sessionsPerWeek: "3 Sessions",
@@ -328,8 +328,8 @@ window.PlanBDemo.libraryData = {
       },
       {
         id: "plan-glute-activation-3w-3x",
-        name: "Glute Activation Cycle",
-        summary: "Hip stability and glute endurance focus.",
+        name: "臀部激活周期",
+        summary: "髋部稳定与臀部耐力专项。",
         scene: "Stretch Recovery",
         cycleWeeks: "3 Weeks",
         sessionsPerWeek: "3 Sessions",
@@ -340,8 +340,8 @@ window.PlanBDemo.libraryData = {
     planDetails: {
       "plan-strength-2w-3x": {
         id: "plan-strength-2w-3x",
-        name: "Strength Primer 2W",
-        intro: "A two-week starter plan to build full-body training habits with clean movement patterns and stable volume.",
+        name: "力量启蒙 2周",
+        intro: "为期两周的入门计划，通过干净的动作模式与稳定的训练量，帮助你建立全身训练习惯。",
         scene: "Strength Training",
         cycleWeeks: "2 Weeks",
         sessionsPerWeek: "3 Sessions",
@@ -354,25 +354,25 @@ window.PlanBDemo.libraryData = {
               {
                 day: 1,
                 moves: [
-                  { name: "Kettlebell Squat", sets: 3, repsOrDuration: "12 reps", restSeconds: 45, weightKg: 16 },
-                  { name: "Power Row", sets: 3, repsOrDuration: "10 reps", restSeconds: 45, weightKg: 18 },
-                  { name: "Breath Reset", sets: 2, repsOrDuration: "40 sec", restSeconds: 20 }
+                  { name: "壶铃深蹲", sets: 3, repsOrDuration: "12 次", restSeconds: 45, weightKg: 16 },
+                  { name: "爆发划船", sets: 3, repsOrDuration: "10 次", restSeconds: 45, weightKg: 18 },
+                  { name: "呼吸重置", sets: 2, repsOrDuration: "40 秒", restSeconds: 20 }
                 ]
               },
               {
                 day: 2,
                 moves: [
-                  { name: "Goblet Lunge", sets: 3, repsOrDuration: "10 reps / side", restSeconds: 50, weightKg: 14 },
-                  { name: "Shoulder Press", sets: 3, repsOrDuration: "8 reps", restSeconds: 60, weightKg: 12 },
-                  { name: "Glute Bridge", sets: 3, repsOrDuration: "14 reps", restSeconds: 40 }
+                  { name: "高脚杯箭步蹲", sets: 3, repsOrDuration: "10 次/侧", restSeconds: 50, weightKg: 14 },
+                  { name: "肩上推举", sets: 3, repsOrDuration: "8 次", restSeconds: 60, weightKg: 12 },
+                  { name: "臀桥", sets: 3, repsOrDuration: "14 次", restSeconds: 40 }
                 ]
               },
               {
                 day: 3,
                 moves: [
-                  { name: "Deadlift Basics", sets: 4, repsOrDuration: "8 reps", restSeconds: 65, weightKg: 20 },
-                  { name: "Power Row", sets: 3, repsOrDuration: "12 reps", restSeconds: 45, weightKg: 16 },
-                  { name: "Side Plank Lift", sets: 2, repsOrDuration: "35 sec / side", restSeconds: 25 }
+                  { name: "硬拉基础", sets: 4, repsOrDuration: "8 次", restSeconds: 65, weightKg: 20 },
+                  { name: "爆发划船", sets: 3, repsOrDuration: "12 次", restSeconds: 45, weightKg: 16 },
+                  { name: "侧平板抬升", sets: 2, repsOrDuration: "35 秒/侧", restSeconds: 25 }
                 ]
               }
             ]
@@ -383,25 +383,25 @@ window.PlanBDemo.libraryData = {
               {
                 day: 1,
                 moves: [
-                  { name: "Kettlebell Squat", sets: 4, repsOrDuration: "10 reps", restSeconds: 50, weightKg: 18 },
-                  { name: "Shoulder Press", sets: 3, repsOrDuration: "10 reps", restSeconds: 55, weightKg: 14 },
-                  { name: "Breath Reset", sets: 2, repsOrDuration: "45 sec", restSeconds: 20 }
+                  { name: "壶铃深蹲", sets: 4, repsOrDuration: "10 次", restSeconds: 50, weightKg: 18 },
+                  { name: "肩上推举", sets: 3, repsOrDuration: "10 次", restSeconds: 55, weightKg: 14 },
+                  { name: "呼吸重置", sets: 2, repsOrDuration: "45 秒", restSeconds: 20 }
                 ]
               },
               {
                 day: 2,
                 moves: [
-                  { name: "Deadlift Basics", sets: 4, repsOrDuration: "8 reps", restSeconds: 70, weightKg: 24 },
-                  { name: "Goblet Lunge", sets: 3, repsOrDuration: "12 reps / side", restSeconds: 55, weightKg: 16 },
-                  { name: "Glute Bridge", sets: 3, repsOrDuration: "16 reps", restSeconds: 40 }
+                  { name: "硬拉基础", sets: 4, repsOrDuration: "8 次", restSeconds: 70, weightKg: 24 },
+                  { name: "高脚杯箭步蹲", sets: 3, repsOrDuration: "12 次/侧", restSeconds: 55, weightKg: 16 },
+                  { name: "臀桥", sets: 3, repsOrDuration: "16 次", restSeconds: 40 }
                 ]
               },
               {
                 day: 3,
                 moves: [
-                  { name: "Power Row", sets: 4, repsOrDuration: "10 reps", restSeconds: 55, weightKg: 20 },
-                  { name: "Side Plank Lift", sets: 3, repsOrDuration: "40 sec / side", restSeconds: 25 },
-                  { name: "Breath Reset", sets: 2, repsOrDuration: "50 sec", restSeconds: 20 }
+                  { name: "爆发划船", sets: 4, repsOrDuration: "10 次", restSeconds: 55, weightKg: 20 },
+                  { name: "侧平板抬升", sets: 3, repsOrDuration: "40 秒/侧", restSeconds: 25 },
+                  { name: "呼吸重置", sets: 2, repsOrDuration: "50 秒", restSeconds: 20 }
                 ]
               }
             ]
@@ -410,8 +410,8 @@ window.PlanBDemo.libraryData = {
       },
       "plan-lean-lower-3w-4x": {
         id: "plan-lean-lower-3w-4x",
-        name: "Lean Lower Builder",
-        intro: "A lower-body progression cycle with glute and leg emphasis, balancing strength sets and unilateral control work.",
+        name: "精瘦下肢塑造",
+        intro: "侧重臀部与腿部的下肢进阶周期，平衡力量组与单侧控制训练。",
         scene: "Strength Training",
         cycleWeeks: "3 Weeks",
         sessionsPerWeek: "4 Sessions",
@@ -421,36 +421,36 @@ window.PlanBDemo.libraryData = {
           {
             week: 1,
             days: [
-              { day: 1, moves: [{ name: "Kettlebell Squat", sets: 4, repsOrDuration: "10 reps", restSeconds: 60, weightKg: 20 }, { name: "Goblet Lunge", sets: 3, repsOrDuration: "10 reps / side", restSeconds: 55, weightKg: 16 }] },
-              { day: 2, moves: [{ name: "Glute Bridge", sets: 4, repsOrDuration: "15 reps", restSeconds: 45 }, { name: "Deadlift Basics", sets: 3, repsOrDuration: "8 reps", restSeconds: 70, weightKg: 24 }] },
-              { day: 3, moves: [{ name: "Kettlebell Squat", sets: 3, repsOrDuration: "12 reps", restSeconds: 55, weightKg: 18 }, { name: "Side Plank Lift", sets: 3, repsOrDuration: "35 sec / side", restSeconds: 30 }] },
-              { day: 4, moves: [{ name: "Goblet Lunge", sets: 4, repsOrDuration: "12 reps / side", restSeconds: 60, weightKg: 18 }, { name: "Breath Reset", sets: 2, repsOrDuration: "50 sec", restSeconds: 20 }] }
+              { day: 1, moves: [{ name: "壶铃深蹲", sets: 4, repsOrDuration: "10 次", restSeconds: 60, weightKg: 20 }, { name: "高脚杯箭步蹲", sets: 3, repsOrDuration: "10 次/侧", restSeconds: 55, weightKg: 16 }] },
+              { day: 2, moves: [{ name: "臀桥", sets: 4, repsOrDuration: "15 次", restSeconds: 45 }, { name: "硬拉基础", sets: 3, repsOrDuration: "8 次", restSeconds: 70, weightKg: 24 }] },
+              { day: 3, moves: [{ name: "壶铃深蹲", sets: 3, repsOrDuration: "12 次", restSeconds: 55, weightKg: 18 }, { name: "侧平板抬升", sets: 3, repsOrDuration: "35 秒/侧", restSeconds: 30 }] },
+              { day: 4, moves: [{ name: "高脚杯箭步蹲", sets: 4, repsOrDuration: "12 次/侧", restSeconds: 60, weightKg: 18 }, { name: "呼吸重置", sets: 2, repsOrDuration: "50 秒", restSeconds: 20 }] }
             ]
           },
           {
             week: 2,
             days: [
-              { day: 1, moves: [{ name: "Deadlift Basics", sets: 4, repsOrDuration: "8 reps", restSeconds: 75, weightKg: 28 }, { name: "Glute Bridge", sets: 4, repsOrDuration: "16 reps", restSeconds: 45 }] },
-              { day: 2, moves: [{ name: "Kettlebell Squat", sets: 4, repsOrDuration: "11 reps", restSeconds: 60, weightKg: 22 }, { name: "Goblet Lunge", sets: 3, repsOrDuration: "10 reps / side", restSeconds: 55, weightKg: 18 }] },
-              { day: 3, moves: [{ name: "Power Row", sets: 3, repsOrDuration: "10 reps", restSeconds: 55, weightKg: 20 }, { name: "Side Plank Lift", sets: 3, repsOrDuration: "40 sec / side", restSeconds: 30 }] },
-              { day: 4, moves: [{ name: "Deadlift Basics", sets: 4, repsOrDuration: "9 reps", restSeconds: 75, weightKg: 30 }, { name: "Breath Reset", sets: 2, repsOrDuration: "45 sec", restSeconds: 20 }] }
+              { day: 1, moves: [{ name: "硬拉基础", sets: 4, repsOrDuration: "8 次", restSeconds: 75, weightKg: 28 }, { name: "臀桥", sets: 4, repsOrDuration: "16 次", restSeconds: 45 }] },
+              { day: 2, moves: [{ name: "壶铃深蹲", sets: 4, repsOrDuration: "11 次", restSeconds: 60, weightKg: 22 }, { name: "高脚杯箭步蹲", sets: 3, repsOrDuration: "10 次/侧", restSeconds: 55, weightKg: 18 }] },
+              { day: 3, moves: [{ name: "爆发划船", sets: 3, repsOrDuration: "10 次", restSeconds: 55, weightKg: 20 }, { name: "侧平板抬升", sets: 3, repsOrDuration: "40 秒/侧", restSeconds: 30 }] },
+              { day: 4, moves: [{ name: "硬拉基础", sets: 4, repsOrDuration: "9 次", restSeconds: 75, weightKg: 30 }, { name: "呼吸重置", sets: 2, repsOrDuration: "45 秒", restSeconds: 20 }] }
             ]
           },
           {
             week: 3,
             days: [
-              { day: 1, moves: [{ name: "Kettlebell Squat", sets: 5, repsOrDuration: "8 reps", restSeconds: 70, weightKg: 24 }, { name: "Glute Bridge", sets: 4, repsOrDuration: "18 reps", restSeconds: 45 }] },
-              { day: 2, moves: [{ name: "Goblet Lunge", sets: 4, repsOrDuration: "12 reps / side", restSeconds: 60, weightKg: 20 }, { name: "Power Row", sets: 3, repsOrDuration: "12 reps", restSeconds: 55, weightKg: 22 }] },
-              { day: 3, moves: [{ name: "Deadlift Basics", sets: 5, repsOrDuration: "6 reps", restSeconds: 80, weightKg: 34 }, { name: "Side Plank Lift", sets: 3, repsOrDuration: "45 sec / side", restSeconds: 30 }] },
-              { day: 4, moves: [{ name: "Kettlebell Squat", sets: 4, repsOrDuration: "10 reps", restSeconds: 65, weightKg: 22 }, { name: "Breath Reset", sets: 2, repsOrDuration: "60 sec", restSeconds: 20 }] }
+              { day: 1, moves: [{ name: "壶铃深蹲", sets: 5, repsOrDuration: "8 次", restSeconds: 70, weightKg: 24 }, { name: "臀桥", sets: 4, repsOrDuration: "18 次", restSeconds: 45 }] },
+              { day: 2, moves: [{ name: "高脚杯箭步蹲", sets: 4, repsOrDuration: "12 次/侧", restSeconds: 60, weightKg: 20 }, { name: "爆发划船", sets: 3, repsOrDuration: "12 次", restSeconds: 55, weightKg: 22 }] },
+              { day: 3, moves: [{ name: "硬拉基础", sets: 5, repsOrDuration: "6 次", restSeconds: 80, weightKg: 34 }, { name: "侧平板抬升", sets: 3, repsOrDuration: "45 秒/侧", restSeconds: 30 }] },
+              { day: 4, moves: [{ name: "壶铃深蹲", sets: 4, repsOrDuration: "10 次", restSeconds: 65, weightKg: 22 }, { name: "呼吸重置", sets: 2, repsOrDuration: "60 秒", restSeconds: 20 }] }
             ]
           }
         ]
       },
       "plan-pilates-core-4w-5x": {
         id: "plan-pilates-core-4w-5x",
-        name: "Pilates Core Habit",
-        intro: "A high-frequency Pilates rhythm focused on breath, trunk stability, and postural control through short daily sessions.",
+        name: "普拉提核心习惯",
+        intro: "高频率的普拉提节奏，通过短时每日训练，专注呼吸、躯干稳定与体态控制。",
         scene: "Pilates",
         cycleWeeks: "4 Weeks",
         sessionsPerWeek: "5 Sessions",
@@ -460,41 +460,41 @@ window.PlanBDemo.libraryData = {
           {
             week: 1,
             days: [
-              { day: 1, moves: [{ name: "Pilates Core Flow", sets: 3, repsOrDuration: "45 sec", restSeconds: 20 }, { name: "Breath Reset", sets: 2, repsOrDuration: "50 sec", restSeconds: 20 }] },
-              { day: 2, moves: [{ name: "Side Plank Lift", sets: 3, repsOrDuration: "30 sec / side", restSeconds: 25 }, { name: "Glute Bridge", sets: 3, repsOrDuration: "14 reps", restSeconds: 35 }] },
-              { day: 3, moves: [{ name: "Pilates Core Flow", sets: 3, repsOrDuration: "50 sec", restSeconds: 20 }, { name: "Breath Reset", sets: 2, repsOrDuration: "55 sec", restSeconds: 20 }] },
-              { day: 4, moves: [{ name: "Side Plank Lift", sets: 3, repsOrDuration: "35 sec / side", restSeconds: 25 }, { name: "Glute Bridge", sets: 3, repsOrDuration: "16 reps", restSeconds: 35 }] },
-              { day: 5, moves: [{ name: "Pilates Core Flow", sets: 4, repsOrDuration: "45 sec", restSeconds: 20 }, { name: "Breath Reset", sets: 2, repsOrDuration: "60 sec", restSeconds: 20 }] }
+              { day: 1, moves: [{ name: "普拉提核心流动", sets: 3, repsOrDuration: "45 秒", restSeconds: 20 }, { name: "呼吸重置", sets: 2, repsOrDuration: "50 秒", restSeconds: 20 }] },
+              { day: 2, moves: [{ name: "侧平板抬升", sets: 3, repsOrDuration: "30 秒/侧", restSeconds: 25 }, { name: "臀桥", sets: 3, repsOrDuration: "14 次", restSeconds: 35 }] },
+              { day: 3, moves: [{ name: "普拉提核心流动", sets: 3, repsOrDuration: "50 秒", restSeconds: 20 }, { name: "呼吸重置", sets: 2, repsOrDuration: "55 秒", restSeconds: 20 }] },
+              { day: 4, moves: [{ name: "侧平板抬升", sets: 3, repsOrDuration: "35 秒/侧", restSeconds: 25 }, { name: "臀桥", sets: 3, repsOrDuration: "16 次", restSeconds: 35 }] },
+              { day: 5, moves: [{ name: "普拉提核心流动", sets: 4, repsOrDuration: "45 秒", restSeconds: 20 }, { name: "呼吸重置", sets: 2, repsOrDuration: "60 秒", restSeconds: 20 }] }
             ]
           },
           {
             week: 2,
             days: [
-              { day: 1, moves: [{ name: "Pilates Core Flow", sets: 4, repsOrDuration: "50 sec", restSeconds: 20 }, { name: "Side Plank Lift", sets: 3, repsOrDuration: "35 sec / side", restSeconds: 25 }] },
-              { day: 2, moves: [{ name: "Glute Bridge", sets: 4, repsOrDuration: "16 reps", restSeconds: 35 }, { name: "Breath Reset", sets: 2, repsOrDuration: "60 sec", restSeconds: 20 }] },
-              { day: 3, moves: [{ name: "Pilates Core Flow", sets: 4, repsOrDuration: "55 sec", restSeconds: 20 }, { name: "Side Plank Lift", sets: 3, repsOrDuration: "40 sec / side", restSeconds: 25 }] },
-              { day: 4, moves: [{ name: "Glute Bridge", sets: 4, repsOrDuration: "18 reps", restSeconds: 35 }, { name: "Breath Reset", sets: 2, repsOrDuration: "65 sec", restSeconds: 20 }] },
-              { day: 5, moves: [{ name: "Pilates Core Flow", sets: 4, repsOrDuration: "60 sec", restSeconds: 20 }, { name: "Breath Reset", sets: 2, repsOrDuration: "60 sec", restSeconds: 20 }] }
+              { day: 1, moves: [{ name: "普拉提核心流动", sets: 4, repsOrDuration: "50 秒", restSeconds: 20 }, { name: "侧平板抬升", sets: 3, repsOrDuration: "35 秒/侧", restSeconds: 25 }] },
+              { day: 2, moves: [{ name: "臀桥", sets: 4, repsOrDuration: "16 次", restSeconds: 35 }, { name: "呼吸重置", sets: 2, repsOrDuration: "60 秒", restSeconds: 20 }] },
+              { day: 3, moves: [{ name: "普拉提核心流动", sets: 4, repsOrDuration: "55 秒", restSeconds: 20 }, { name: "侧平板抬升", sets: 3, repsOrDuration: "40 秒/侧", restSeconds: 25 }] },
+              { day: 4, moves: [{ name: "臀桥", sets: 4, repsOrDuration: "18 次", restSeconds: 35 }, { name: "呼吸重置", sets: 2, repsOrDuration: "65 秒", restSeconds: 20 }] },
+              { day: 5, moves: [{ name: "普拉提核心流动", sets: 4, repsOrDuration: "60 秒", restSeconds: 20 }, { name: "呼吸重置", sets: 2, repsOrDuration: "60 秒", restSeconds: 20 }] }
             ]
           },
           {
             week: 3,
             days: [
-              { day: 1, moves: [{ name: "Pilates Core Flow", sets: 4, repsOrDuration: "60 sec", restSeconds: 20 }, { name: "Side Plank Lift", sets: 4, repsOrDuration: "35 sec / side", restSeconds: 25 }] },
-              { day: 2, moves: [{ name: "Glute Bridge", sets: 4, repsOrDuration: "18 reps", restSeconds: 35 }, { name: "Breath Reset", sets: 2, repsOrDuration: "65 sec", restSeconds: 20 }] },
-              { day: 3, moves: [{ name: "Pilates Core Flow", sets: 4, repsOrDuration: "60 sec", restSeconds: 20 }, { name: "Side Plank Lift", sets: 4, repsOrDuration: "40 sec / side", restSeconds: 25 }] },
-              { day: 4, moves: [{ name: "Glute Bridge", sets: 4, repsOrDuration: "20 reps", restSeconds: 35 }, { name: "Breath Reset", sets: 2, repsOrDuration: "70 sec", restSeconds: 20 }] },
-              { day: 5, moves: [{ name: "Pilates Core Flow", sets: 5, repsOrDuration: "50 sec", restSeconds: 20 }, { name: "Breath Reset", sets: 2, repsOrDuration: "70 sec", restSeconds: 20 }] }
+              { day: 1, moves: [{ name: "普拉提核心流动", sets: 4, repsOrDuration: "60 秒", restSeconds: 20 }, { name: "侧平板抬升", sets: 4, repsOrDuration: "35 秒/侧", restSeconds: 25 }] },
+              { day: 2, moves: [{ name: "臀桥", sets: 4, repsOrDuration: "18 次", restSeconds: 35 }, { name: "呼吸重置", sets: 2, repsOrDuration: "65 秒", restSeconds: 20 }] },
+              { day: 3, moves: [{ name: "普拉提核心流动", sets: 4, repsOrDuration: "60 秒", restSeconds: 20 }, { name: "侧平板抬升", sets: 4, repsOrDuration: "40 秒/侧", restSeconds: 25 }] },
+              { day: 4, moves: [{ name: "臀桥", sets: 4, repsOrDuration: "20 次", restSeconds: 35 }, { name: "呼吸重置", sets: 2, repsOrDuration: "70 秒", restSeconds: 20 }] },
+              { day: 5, moves: [{ name: "普拉提核心流动", sets: 5, repsOrDuration: "50 秒", restSeconds: 20 }, { name: "呼吸重置", sets: 2, repsOrDuration: "70 秒", restSeconds: 20 }] }
             ]
           },
           {
             week: 4,
             days: [
-              { day: 1, moves: [{ name: "Pilates Core Flow", sets: 5, repsOrDuration: "55 sec", restSeconds: 20 }, { name: "Side Plank Lift", sets: 4, repsOrDuration: "40 sec / side", restSeconds: 25 }] },
-              { day: 2, moves: [{ name: "Glute Bridge", sets: 4, repsOrDuration: "20 reps", restSeconds: 35 }, { name: "Breath Reset", sets: 3, repsOrDuration: "60 sec", restSeconds: 20 }] },
-              { day: 3, moves: [{ name: "Pilates Core Flow", sets: 5, repsOrDuration: "60 sec", restSeconds: 20 }, { name: "Side Plank Lift", sets: 4, repsOrDuration: "45 sec / side", restSeconds: 25 }] },
-              { day: 4, moves: [{ name: "Glute Bridge", sets: 5, repsOrDuration: "16 reps", restSeconds: 35 }, { name: "Breath Reset", sets: 3, repsOrDuration: "65 sec", restSeconds: 20 }] },
-              { day: 5, moves: [{ name: "Pilates Core Flow", sets: 5, repsOrDuration: "60 sec", restSeconds: 20 }, { name: "Breath Reset", sets: 3, repsOrDuration: "70 sec", restSeconds: 20 }] }
+              { day: 1, moves: [{ name: "普拉提核心流动", sets: 5, repsOrDuration: "55 秒", restSeconds: 20 }, { name: "侧平板抬升", sets: 4, repsOrDuration: "40 秒/侧", restSeconds: 25 }] },
+              { day: 2, moves: [{ name: "臀桥", sets: 4, repsOrDuration: "20 次", restSeconds: 35 }, { name: "呼吸重置", sets: 3, repsOrDuration: "60 秒", restSeconds: 20 }] },
+              { day: 3, moves: [{ name: "普拉提核心流动", sets: 5, repsOrDuration: "60 秒", restSeconds: 20 }, { name: "侧平板抬升", sets: 4, repsOrDuration: "45 秒/侧", restSeconds: 25 }] },
+              { day: 4, moves: [{ name: "臀桥", sets: 5, repsOrDuration: "16 次", restSeconds: 35 }, { name: "呼吸重置", sets: 3, repsOrDuration: "65 秒", restSeconds: 20 }] },
+              { day: 5, moves: [{ name: "普拉提核心流动", sets: 5, repsOrDuration: "60 秒", restSeconds: 20 }, { name: "呼吸重置", sets: 3, repsOrDuration: "70 秒", restSeconds: 20 }] }
             ]
           }
         ]
@@ -507,7 +507,7 @@ window.PlanBDemo.libraryData = {
   const lib = window.PlanBDemo && window.PlanBDemo.libraryData;
   const details = lib && lib.allTraining && lib.allTraining.planDetails;
   if (!details || typeof details !== "object") return;
-  const defaultErrorTypes = ["Knee Valgus", "Short Range", "Core Instability"];
+  const defaultErrorTypes = ["膝盖内扣", "幅度不足", "核心不稳"];
   Object.values(details).forEach((plan) => {
     const weeks = Array.isArray(plan && plan.schedule) ? plan.schedule : [];
     weeks.forEach((week) => {

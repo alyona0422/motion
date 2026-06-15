@@ -596,10 +596,15 @@
       transition: transform 480ms ease;
     }
 
+    #screenWrap {
+      position: relative;
+      min-height: 100%;
+    }
+
     .top-bar-strength {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: center;
       padding: 12px 20px;
       background: rgba(8, 16, 28, 0.92);
       border-bottom: 1px solid rgba(148, 163, 184, 0.12);
@@ -629,6 +634,21 @@
       color: #fff;
     }
 
+    .strength-action-dock {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      min-height: 56px;
+      margin: 16px 18px 24px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(8, 14, 24, 0.88);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 16px 42px rgba(0, 0, 0, 0.42), inset 0 0 0 1px rgba(148, 163, 184, 0.14);
+    }
+
     @media (max-width: 1100px) {
       .main { grid-template-columns: 1fr; }
       .left { display: flex; }
@@ -654,7 +674,6 @@
   <div id="screenWrap">
     <div class="top-bar-strength">
       <h2 class="top-bar-strength-title">Strength Training · Free Training</h2>
-      <button type="button" class="back-btn-strength" id="backBtn">Back</button>
     </div>
     <div class="dashboard" id="dashboard">
     <header class="top">
@@ -677,16 +696,16 @@
               <label>Duration</label>
               <strong id="durationValue">00:00</strong>
             </div>
-            <div class="metric">
+            <div class="metric" id="resistanceMetric">
               <label>Total Resistance</label>
               <strong><span id="resistanceValue">5.0</span><small>kg</small></strong>
             </div>
             <div class="metric">
-              <label>Energy Output</label>
+              <label id="energyLabel">Energy Output</label>
               <strong><span id="energyValue">0</span><small>kJ</small></strong>
             </div>
             <div class="metric">
-              <label>Calories</label>
+              <label id="calorieLabel">Calories</label>
               <strong><span id="calorieValue">0</span><small>kcal</small></strong>
             </div>
           </div>
@@ -791,6 +810,9 @@
       <strong id="currentResistance">5.0kg</strong>
     </footer>
   </div>
+  <div class="strength-action-dock" aria-label="Page actions">
+    <button type="button" class="back-btn-strength" id="backBtn">Back</button>
+  </div>
   </div>
 
   <script>
@@ -826,6 +848,23 @@
           if (topTitleEl2) topTitleEl2.textContent = "Resistance Cardio · Free Training";
         }
       })();
+      var urlParams = new URLSearchParams(window.location.search);
+      var trainingTypeParam = urlParams.get("type");
+      var isBodyweightCardio = trainingTypeParam === "cardio" || trainingTypeParam === "bodyweight_cardio";
+      const MET_BODYWEIGHT_CARDIO = 6;
+      const MET_CONST = 0.0175;
+      const DEFAULT_WEIGHT_KG = 70;
+      const userWeightKg = DEFAULT_WEIGHT_KG;
+      const energyLabel = document.getElementById("energyLabel");
+      const calorieLabel = document.getElementById("calorieLabel");
+      const resistanceMetric = document.getElementById("resistanceMetric");
+      if (isBodyweightCardio) {
+        if (energyLabel) energyLabel.textContent = "Est. Energy Output";
+        if (calorieLabel) calorieLabel.textContent = "Est. Calories";
+        if (resistanceMetric) resistanceMetric.hidden = true;
+        var subElCardio = document.getElementById("pageSubtitle");
+        if (subElCardio) subElCardio.textContent = "Duration + estimated burn (no resistance data)";
+      }
       const modeBtns = document.querySelectorAll(".mode-btn");
       const barbellBtns = document.querySelectorAll(".barbell-btn");
       const springSliderBlock = document.getElementById("springSliderBlock");
@@ -844,7 +883,7 @@
       let springLevel = 1;
       let isokineticLevel = 1;
       let elapsedSeconds = 0;
-      let outputEnergy = 0;
+      const KCAL_TO_KJ = 4.184;
       let calories = 0;
       let isRunning = false;
       let timerId = null;
@@ -1013,11 +1052,14 @@
       function tickTraining() {
         if (!isRunning) return;
         elapsedSeconds += 1;
-        targetPowerPercent = Math.max(20, Math.min(100, 20 + resistanceKg * 1.15 + Math.random() * 26));
-        var energyStep = resistanceKg * (0.42 + targetPowerPercent / 188);
-        outputEnergy += energyStep;
-        calories += energyStep * 0.24;
-        energyValue.textContent = outputEnergy.toFixed(0);
+        if (isBodyweightCardio) {
+          calories += MET_BODYWEIGHT_CARDIO * MET_CONST * userWeightKg / 60;
+        } else {
+          targetPowerPercent = Math.max(20, Math.min(100, 20 + resistanceKg * 1.15 + Math.random() * 26));
+          var energyStep = resistanceKg * (0.42 + targetPowerPercent / 188);
+          calories += energyStep * 0.24;
+        }
+        energyValue.textContent = (calories * KCAL_TO_KJ).toFixed(0);
         calorieValue.textContent = calories.toFixed(0);
         durationValue.textContent = formatDuration(elapsedSeconds);
       }

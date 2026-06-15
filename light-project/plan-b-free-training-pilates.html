@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Plan B · Pilates free training</title>
+  <title>Plan B · 普拉提自由训练</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -15,23 +15,19 @@
   <link rel="stylesheet" href="css/plan-b-light-medium.css" />
 </head>
 <body class="cream-medium" data-plan-b-page="pilates">
-  <main class="device-shell" aria-label="Plan B home verification">
+  <main class="device-shell" aria-label="普拉提自由训练">
     <div class="particle-layer" aria-hidden="true"></div>
     <div class="vignette" aria-hidden="true"></div>
 
 <div class="pilates-view is-active" id="pilatesView" aria-hidden="false">
-      <div class="pilates-bar">
-        <h2>Pilates · Free Training</h2>
-        <button class="back-btn" id="pilatesBackBtn" type="button">Back</button>
-      </div>
       <div class="dashboard" id="pilatesDashboard">
         <header class="top">
           <div class="title-block">
-            <h1>Free Training</h1>
-            <p>Real-time Tracking: Duration / Resistance / Energy / Calories</p>
+            <h1>自由训练</h1>
+            <p>实时追踪：时长 / 阻力 / 能量 / 卡路里</p>
           </div>
           <div class="system-status">
-            <div>System Online</div>
+            <div>系统在线</div>
             <div>09:41</div>
           </div>
         </header>
@@ -39,61 +35,90 @@
         <section class="main">
           <div class="left">
             <article class="panel">
-              <h2 class="panel-title">Core Metrics</h2>
+              <h2 class="panel-title">核心指标</h2>
               <div class="metrics">
                 <div class="metric">
-                  <label>Duration</label>
+                  <label>时长</label>
                   <strong id="pilatesDurationValue">00:00</strong>
                 </div>
                 <div class="metric">
-                  <label>Total Resistance</label>
-                  <strong><span id="pilatesResistanceValue">42.0</span><small>kg</small></strong>
+                  <label>总阻力</label>
+                  <strong><span id="pilatesResistanceValue">5</span><small>kg</small></strong>
                 </div>
                 <div class="metric">
-                  <label>Energy Output</label>
+                  <label>能量输出</label>
                   <strong><span id="pilatesEnergyValue">0</span><small>kJ</small></strong>
                 </div>
                 <div class="metric">
-                  <label>Calories</label>
+                  <label>卡路里</label>
                   <strong><span id="pilatesCalorieValue">0</span><small>kcal</small></strong>
                 </div>
               </div>
             </article>
 
-            <article class="panel spring-layout">
-              <h2 class="panel-title">Spring Configuration</h2>
-              <div class="spring-list">
-                <button class="spring is-active" data-kg="5" data-color="green" type="button" aria-label="5kg green spring">
-                  <span class="coil"></span>
-                  <span class="spring-value">5kg</span>
-                  <span class="spring-label">Adaptive</span>
-                </button>
-                <button class="spring is-active" data-kg="6.5" data-color="yellow" type="button" aria-label="6.5kg yellow spring">
-                  <span class="coil"></span>
-                  <span class="spring-value">6.5kg</span>
-                  <span class="spring-label">Dynamic</span>
-                </button>
-                <button class="spring is-active" data-kg="6.5" data-color="yellow" type="button" aria-label="6.5kg yellow spring">
-                  <span class="coil"></span>
-                  <span class="spring-value">6.5kg</span>
-                  <span class="spring-label">Dynamic</span>
-                </button>
-                <button class="spring is-active" data-kg="12" data-color="red" type="button" aria-label="12kg red spring">
-                  <span class="coil"></span>
-                  <span class="spring-value">12kg</span>
-                  <span class="spring-label">Power</span>
-                </button>
-                <button class="spring is-active" data-kg="12" data-color="red" type="button" aria-label="12kg red spring">
-                  <span class="coil"></span>
-                  <span class="spring-value">12kg</span>
-                  <span class="spring-label">Power</span>
-                </button>
+            <article class="panel config-layout">
+              <h2 class="panel-title">配置</h2>
+
+              <div class="config-row">
+                <span class="config-label">训练模式</span>
+                <div class="mode-group" id="pilatesModeGroup" role="group" aria-label="训练模式">
+                  <button type="button" class="mode-btn active" data-mode="standard">标准</button>
+                  <button type="button" class="mode-btn" data-mode="spring">弹簧</button>
+                  <button type="button" class="mode-btn" data-mode="eccentric">离心</button>
+                  <button type="button" class="mode-btn" data-mode="isokinetic">等速</button>
+                </div>
+              </div>
+
+              <div class="config-row flip-row">
+                <span class="config-label">屏幕</span>
+                <button type="button" class="flip-btn" id="pilatesFlipBtn">翻转屏幕</button>
+              </div>
+
+              <div class="config-row resistance-row">
+                <span class="config-label">阻力</span>
+                <div class="resistance-control">
+                  <button type="button" id="pilatesResistanceMinus" aria-label="减少 1kg">−</button>
+                  <div class="iw-dial-container">
+                    <svg class="iw-dial-svg" viewBox="0 0 120 120">
+                      <defs>
+                        <linearGradient id="pilatesDialGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stop-color="#00D4FF"/>
+                          <stop offset="100%" stop-color="#007AFF"/>
+                        </linearGradient>
+                      </defs>
+                      <circle cx="60" cy="60" r="54" class="iw-dial-ticks"></circle>
+                      <circle cx="60" cy="60" r="40" class="iw-dial-track"></circle>
+                      <circle cx="60" cy="60" r="40" class="iw-dial-progress" id="pilatesDialProgress"></circle>
+                    </svg>
+                    <div class="iw-dial-content">
+                      <div class="iw-dial-value" id="pilatesResistanceDisplayVal">5</div>
+                      <div class="iw-dial-unit">kg</div>
+                    </div>
+                  </div>
+                  <button type="button" id="pilatesResistancePlus" aria-label="增加 1kg">+</button>
+                </div>
+              </div>
+
+              <div class="spring-bar" id="pilatesSpringBar" aria-label="阻力弹簧指示器">
+                <div class="spring-bar-coil" id="pilatesSpringCoil"></div>
+                <span class="spring-bar-value" id="pilatesSpringBarValue">5 kg</span>
+              </div>
+
+              <div class="slider-block" id="pilatesSpringSliderBlock">
+                <span class="slider-label" id="pilatesSpringSliderLabel">1 档</span>
+                <input type="range" id="pilatesSpringSlider" min="1" max="10" step="1" value="1" aria-label="弹簧档位">
+                <span class="slider-hint">档位越高弹簧越硬；阻力随幅度增加更明显。</span>
+              </div>
+
+              <div class="slider-block" id="pilatesIsokineticSliderBlock">
+                <span class="slider-label" id="pilatesIsokineticSliderLabel">1 档</span>
+                <input type="range" id="pilatesIsokineticSlider" min="1" max="25" step="1" value="1" aria-label="等速档位">
+                <span class="slider-hint" id="pilatesIsokineticSliderHint">慢速/稳定——强速度限制，适合锁定位的力量训练。</span>
               </div>
 
               <div class="controls">
-                <button id="pilatesStartBtn" class="start-btn" type="button">Start</button>
-                <button id="pilatesEndBtn" class="end-btn" type="button">End</button>
-                <button id="pilatesFlipBtn" class="flip-btn" type="button">Flip Screen</button>
+                <button id="pilatesStartBtn" class="start-btn" type="button">开始</button>
+                <button id="pilatesEndBtn" class="end-btn" type="button">结束</button>
               </div>
             </article>
           </div>
@@ -101,29 +126,32 @@
           <div class="right">
             <article class="panel chart-panel">
               <div class="chart-panel-header">
-                <h2 class="panel-title">Range of Motion &amp; Power</h2>
+                <h2 class="panel-title">动作幅度与功率</h2>
                 <div class="chart-legend">
                   <div class="legend-item">
                     <span class="legend-color color-range"></span>
-                    <span>Range</span>
+                    <span>幅度</span>
                   </div>
                   <div class="legend-item">
                     <span class="legend-color color-power"></span>
-                    <span>Power</span>
+                    <span>功率</span>
                   </div>
                 </div>
               </div>
               <div class="chart-wrap">
-                <canvas id="romPowerCanvas" aria-label="Real-time range and power chart"></canvas>
+                <canvas id="romPowerCanvas" aria-label="实时幅度与功率图表"></canvas>
               </div>
             </article>
           </div>
         </section>
 
         <footer class="footer">
-          <label>Current Resistance</label>
-          <strong id="pilatesCurrentResistance">42.0kg</strong>
+          <label>当前阻力</label>
+          <strong id="pilatesCurrentResistance">5kg</strong>
         </footer>
+      </div>
+      <div class="action-dock" aria-label="页面操作">
+        <button class="back-btn" id="pilatesBackBtn" type="button">返回</button>
       </div>
     </div>
   </main>

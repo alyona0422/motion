@@ -22,7 +22,6 @@
       <div class="tr-shell">
         <div class="tr-top">
           <span class="tr-kicker">Training Report</span>
-          <button class="tr-close-btn" id="reportCloseBtn" type="button" aria-label="Close report">×</button>
         </div>
         <header class="tr-hero">
           <div class="tr-avatar tr-avatar-initial" id="reportUserAvatar" aria-hidden="true">A</div>
@@ -41,11 +40,11 @@
             <strong><span id="reportCapacityValue">0.0</span><small>kg</small></strong>
           </article>
           <article class="tr-stat">
-            <label>Output Energy</label>
+            <label id="reportEnergyLabel">Output Energy</label>
             <strong><span id="reportEnergyValue">0</span><small>kJ</small></strong>
           </article>
           <article class="tr-stat">
-            <label>Calories</label>
+            <label id="reportCaloriesLabel">Calories</label>
             <strong><span id="reportCaloriesValue">0</span><small>kcal</small></strong>
           </article>
         </section>
@@ -103,16 +102,49 @@
           </div>
           <div class="tr-intensity-wrap" id="reportIntensityBar"></div>
           <div class="tr-intensity-legend" id="reportIntensityLegend"></div>
-          <div id="reportPowerCurveBlock" aria-label="Power curve" hidden>
+          <p class="tr-intensity-legend-note" id="reportIntensityLegendNote"></p>
+          <div id="reportPowerCurveBlock" aria-label="Power and amplitude" hidden>
             <div class="tr-title-row">
-              <h3>Power Curve</h3>
+              <h3>Power &amp; Amplitude</h3>
               <span class="tr-note" id="reportPowerCurveMeta">Session</span>
             </div>
             <div class="tr-power-curve-tabs" id="reportPowerCurveTabs"></div>
-            <div class="tr-power-curve-canvas-wrap">
-              <svg class="tr-power-curve-svg" id="reportPowerCurveSvg" viewBox="0 0 320 140" preserveAspectRatio="none" aria-label="Power curve chart"></svg>
-            </div>
-            <div class="tr-power-curve-foot" id="reportPowerCurveFoot">Peak -- · Avg --</div>
+
+            <article class="tr-chart" data-chart="power">
+              <div class="tr-chart-head">
+                <span class="tr-chart-name">Power</span>
+                <span class="tr-chart-foot" id="reportPowerCurveFoot">Peak -- · Avg --</span>
+              </div>
+              <div class="tr-chart-viewport">
+                <button class="tr-chart-nav tr-chart-nav--prev" id="reportPowerNavPrev" type="button" aria-label="Scroll power chart left" hidden>
+                  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <div class="tr-chart-scroll" id="reportPowerScroll">
+                  <svg class="tr-chart-svg tr-chart-svg--power" id="reportPowerCurveSvg" viewBox="0 0 320 140" preserveAspectRatio="none" aria-label="Power over the session"></svg>
+                </div>
+                <button class="tr-chart-nav tr-chart-nav--next" id="reportPowerNavNext" type="button" aria-label="Scroll power chart right" hidden>
+                  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+              </div>
+            </article>
+
+            <article class="tr-chart" data-chart="amplitude">
+              <div class="tr-chart-head">
+                <span class="tr-chart-name">Range of Motion</span>
+                <span class="tr-chart-foot" id="reportAmpFoot">Peak -- · Avg --</span>
+              </div>
+              <div class="tr-chart-viewport">
+                <button class="tr-chart-nav tr-chart-nav--prev" id="reportAmpNavPrev" type="button" aria-label="Scroll range of motion chart left" hidden>
+                  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <div class="tr-chart-scroll" id="reportAmpScroll">
+                  <svg class="tr-chart-svg tr-chart-svg--amp" id="reportAmpSvg" viewBox="0 0 320 140" preserveAspectRatio="none" aria-label="Range of motion over the session"></svg>
+                </div>
+                <button class="tr-chart-nav tr-chart-nav--next" id="reportAmpNavNext" type="button" aria-label="Scroll range of motion chart right" hidden>
+                  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+              </div>
+            </article>
           </div>
         </section>
         <footer class="tr-actions">
@@ -120,8 +152,10 @@
           <button class="tr-btn tr-btn--primary" id="reportHomeBtn" type="button">Back Home</button>
         </footer>
       </div>
+      <div class="action-dock" aria-label="Page actions">
+        <button class="tr-close-btn" id="reportCloseBtn" type="button" aria-label="Close report">×</button>
+      </div>
     </section>
-  </main>
   </main>
   <script src="js/data/explore-library.js"></script>
   <script src="js/plan-b-verify.js" defer></script>

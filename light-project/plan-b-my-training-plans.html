@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Plan B · My Training Plans</title>
+  <title>Plan B · 我的训练计划</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -12,30 +12,32 @@
   <link rel="stylesheet" href="css/plan-b-light-medium.css" />
 </head>
 <body class="cream-medium" data-plan-b-page="my-training-plans">
-  <main class="device-shell" aria-label="My Training Plans">
+  <main class="device-shell" aria-label="我的训练计划">
     <div class="particle-layer" aria-hidden="true"></div>
     <div class="vignette" aria-hidden="true"></div>
 
-    <section class="content my-plans-screen" id="myPlansScreen" aria-label="My Plans">
+    <section class="content my-plans-screen" id="myPlansScreen" aria-label="我的计划">
       <div class="my-plans-app">
         <header class="my-plans-header">
-          <button class="back-btn" type="button" aria-label="Go back to profile" onclick="window.location.href='plan-b-profile.html'">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-          </button>
-          <h1>My Training Plans</h1>
+          <h1>我的训练计划</h1>
         </header>
 
-        <div class="my-plans-tabs" role="tablist" aria-label="Training plan categories">
-          <button class="my-plans-tab is-active" type="button" role="tab" aria-selected="true" data-tab="ongoing">In Progress</button>
-          <button class="my-plans-tab" type="button" role="tab" aria-selected="false" data-tab="history">History</button>
+        <div class="my-plans-tabs" role="tablist" aria-label="训练计划分类">
+          <button class="my-plans-tab is-active" type="button" role="tab" aria-selected="true" data-tab="ongoing">进行中</button>
+          <button class="my-plans-tab" type="button" role="tab" aria-selected="false" data-tab="history">历史</button>
         </div>
 
-        <section class="my-plans-results" aria-label="Plans list">
+        <section class="my-plans-results" aria-label="计划列表">
           <div class="my-plans-list" id="myPlansList">
             <!-- Plan cards will be rendered here via JS -->
           </div>
-          <p class="my-plans-empty" id="myPlansEmpty" hidden>No plans found.</p>
+          <p class="my-plans-empty" id="myPlansEmpty" hidden>暂无计划。</p>
         </section>
+      </div>
+      <div class="action-dock" aria-label="页面操作">
+        <button class="back-btn" type="button" aria-label="返回个人主页" onclick="window.location.href='plan-b-profile.html'">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
       </div>
     </section>
   </main>

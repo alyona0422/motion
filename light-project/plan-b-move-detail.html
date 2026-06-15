@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Plan B · Move detail</title>
+  <title>Plan B · 动作详情</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -15,13 +15,13 @@
   <link rel="stylesheet" href="css/plan-b-light-medium.css" />
 </head>
 <body class="cream-medium" data-plan-b-page="move-detail">
-  <main class="device-shell" aria-label="Plan B home verification">
+  <main class="device-shell" aria-label="Plan B 动作详情">
     <div class="particle-layer" aria-hidden="true"></div>
     <div class="vignette" aria-hidden="true"></div>
 
-<section class="move-detail-screen active" id="moveDetailScreen" aria-label="Action detail" aria-hidden="false">
+<section class="move-detail-screen active" id="moveDetailScreen" aria-label="动作详情" aria-hidden="false">
       <div class="ad-top-row">
-        <span>Dec 6, 2024 · 10:26 AM</span>
+        <span>2024年12月6日 · 上午 10:26</span>
         <div class="ad-status-icons" aria-hidden="true">
           <span class="ad-status-dot"></span>
           <span class="ad-status-dot"></span>
@@ -29,40 +29,36 @@
         </div>
       </div>
       <div class="ad-title-row">
-        <button class="ad-back-btn" id="exitMoveDetailBtn" type="button" aria-label="Back to home">
-          <svg viewBox="0 0 24 24">
-            <path d="M15 18l-6-6 6-6"></path>
-          </svg>
-        </button>
-        <h2 class="ad-view-title">ACTION DETAIL</h2>
-        <span class="ad-title-gap"></span>
+        <span class="ad-title-gap" aria-hidden="true"></span>
+        <h2 class="ad-view-title">动作详情</h2>
+        <span class="ad-title-gap" aria-hidden="true"></span>
       </div>
-      <section class="ad-video-card" aria-label="Action illustration">
+      <section class="ad-video-card" aria-label="动作示意">
         <img
           id="adActionHero"
           class="ad-action-hero"
           src="assets/Snipaste_2026-03-12_21-07-16.jpg"
-          alt="Move demonstration"
+          alt="动作演示"
           width="1200"
           height="675"
           decoding="async"
         />
       </section>
-      <section class="ad-headline" aria-label="Action intro">
-        <h1 id="adActionName">Workout Title</h1>
-        <p id="adActionIntro">Loading...</p>
-        <div class="ad-meta-tags" aria-label="Action tags">
-          <span class="ad-meta-tag ad-meta-tag--sport"><b>Type</b><span id="adSportValue">Strength</span></span>
-          <span class="ad-meta-tag ad-meta-tag--intensity"><b>Intensity</b><span id="adIntensityValue">Intermediate</span></span>
-          <span class="ad-meta-tag"><b>Equipment</b><span id="adEquipValue">Smart cable + dual handle</span></span>
-          <span class="ad-meta-tag ad-meta-tag--target"><b>Target</b><span id="adTargetValue">Chest</span></span>
+      <section class="ad-headline" aria-label="动作简介">
+        <h1 id="adActionName">动作名称</h1>
+        <p id="adActionIntro">加载中…</p>
+        <div class="ad-meta-tags" aria-label="动作标签">
+          <span class="ad-meta-tag ad-meta-tag--sport"><b>类型</b><span id="adSportValue">力量</span></span>
+          <span class="ad-meta-tag ad-meta-tag--intensity"><b>强度</b><span id="adIntensityValue">中级</span></span>
+          <span class="ad-meta-tag"><b>器械</b><span id="adEquipValue">智能拉索 + 双握把</span></span>
+          <span class="ad-meta-tag ad-meta-tag--target"><b>目标肌群</b><span id="adTargetValue">胸部</span></span>
         </div>
         <p class="ad-video-fallback" id="adVideoFallback"></p>
       </section>
-      <section class="ad-accordion-group" aria-label="Action execution info">
+      <section class="ad-accordion-group" aria-label="动作执行信息">
         <div class="ad-accordion is-open" id="adAccordionKeypoints">
           <button class="ad-accordion-header" type="button" aria-expanded="true">
-            <h3>Key points</h3>
+            <h3>要点</h3>
             <span class="ad-accordion-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
             </span>
@@ -70,12 +66,12 @@
           <div class="ad-accordion-content-wrapper">
             <div class="ad-accordion-content" id="adKeypointsContent">
               <ul>
-                <li>Stable start position; engage pelvis and core first.</li>
-                <li>Keep primary muscles driving through the working phase; avoid momentum.</li>
-                <li>Return in a controlled tempo with consistent path.</li>
+                <li>起始姿势保持稳定，先收紧骨盆与核心。</li>
+                <li>发力阶段保持主要肌群持续用力，避免借助惯性。</li>
+                <li>以可控的节奏沿一致轨迹回到起始位。</li>
               </ul>
               <div class="ad-install-inline-media" id="adKeypointsInlineMedia">
-                <img id="adKeypointsInlineImage" src="assets/show2.png" alt="Key points illustration" width="100%" loading="lazy" decoding="async" />
+                <img id="adKeypointsInlineImage" src="assets/show2.png" alt="要点示意" width="100%" loading="lazy" decoding="async" />
               </div>
             </div>
           </div>
@@ -83,21 +79,21 @@
         
         <div class="ad-accordion" id="adAccordionBreathing">
           <button class="ad-accordion-header" type="button" aria-expanded="false">
-            <h3>Breathing</h3>
+            <h3>呼吸</h3>
             <span class="ad-accordion-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
             </span>
           </button>
           <div class="ad-accordion-content-wrapper">
             <div class="ad-accordion-content" id="adBreathingContent">
-              <p>Exhale on the concentric phase, inhale on the eccentric; keep ribcage and core coordinated and avoid breath-holding.</p>
+              <p>向心阶段呼气，离心阶段吸气；保持胸廓与核心协调，避免憋气。</p>
             </div>
           </div>
         </div>
         
         <div class="ad-accordion" id="adAccordionMistakes">
           <button class="ad-accordion-header" type="button" aria-expanded="false">
-            <h3>Common mistakes</h3>
+            <h3>常见错误</h3>
             <span class="ad-accordion-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
             </span>
@@ -105,9 +101,9 @@
           <div class="ad-accordion-content-wrapper">
             <div class="ad-accordion-content" id="adMistakesContent">
               <ul>
-                <li>Shrugging and neck compensation.</li>
-                <li>Moving too fast with poor control.</li>
-                <li>Unstable end position and joint path drift.</li>
+                <li>耸肩并用颈部代偿发力。</li>
+                <li>动作过快、控制不足。</li>
+                <li>结束姿势不稳，关节运动轨迹偏移。</li>
               </ul>
             </div>
           </div>
@@ -115,7 +111,7 @@
         
         <div class="ad-accordion" id="adAccordionInstallation">
           <button class="ad-accordion-header" type="button" aria-expanded="false">
-            <h3>Installation illustration</h3>
+            <h3>安装示意</h3>
             <div class="ad-accordion-actions">
               <span class="ad-accordion-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
@@ -124,10 +120,10 @@
           </button>
           <div class="ad-accordion-content-wrapper">
             <div class="ad-accordion-content" id="adInstallationContent">
-              <p>Check anchor point, cable path, and handle direction before your first rep.</p>
+              <p>在开始第一次动作前，检查固定点、拉索路径和握把方向。</p>
               <div class="ad-install-inline-media hidden" id="adInstallInlineMedia">
-                <img id="adInstallInlineImage" src="" alt="Installation setup inline" width="100%" loading="lazy" decoding="async" />
-                <video id="adInstallInlineVideo" controls playsinline preload="metadata" class="hidden" aria-label="Installation setup video">
+                <img id="adInstallInlineImage" src="" alt="安装设置示意" width="100%" loading="lazy" decoding="async" />
+                <video id="adInstallInlineVideo" controls playsinline preload="metadata" class="hidden" aria-label="安装设置视频">
                   <source id="adInstallInlineVideoSource" src="" type="video/mp4" />
                 </video>
               </div>
@@ -135,7 +131,14 @@
           </div>
         </div>
       </section>
-      <button class="ad-start-btn" id="adStartTrainingBtn" type="button">Start Training</button>
+      <button class="ad-start-btn" id="adStartTrainingBtn" type="button">开始训练</button>
+      <div class="action-dock" aria-label="页面操作">
+        <button class="ad-back-btn" id="exitMoveDetailBtn" type="button" aria-label="返回首页">
+          <svg viewBox="0 0 24 24">
+            <path d="M15 18l-6-6 6-6"></path>
+          </svg>
+        </button>
+      </div>
     </section>
   </main>
   <script src="js/data/explore-library.js"></script>

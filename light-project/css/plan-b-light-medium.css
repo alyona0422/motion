@@ -928,3 +928,441 @@
   color: #ecfeff !important;
   border-color: rgba(20, 184, 166, 0.42) !important;
 }
+
+/* === Control Center light overrides === */
+body.cream-medium .cc-scrim {
+  background: rgba(15, 23, 42, 0.24) !important;
+}
+
+body.cream-medium .cc-panel {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 250, 238, 0.88)) !important;
+  box-shadow: 0 20px 42px rgba(15, 23, 42, 0.16), inset 0 0 0 1px rgba(148, 163, 184, 0.22) !important;
+}
+
+body.cream-medium .cc-tile,
+body.cream-medium .cc-slider,
+body.cream-medium .cc-ambient,
+body.cream-medium .cc-music,
+body.cream-medium .cc-theme {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(255, 250, 238, 0.76)) !important;
+  border-color: rgba(148, 163, 184, 0.28) !important;
+  color: #0f172a !important;
+}
+
+body.cream-medium .cc-tile.active {
+  background: linear-gradient(165deg, rgba(20, 184, 166, 0.28), rgba(224, 242, 254, 0.86)) !important;
+  border-color: rgba(8, 145, 178, 0.48) !important;
+  color: #0f172a !important;
+}
+
+body.cream-medium .cc-tile-state,
+body.cream-medium .cc-slider-label,
+body.cream-medium .cc-ambient-state,
+body.cream-medium .cc-ambient-label,
+body.cream-medium .cc-progress-time,
+body.cream-medium .cc-music-copy span,
+body.cream-medium .cc-theme-state {
+  color: #64748b !important;
+}
+
+body.cream-medium .cc-tile.active .cc-tile-state {
+  color: #475569 !important;
+}
+
+body.cream-medium .cc-segment-btn {
+  background: rgba(248, 250, 252, 0.92) !important;
+  color: #64748b !important;
+  border-color: rgba(148, 163, 184, 0.3) !important;
+}
+
+body.cream-medium .cc-segment-btn.is-active {
+  background: rgba(20, 184, 166, 0.24) !important;
+  border-color: rgba(8, 145, 178, 0.48) !important;
+  color: #0f172a !important;
+}
+
+body.cream-medium .cc-btn,
+body.cream-medium .cc-fab {
+  background: rgba(255, 255, 255, 0.92) !important;
+  color: #334155 !important;
+  border-color: rgba(148, 163, 184, 0.34) !important;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.1) !important;
+}
+
+body.cream-medium .cc-btn--play {
+  background: rgba(20, 184, 166, 0.22) !important;
+  border-color: rgba(8, 145, 178, 0.42) !important;
+}
+
+body.cream-medium .cc-playlist-item {
+  background: rgba(248, 250, 252, 0.92) !important;
+  color: #334155 !important;
+  border-color: rgba(148, 163, 184, 0.28) !important;
+}
+
+body.cream-medium .cc-playlist-item.is-active {
+  background: rgba(204, 251, 241, 0.72) !important;
+  border-color: rgba(8, 145, 178, 0.42) !important;
+}
+
+/* === Move detail light overrides === */
+body.cream-medium .move-detail-screen {
+  background: linear-gradient(180deg, rgba(255, 252, 244, 0.92), rgba(248, 250, 252, 0.88)) !important;
+}
+
+body.cream-medium .ad-top-row,
+body.cream-medium .ad-view-title {
+  color: #475569 !important;
+}
+
+body.cream-medium .ad-back-btn {
+  background: rgba(255, 255, 255, 0.92) !important;
+  color: #334155 !important;
+  border-color: rgba(148, 163, 184, 0.34) !important;
+}
+
+body.cream-medium .ad-video-card {
+  background: #e2e8f0 !important;
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12) !important;
+  border-color: rgba(148, 163, 184, 0.28) !important;
+}
+
+body.cream-medium .ad-video-overlay {
+  background: linear-gradient(180deg, rgba(248, 250, 252, 0.12), rgba(241, 245, 249, 0.56)) !important;
+}
+
+body.cream-medium .ad-headline h1,
+body.cream-medium .ad-view-title {
+  color: #0f172a !important;
+}
+
+body.cream-medium .ad-headline p,
+body.cream-medium .ad-video-meta,
+body.cream-medium .ad-block p,
+body.cream-medium .ad-block li {
+  color: #475569 !important;
+}
+
+body.cream-medium .ad-meta-chip,
+body.cream-medium .ad-meta-tag {
+  background: rgba(255, 255, 255, 0.88) !important;
+  color: #334155 !important;
+  border-color: rgba(148, 163, 184, 0.32) !important;
+}
+
+body.cream-medium .ad-meta-tag--intensity {
+  background: linear-gradient(90deg, rgba(255, 237, 213, 0.88), rgba(255, 255, 255, 0.86)) !important;
+  border-color: rgba(251, 146, 60, 0.36) !important;
+}
+
+body.cream-medium .ad-meta-tag--sport {
+  background: linear-gradient(90deg, rgba(204, 251, 241, 0.82), rgba(255, 255, 255, 0.86)) !important;
+  border-color: rgba(45, 212, 191, 0.36) !important;
+}
+
+body.cream-medium .ad-blocks-grid,
+body.cream-medium .ad-block,
+body.cream-medium .ad-accordion {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(255, 250, 238, 0.76)) !important;
+  border-color: rgba(148, 163, 184, 0.24) !important;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08) !important;
+}
+
+body.cream-medium .ad-block h3,
+body.cream-medium .ad-accordion-header h3 {
+  color: #0f172a !important;
+}
+
+body.cream-medium .ad-accordion-header,
+body.cream-medium .ad-accordion-content {
+  color: #475569 !important;
+}
+
+body.cream-medium .ad-start-btn {
+  background: linear-gradient(120deg, #14b8a6 0%, #0891b2 58%, #0e7490 100%) !important;
+  color: #ecfeff !important;
+  border-color: rgba(20, 184, 166, 0.42) !important;
+}
+
+/* === Auth flow light overrides === */
+body.cream-medium .auth-back-btn,
+body.cream-medium .auth-secondary-btn {
+  background: rgba(248, 250, 252, 0.92) !important;
+  color: #334155 !important;
+  border: 1px solid rgba(148, 163, 184, 0.34) !important;
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.16) !important;
+}
+
+body.cream-medium .auth-card {
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.94), rgba(255, 250, 238, 0.82)) !important;
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.1), inset 0 0 0 1px rgba(148, 163, 184, 0.2) !important;
+}
+
+body.cream-medium .auth-title {
+  color: #0f172a !important;
+}
+
+body.cream-medium .auth-subtitle,
+body.cream-medium .auth-field label,
+body.cream-medium .auth-field-group-label,
+body.cream-medium .auth-check-row {
+  color: #475569 !important;
+}
+
+body.cream-medium .quick-login-card {
+  background: linear-gradient(120deg, rgba(204, 251, 241, 0.72), rgba(255, 255, 255, 0.92)) !important;
+  color: #0f172a !important;
+  box-shadow: inset 0 0 0 1px rgba(8, 145, 178, 0.28) !important;
+}
+
+body.cream-medium .quick-login-meta span,
+body.cream-medium .auth-link-btn,
+body.cream-medium .auth-check-row a {
+  color: #0e7490 !important;
+}
+
+body.cream-medium .auth-method-tabs,
+body.cream-medium .auth-unit-toggle {
+  background: rgba(241, 245, 249, 0.92) !important;
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.24) !important;
+}
+
+body.cream-medium .auth-method-tab.active,
+body.cream-medium .auth-unit-btn.active {
+  background: rgba(20, 184, 166, 0.22) !important;
+  color: #0f172a !important;
+  box-shadow: inset 0 0 0 1px rgba(8, 145, 178, 0.32) !important;
+}
+
+body.cream-medium .auth-input,
+body.cream-medium .auth-select {
+  background: rgba(255, 255, 255, 0.92) !important;
+  color: #0f172a !important;
+  border-color: rgba(148, 163, 184, 0.34) !important;
+}
+
+body.cream-medium .auth-primary-btn {
+  background: linear-gradient(120deg, #14b8a6 0%, #0891b2 58%, #0e7490 100%) !important;
+  color: #ecfeff !important;
+  box-shadow: 0 12px 22px rgba(8, 145, 178, 0.22) !important;
+}
+
+body.cream-medium .auth-toast {
+  background: rgba(255, 255, 255, 0.96) !important;
+  color: #0f172a !important;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14), inset 0 0 0 1px rgba(148, 163, 184, 0.22) !important;
+}
+
+/* === Ambient light settings light overrides === */
+body.cream-medium .settings-screen {
+  background: linear-gradient(170deg, rgba(255, 252, 244, 0.92), rgba(248, 250, 252, 0.88)) !important;
+}
+
+body.cream-medium .settings-back-btn {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border-color: rgba(148, 163, 184, 0.34) !important;
+  color: #334155 !important;
+}
+
+body.cream-medium .settings-title,
+body.cream-medium .card-title,
+body.cream-medium .row-title {
+  color: #0f172a !important;
+}
+
+body.cream-medium .card-subtitle,
+body.cream-medium .row-note,
+body.cream-medium .field-label,
+body.cream-medium .field-tip,
+body.cream-medium .color-grid-tip,
+body.cream-medium .reset-defaults-note {
+  color: #64748b !important;
+}
+
+body.cream-medium .setting-card {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(255, 250, 238, 0.76)) !important;
+  border-color: rgba(148, 163, 184, 0.24) !important;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08) !important;
+}
+
+body.cream-medium .card-power {
+  background: linear-gradient(160deg, rgba(204, 251, 241, 0.72), rgba(255, 255, 255, 0.9)) !important;
+  border-color: rgba(8, 145, 178, 0.32) !important;
+}
+
+body.cream-medium .preset-chip,
+body.cream-medium .secondary-btn,
+body.cream-medium .segment-btn,
+body.cream-medium .reset-defaults-btn {
+  background: rgba(248, 250, 252, 0.92) !important;
+  color: #334155 !important;
+  border-color: rgba(148, 163, 184, 0.3) !important;
+}
+
+body.cream-medium .preset-chip.is-active,
+body.cream-medium .segment-btn.is-active {
+  background: rgba(204, 251, 241, 0.72) !important;
+  border-color: rgba(8, 145, 178, 0.42) !important;
+  color: #0f172a !important;
+}
+
+body.cream-medium .reset-modal-panel {
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.96), rgba(255, 250, 238, 0.84)) !important;
+}
+
+body.cream-medium .reset-modal-copy {
+  color: #475569 !important;
+}
+
+/* === Device settings inline styles light overrides === */
+body.cream-medium .settings-screen {
+  background: linear-gradient(170deg, rgba(255, 252, 244, 0.92), rgba(248, 250, 252, 0.88)) !important;
+}
+
+body.cream-medium .list-btn {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(255, 250, 238, 0.76)) !important;
+  border-color: rgba(148, 163, 184, 0.24) !important;
+  color: #0f172a !important;
+}
+
+body.cream-medium .list-btn:hover {
+  background: rgba(204, 251, 241, 0.52) !important;
+  border-color: rgba(8, 145, 178, 0.32) !important;
+}
+
+body.cream-medium .sheet-overlay {
+  background: rgba(15, 23, 42, 0.24) !important;
+}
+
+body.cream-medium .wifi-bottom-sheet,
+body.cream-medium .wifi-sheet-panel,
+body.cream-medium .device-info-sheet {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 250, 238, 0.88)) !important;
+  border-color: rgba(148, 163, 184, 0.24) !important;
+}
+
+body.cream-medium .wifi-sheet-header h3,
+body.cream-medium .device-info-sheet h3,
+body.cream-medium .wifi-network-name {
+  color: #0f172a !important;
+}
+
+body.cream-medium .wifi-network-item,
+body.cream-medium .device-info-row {
+  background: rgba(248, 250, 252, 0.92) !important;
+  border-color: rgba(148, 163, 184, 0.24) !important;
+  color: #334155 !important;
+}
+
+/* === Pilates free training light overrides === */
+body.cream-medium .pilates-view {
+  background: linear-gradient(170deg, rgba(255, 252, 244, 0.92), rgba(248, 250, 252, 0.88)) !important;
+}
+
+body.cream-medium .pilates-view .dashboard {
+  background: transparent !important;
+}
+
+body.cream-medium .pilates-view .dashboard::before,
+body.cream-medium .pilates-view .dashboard::after {
+  opacity: 0.18 !important;
+}
+
+body.cream-medium .pilates-view .panel,
+body.cream-medium .pilates-view .metric,
+body.cream-medium .pilates-view .mode-btn,
+body.cream-medium .pilates-view .resistance-control button,
+body.cream-medium .pilates-view .back-btn {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(255, 250, 238, 0.76)) !important;
+  border-color: rgba(148, 163, 184, 0.24) !important;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08) !important;
+  color: #334155 !important;
+}
+
+body.cream-medium .pilates-view .title-block h1,
+body.cream-medium .pilates-view .metric strong,
+body.cream-medium .pilates-view .pilates-bar h2 {
+  color: #0f172a !important;
+  text-shadow: none !important;
+}
+
+body.cream-medium .pilates-view .title-block p,
+body.cream-medium .pilates-view .panel-title,
+body.cream-medium .pilates-view .metric label,
+body.cream-medium .pilates-view .config-label,
+body.cream-medium .pilates-view .system-status {
+  color: #64748b !important;
+}
+
+body.cream-medium .pilates-view .mode-btn.active {
+  background: linear-gradient(120deg, rgba(20, 184, 166, 0.28), rgba(224, 242, 254, 0.86)) !important;
+  border-color: rgba(8, 145, 178, 0.48) !important;
+  color: #0f172a !important;
+}
+
+body.cream-medium .pilates-view .iw-dial-track {
+  stroke: rgba(148, 163, 184, 0.34) !important;
+}
+
+body.cream-medium .pilates-view .iw-dial-value,
+body.cream-medium .pilates-view .iw-dial-unit {
+  color: #0f172a !important;
+}
+
+/* === Shared modal/training picker (home + detail) === */
+body.cream-medium .training-modal {
+  background: rgba(15, 23, 42, 0.24) !important;
+}
+
+body.cream-medium .modal-panel {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.98), rgba(255, 250, 238, 0.88)) !important;
+  box-shadow: 0 22px 44px rgba(15, 23, 42, 0.16), inset 0 0 0 1px rgba(148, 163, 184, 0.2) !important;
+}
+
+body.cream-medium .modal-head h3 {
+  color: #0f172a !important;
+}
+
+body.cream-medium .training-btn {
+  background: rgba(248, 250, 252, 0.92) !important;
+  color: #0f172a !important;
+  border: 1px solid rgba(148, 163, 184, 0.24) !important;
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.14) !important;
+}
+
+body.cream-medium .training-btn span {
+  color: #64748b !important;
+}
+
+body.cream-medium .close-btn {
+  background: rgba(248, 250, 252, 0.92) !important;
+  color: #64748b !important;
+  border: 1px solid rgba(148, 163, 184, 0.24) !important;
+}
+
+/* === Immersive workout extended light overrides (pilates + strength paths) === */
+body.cream-medium .immersive-workout-screen {
+  background: linear-gradient(180deg, rgba(255, 252, 244, 0.92), rgba(241, 245, 249, 0.88)) !important;
+}
+
+body.cream-medium .immersive-workout-screen .iw-subtitle,
+body.cream-medium .immersive-workout-screen .iw-meta,
+body.cream-medium .immersive-workout-screen .iw-label,
+body.cream-medium .immersive-workout-screen .iw-chart-tab {
+  color: #64748b !important;
+}
+
+body.cream-medium .immersive-workout-screen .iw-chart-tab.active {
+  color: #0f172a !important;
+  background: linear-gradient(120deg, rgba(204, 251, 241, 0.72), rgba(224, 242, 254, 0.86)) !important;
+}
+
+body.cream-medium .immersive-workout-screen #iwChartCanvas {
+  background: rgba(255, 255, 255, 0.88) !important;
+}
+
+body.cream-medium .immersive-workout-screen .iw-primary-btn,
+body.cream-medium .immersive-workout-screen .iw-finish-btn {
+  background: linear-gradient(120deg, #14b8a6 0%, #0891b2 58%, #0e7490 100%) !important;
+  color: #ecfeff !important;
+}

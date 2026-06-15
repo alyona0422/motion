@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Plan B · Account Settings</title>
+  <title>Plan B · 账号设置</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="css/plan-b-immersive.css" />
   <link rel="stylesheet" href="css/plan-b-pilates-report.css" />
   <link rel="stylesheet" href="css/plan-b-auth.css" />
+  <link rel="stylesheet" href="css/plan-b-light-medium.css" />
   <style>
     .settings-screen {
       position: absolute;
@@ -27,6 +28,7 @@
     .settings-header {
       display: flex;
       align-items: center;
+      justify-content: center;
       margin-bottom: 32px;
     }
     .settings-back-btn {
@@ -40,7 +42,8 @@
       justify-content: center;
       color: var(--text-primary);
       cursor: pointer;
-      margin-right: 16px;
+      margin-right: 0;
+      flex-shrink: 0;
       transition: all 0.2s ease;
     }
     .settings-back-btn:hover {
@@ -96,75 +99,76 @@
       flex-shrink: 0;
     }
   </style>
-  <link rel="stylesheet" href="css/plan-b-light-medium.css" />
 </head>
 <body class="cream-medium" data-plan-b-page="account-settings">
-  <main class="device-shell" aria-label="Plan B account settings page">
+  <main class="device-shell" aria-label="Plan B 账号设置页">
     <div class="particle-layer" aria-hidden="true"></div>
     <div class="vignette" aria-hidden="true"></div>
 
-    <section class="settings-screen" aria-label="Account settings">
+    <section class="settings-screen" aria-label="账号设置">
       <div class="top-status-row">
         <div class="status-pill">
           <div class="status-time">
-            <span>10:26 AM</span>
-            <small>Dec 6, 2024</small>
+            <span>上午 10:26</span>
+            <small>2024年12月6日</small>
           </div>
           <div class="status-icons">
-            <span class="status-chip">Bt</span>
+            <span class="status-chip">蓝牙</span>
             <span class="status-chip">85%</span>
           </div>
         </div>
       </div>
 
       <header class="settings-header">
-        <button class="settings-back-btn" id="accountSettingsBackBtn" type="button" aria-label="Back">
-          <svg viewBox="0 0 24 24">
-            <path d="M15 18l-6-6 6-6"></path>
-          </svg>
-        </button>
-        <h1 class="settings-title">ACCOUNT SETTINGS</h1>
+        <h1 class="settings-title">账号设置</h1>
       </header>
 
       <div class="settings-list">
         <button class="list-btn" id="personalInfoBtn" type="button">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21a8 8 0 1 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
-          <span>PERSONAL INFORMATION</span>
+          <span>个人信息</span>
         </button>
 
         <button class="list-btn" id="resetPasswordBtn" type="button">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          <span>RESET PASSWORD</span>
+          <span>重置密码</span>
         </button>
 
         <button class="list-btn" id="deleteAccountBtn" type="button">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
-          <span>DELETE ACCOUNT</span>
+          <span>注销账号</span>
         </button>
 
         <button class="list-btn" id="logoutAccountBtn" type="button">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
-          <span>LOG OUT</span>
+          <span>退出登录</span>
+        </button>
+      </div>
+      <div class="action-dock" aria-label="页面操作">
+        <button class="settings-back-btn" id="accountSettingsBackBtn" type="button" aria-label="返回">
+          <svg viewBox="0 0 24 24">
+            <path d="M15 18l-6-6 6-6"></path>
+          </svg>
         </button>
       </div>
     </section>
 
     <div class="auth-confirm-modal is-hidden" id="deleteConfirmModal" aria-hidden="true">
       <div class="auth-confirm-panel" role="dialog" aria-modal="true" aria-labelledby="deleteConfirmTitle">
-        <h3 id="deleteConfirmTitle">Are you sure you want to delete your current account? You will need to register again.</h3>
+        <h3 id="deleteConfirmTitle">确定要注销当前账号吗？注销后需要重新注册。</h3>
         <div class="auth-confirm-actions">
-          <button class="auth-confirm-btn auth-confirm-cancel" id="deleteCancelBtn" type="button">Cancel</button>
-          <button class="auth-confirm-btn auth-confirm-ok" id="deleteConfirmBtn" type="button">Confirm</button>
+          <button class="auth-confirm-btn auth-confirm-cancel" id="deleteCancelBtn" type="button">取消</button>
+          <button class="auth-confirm-btn auth-confirm-ok" id="deleteConfirmBtn" type="button">确定</button>
         </div>
       </div>
     </div>
 
     <div class="auth-confirm-modal is-hidden" id="logoutConfirmModal" aria-hidden="true">
       <div class="auth-confirm-panel" role="dialog" aria-modal="true" aria-labelledby="logoutConfirmTitle">
-        <h3 id="logoutConfirmTitle">Are you sure you want to log out?</h3>
+        <h3 id="logoutConfirmTitle">确定要退出登录吗？</h3>
         <div class="auth-confirm-actions">
-          <button class="auth-confirm-btn auth-confirm-cancel" id="logoutCancelBtn" type="button">Cancel</button>
-          <button class="auth-confirm-btn auth-confirm-ok" id="logoutConfirmBtn" type="button">Confirm</button>
+          <button class="auth-confirm-btn auth-confirm-cancel" id="logoutCancelBtn" type="button">取消</button>
+          <button class="auth-confirm-btn auth-confirm-ok" id="logoutConfirmBtn" type="button">确定</button>
         </div>
       </div>
     </div>
@@ -227,7 +231,7 @@
 
       deleteConfirmBtn.addEventListener("click", () => {
         toggleModal(deleteConfirmModal, false);
-        showToast("Account deleted successfully");
+        showToast("账号已注销");
         window.setTimeout(() => {
           window.location.href = "plan-b-login.html";
         }, 1000);

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Plan B · Immersive workout</title>
+  <title>Plan B · 沉浸式跟练</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -15,43 +15,134 @@
   <link rel="stylesheet" href="css/plan-b-light-medium.css" />
 </head>
 <body class="cream-medium" data-plan-b-page="immersive">
-  <main class="device-shell" aria-label="Plan B home verification">
+  <main class="device-shell" aria-label="沉浸式跟练">
     <div class="particle-layer" aria-hidden="true"></div>
     <div class="vignette" aria-hidden="true"></div>
 
-<section class="immersive-workout-screen active" id="immersiveWorkoutScreen" aria-label="Immersive workout control" aria-hidden="false">
+<section class="immersive-workout-screen active" id="immersiveWorkoutScreen" aria-label="沉浸式训练控制" aria-hidden="false">
       <video id="iwVideo" class="iw-video" preload="metadata" playsinline autoplay muted loop poster="assets/video.jpg">
         <source id="iwVideoSource" src="assets/workout-demo.mp4" type="video/mp4" />
       </video>
       <div class="iw-mask"></div>
       <div class="iw-ai-ready-overlay" id="iwAiReadyOverlay" aria-hidden="true">
-        <div class="iw-ai-ready-panel">
-          <h3>AI Assessment Ready</h3>
-          <p>This move supports AI evaluation. Before starting, stand on the footplate and ensure sufficient lighting.</p>
-          <button type="button" id="iwAiReadyBtn">I&apos;m Ready</button>
+        <div class="iw-ai-ready-panel" id="iwAiReadyPanel" data-current-step="env">
+          <div class="iw-ai-step" data-step="env">
+            <h3>开始前请检查</h3>
+            <ul class="iw-req-list" aria-label="训练前环境要求">
+              <li class="iw-req-item">
+                <span class="iw-req-icon" aria-hidden="true">
+                  <svg viewBox="0 0 20 20" fill="none">
+                    <circle cx="10" cy="10" r="3.2"></circle>
+                    <path d="M10 1.8v2.2M10 16v2.2M3.6 3.6l1.6 1.6M14.8 14.8l1.6 1.6M1.8 10H4M16 10h2.2M3.6 16.4l1.6-1.6M14.8 5.2l1.6-1.6"></path>
+                  </svg>
+                </span>
+                <span>周围环境光不应过强或过暗</span>
+              </li>
+              <li class="iw-req-item">
+                <span class="iw-req-icon" aria-hidden="true">
+                  <svg viewBox="0 0 20 20" fill="none">
+                    <rect x="3.2" y="6" width="13.6" height="9.2" rx="1.8"></rect>
+                    <path d="M7 6V4.6A1.6 1.6 0 0 1 8.6 3h2.8A1.6 1.6 0 0 1 13 4.6V6M3.6 13.6l4.2-3.2M16.4 13.6l-4.2-3.2"></path>
+                  </svg>
+                </span>
+                <span>相机视线范围内不应存在干扰或遮挡</span>
+              </li>
+              <li class="iw-req-item">
+                <span class="iw-req-icon" aria-hidden="true">
+                  <svg viewBox="0 0 20 20" fill="none">
+                    <path d="M10 2.2a2.1 2.1 0 1 0 0 4.2a2.1 2.1 0 0 0 0-4.2Z"></path>
+                    <path d="M5.6 18v-1.4c0-2.2 1.8-4 4-4h.8c2.2 0 4 1.8 4 4V18M10 8v4.4M7.4 10.2h5.2"></path>
+                  </svg>
+                </span>
+                <span>训练者需要站在识别区域范围内</span>
+              </li>
+            </ul>
+            <div class="iw-recog-zone" aria-hidden="true">
+              <div class="iw-recog-zone-frame">
+                <svg viewBox="0 0 90 120" fill="none">
+                  <circle cx="45" cy="23" r="10"></circle>
+                  <path d="M45 36v30M27 60h36M32 108l13-24l13 24M36 50l-9 26M54 50l9 26"></path>
+                </svg>
+              </div>
+              <p class="iw-recog-zone-tip">请训练者进入识别区域</p>
+            </div>
+            <p class="iw-recog-status" id="iwRecogStatus" aria-live="polite">系统正在识别中，请稍候…</p>
+          </div>
+          <div class="iw-ai-step" data-step="select">
+            <h3>请选择识别结果</h3>
+            <p>识别完成后，请按识别完整度选择本次训练者。</p>
+            <p class="iw-trainer-tip">确认后将进入动作训练页面，如需切换训练者请结束后重新进入。</p>
+            <div class="iw-trainer-select" id="iwTrainerSelect" role="radiogroup" aria-label="选择本次训练者">
+              <button
+                type="button"
+                class="iw-trainer-option is-lg is-selected"
+                role="radio"
+                aria-checked="true"
+                data-trainer="训练者 A"
+                data-clarity="92"
+              >
+                <span class="iw-trainer-avatar" aria-hidden="true">
+                  <svg viewBox="0 0 48 48" fill="none">
+                    <circle cx="24" cy="17" r="8.5"></circle>
+                    <path d="M10 40c0-7 5.7-12.5 14-12.5S38 33 38 40"></path>
+                  </svg>
+                </span>
+                <span class="iw-trainer-clarity">完整度 92%</span>
+              </button>
+              <button
+                type="button"
+                class="iw-trainer-option is-md"
+                role="radio"
+                aria-checked="false"
+                data-trainer="训练者 B"
+                data-clarity="78"
+              >
+                <span class="iw-trainer-avatar" aria-hidden="true">
+                  <svg viewBox="0 0 48 48" fill="none">
+                    <circle cx="24" cy="17" r="8.5"></circle>
+                    <path d="M10 40c0-7 5.7-12.5 14-12.5S38 33 38 40"></path>
+                  </svg>
+                </span>
+                <span class="iw-trainer-clarity">完整度 78%</span>
+              </button>
+              <button
+                type="button"
+                class="iw-trainer-option is-sm"
+                role="radio"
+                aria-checked="false"
+                data-trainer="训练者 C"
+                data-clarity="61"
+              >
+                <span class="iw-trainer-avatar" aria-hidden="true">
+                  <svg viewBox="0 0 48 48" fill="none">
+                    <circle cx="24" cy="17" r="8.5"></circle>
+                    <path d="M10 40c0-7 5.7-12.5 14-12.5S38 33 38 40"></path>
+                  </svg>
+                </span>
+                <span class="iw-trainer-clarity">完整度 61%</span>
+              </button>
+            </div>
+            <button type="button" id="iwAiReadyBtn">确定</button>
+          </div>
         </div>
       </div>
-      <div class="iw-combo-badge" id="iwComboBadge" hidden>Combo * 3</div>
+      <div class="iw-combo-badge" id="iwComboBadge" hidden>连击 ×3</div>
       <div class="iw-overlay">
         <header class="iw-top iw-glass">
           <div class="iw-top-row">
-            <h2 class="iw-title" id="iwActionTitle">Workout Title</h2>
-            <div class="iw-ctrls">
-              <button class="iw-btn" id="iwFlipBtn" type="button">Flip</button>
-              <button class="iw-btn" id="iwPlayBtn" type="button">Pause</button>
-              <button class="iw-btn iw-btn--end" id="iwEndBtn" type="button">End</button>
-            </div>
+            <h2 class="iw-title" id="iwActionTitle">训练动作</h2>
           </div>
           <div class="iw-progress-row">
             <div class="iw-progress-track"><i class="iw-progress-fill" id="iwProgressFill"></i></div>
             <div class="iw-time" id="iwTimeText">00:00 / 10:00</div>
           </div>
             <div class="iw-ai-panel" id="iwAiPanel">
-              <div class="iw-ai-result">
-                <span class="iw-ai-label">Recognition</span>
-                <span class="iw-ai-tier" id="iwAiTierValue">Miss</span>
+              <div class="iw-ai-result" id="iwAiResult" data-person-visible="true">
+                <span class="iw-ai-label">识别</span>
+                <span class="iw-ai-tier" id="iwAiTierValue">未命中</span>
+                <p class="iw-ai-hint" id="iwAiHintText">未识别到动作。</p>
               </div>
-              <div class="iw-ai-ring-card" aria-label="Action score">
+              <div class="iw-ai-ring-card" aria-label="动作评分">
                 <div class="iw-ai-ring-stage">
                   <svg class="iw-ai-ring-svg" viewBox="0 0 120 120" role="img" aria-hidden="true">
                     <g transform="rotate(-90 60 60)">
@@ -61,37 +152,9 @@
                   </svg>
                   <div class="iw-ai-ring-center">
                     <strong id="iwAiScoreValue">0</strong>
-                    <span class="iw-ai-ring-caption">Score</span>
+                    <span class="iw-ai-ring-caption">评分</span>
                   </div>
                 </div>
-              </div>
-              <div class="iw-ai-skeleton" id="iwAiSkeletonCard" aria-label="Skeleton reference" data-person-visible="true">
-                <span class="iw-ai-label">Skeleton</span>
-                <div class="iw-ai-skeleton-figure">
-                  <svg class="iw-ai-skeleton-svg" viewBox="0 0 160 120" role="img" aria-hidden="true">
-                    <g class="iw-ai-skeleton-lines">
-                      <line x1="80" y1="24" x2="80" y2="46"></line>
-                      <line x1="80" y1="34" x2="56" y2="52"></line>
-                      <line x1="80" y1="34" x2="104" y2="52"></line>
-                      <line x1="80" y1="46" x2="64" y2="74"></line>
-                      <line x1="80" y1="46" x2="96" y2="74"></line>
-                      <line x1="64" y1="74" x2="58" y2="102"></line>
-                      <line x1="96" y1="74" x2="102" y2="102"></line>
-                    </g>
-                    <g class="iw-ai-skeleton-joints">
-                      <circle cx="80" cy="18" r="8"></circle>
-                      <circle cx="80" cy="32" r="3.5"></circle>
-                      <circle cx="56" cy="52" r="3.5"></circle>
-                      <circle cx="104" cy="52" r="3.5"></circle>
-                      <circle cx="80" cy="46" r="3.5"></circle>
-                      <circle cx="64" cy="74" r="3.5"></circle>
-                      <circle cx="96" cy="74" r="3.5"></circle>
-                      <circle cx="58" cy="102" r="3.5"></circle>
-                      <circle cx="102" cy="102" r="3.5"></circle>
-                    </g>
-                  </svg>
-                </div>
-                <p class="iw-ai-skeleton-message" id="iwAiSkeletonMessage" hidden>Move back into the camera view to continue AI tracking.</p>
               </div>
             </div>
         </header>
@@ -99,32 +162,32 @@
           <div class="iw-handle" id="iwDrawerHandle">
             <div class="iw-summary">
               <div>
-                <span>Resistance: <b id="iwSummaryMode">Standard</b></span>
+                <span>阻力：<b id="iwSummaryMode">标准</b></span>
                 <span><strong id="iwSummaryWeight">50.0</strong>kg</span>
               </div>
               <div class="iw-chip-row">
-                <span class="iw-chip iw-chip--mode" id="iwModeChip">Standard</span>
-                <span class="iw-chip" id="iwMetaChip">Power stable</span>
-                <button class="iw-equip-btn active" type="button" data-equipment="barbell" id="iwEquipBarbell" aria-label="Barbell mode">
+                <span class="iw-chip iw-chip--mode" id="iwModeChip">标准</span>
+                <span class="iw-chip" id="iwMetaChip">功率稳定</span>
+                <button class="iw-equip-btn active" type="button" data-equipment="barbell" id="iwEquipBarbell" aria-label="杠铃模式">
                   <svg viewBox="0 0 24 24"><path d="M3 9v6M6 7v10M9 10v4M15 10v4M18 7v10M21 9v6M9 12h6"></path></svg>
-                  <span>Barbell</span>
+                  <span>杠铃</span>
                 </button>
-                <button class="iw-equip-btn" type="button" data-equipment="other" id="iwEquipOther" aria-label="Other mode">
+                <button class="iw-equip-btn" type="button" data-equipment="other" id="iwEquipOther" aria-label="其他模式">
                   <svg viewBox="0 0 24 24"><path d="M6 12h12M8 8l-2 4 2 4M16 8l2 4-2 4"></path></svg>
-                  <span>Other</span>
+                  <span>其他</span>
                 </button>
               </div>
             </div>
           </div>
           <div class="iw-content">
-            <div class="iw-section-title">Resistance mode</div>
+            <div class="iw-section-title">阻力模式</div>
             <div class="iw-mode-group" id="iwModeGroup">
-              <button class="iw-mode-btn active" data-mode="standard" type="button">Standard</button>
-              <button class="iw-mode-btn" data-mode="spring" type="button">Spring</button>
-              <button class="iw-mode-btn" data-mode="eccentric" type="button">Eccentric</button>
-              <button class="iw-mode-btn" data-mode="isokinetic" type="button">Isokinetic</button>
+              <button class="iw-mode-btn active" data-mode="standard" type="button">标准</button>
+              <button class="iw-mode-btn" data-mode="spring" type="button">弹簧</button>
+              <button class="iw-mode-btn" data-mode="eccentric" type="button">离心</button>
+              <button class="iw-mode-btn" data-mode="isokinetic" type="button">等速</button>
             </div>
-            <div class="iw-section-title">Resistance</div>
+            <div class="iw-section-title">阻力</div>
             <div class="iw-weight-row">
               <button class="iw-step-btn" id="iwDecreaseBtn" type="button">−</button>
               <div class="iw-dial-container">
@@ -146,11 +209,15 @@
               </div>
               <button class="iw-step-btn" id="iwIncreaseBtn" type="button">+</button>
             </div>
-            <div class="iw-step-note">Step: 0.5 kg</div>
+            <div class="iw-step-note">步进：0.5 kg</div>
+            <div class="spring-bar iw-spring-bar" id="iwSpringBar" hidden aria-label="阻力弹簧指示器">
+              <div class="spring-bar-coil" id="iwSpringCoil"></div>
+              <span class="spring-bar-value" id="iwSpringBarValue">5 kg</span>
+            </div>
             <div class="iw-param-panel" id="iwParamPanel">
               <div class="iw-param-head">
-                <span id="iwParamLabel">Spring level</span>
-                <strong id="iwParamDisplay">Level 1</strong>
+                <span id="iwParamLabel">弹簧档位</span>
+                <strong id="iwParamDisplay">1 档</strong>
               </div>
               <input class="iw-slider" id="iwParamSlider" type="range" min="1" max="10" step="1" value="1" />
               <div class="iw-param-tip" id="iwParamTip"></div>
@@ -159,24 +226,31 @@
             <div class="iw-chart-card">
               <div class="iw-chart-header">
                 <div class="iw-chart-tabs" id="iwChartTabs">
-                  <button class="iw-chart-tab active" data-tab="rom" type="button">ROM</button>
-                  <button class="iw-chart-tab" data-tab="power" type="button">Power</button>
+                  <button class="iw-chart-tab active" data-tab="rom" type="button">动作幅度</button>
+                  <button class="iw-chart-tab" data-tab="power" type="button">功率</button>
                 </div>
                 <div class="iw-chart-legend" id="iwChartLegend">
                   <div class="iw-legend-item">
                     <span class="iw-legend-color iw-legend-range" aria-hidden="true"></span>
-                    <span>Range</span>
+                    <span>幅度</span>
                   </div>
                   <div class="iw-legend-item">
                     <span class="iw-legend-color iw-legend-power" aria-hidden="true"></span>
-                    <span>Power</span>
+                    <span>功率</span>
                   </div>
                 </div>
               </div>
-              <canvas id="iwChartCanvas" width="1000" height="320" aria-label="Chart"></canvas>
+              <canvas id="iwChartCanvas" width="1000" height="320" aria-label="图表"></canvas>
             </div>
           </div>
         </section>
+        <div class="action-dock action-dock--immersive action-dock--spread" aria-label="训练控制">
+          <div class="iw-ctrls">
+            <button class="iw-btn" id="iwFlipBtn" type="button">翻转</button>
+            <button class="iw-btn" id="iwPlayBtn" type="button">暂停</button>
+            <button class="iw-btn iw-btn--end" id="iwEndBtn" type="button">结束</button>
+          </div>
+        </div>
       </div>
     </section>
   </main>

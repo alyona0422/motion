@@ -61,11 +61,17 @@ const iwParamDisplay = document.getElementById("iwParamDisplay");
 const iwParamSlider = document.getElementById("iwParamSlider");
 const iwParamTip = document.getElementById("iwParamTip");
 const iwParamSubmit = document.getElementById("iwParamSubmit");
+const iwSpringBar = document.getElementById("iwSpringBar");
+const iwSpringCoil = document.getElementById("iwSpringCoil");
+const iwSpringBarValue = document.getElementById("iwSpringBarValue");
+const iwStepNote = document.querySelector(".iw-step-note");
 const iwChartTabs = document.getElementById("iwChartTabs");
 const iwChartCanvas = document.getElementById("iwChartCanvas");
 const iwChartCtx = iwChartCanvas ? iwChartCanvas.getContext("2d") : null;
 const iwAiPanel = document.getElementById("iwAiPanel");
 const iwAiReadyOverlay = document.getElementById("iwAiReadyOverlay");
+const iwAiReadyPanel = document.getElementById("iwAiReadyPanel");
+const iwRecogStatus = document.getElementById("iwRecogStatus");
 const iwAiReadyBtn = document.getElementById("iwAiReadyBtn");
 const iwTrainerSelect = document.getElementById("iwTrainerSelect");
 const iwTrainerOptions = Array.from(document.querySelectorAll("#iwTrainerSelect .iw-trainer-option"));
@@ -74,8 +80,7 @@ const iwAiScoreRing = document.getElementById("iwAiScoreRing");
 const iwAiTierValue = document.getElementById("iwAiTierValue");
 const iwAiHintText = document.getElementById("iwAiHintText");
 const iwAiRingCard = document.querySelector("#iwAiPanel .iw-ai-ring-card");
-const iwAiSkeletonCard = document.getElementById("iwAiSkeletonCard");
-const iwAiSkeletonMessage = document.getElementById("iwAiSkeletonMessage");
+const iwAiResult = document.getElementById("iwAiResult");
 const iwComboBadge = document.getElementById("iwComboBadge");
 const ptProgressTrack = document.getElementById("ptProgressTrack");
 const ptCurrentMoveName = document.getElementById("ptCurrentMoveName");
@@ -98,13 +103,16 @@ const reportDurationValue = document.getElementById("reportDurationValue");
 const reportCapacityValue = document.getElementById("reportCapacityValue");
 const reportCapacityStat = document.getElementById("reportCapacityStat");
 const reportEnergyValue = document.getElementById("reportEnergyValue");
+const reportEnergyLabel = document.getElementById("reportEnergyLabel");
 const reportCaloriesValue = document.getElementById("reportCaloriesValue");
+const reportCaloriesLabel = document.getElementById("reportCaloriesLabel");
 const reportModeLabel = document.getElementById("reportModeLabel");
 const reportEquipmentLabel = document.getElementById("reportEquipmentLabel");
 const reportSceneLabel = document.getElementById("reportSceneLabel");
 const reportIntensityRange = document.getElementById("reportIntensityRange");
 const reportIntensityBar = document.getElementById("reportIntensityBar");
 const reportIntensityLegend = document.getElementById("reportIntensityLegend");
+const reportIntensityLegendNote = document.getElementById("reportIntensityLegendNote");
 const reportConsistency = document.getElementById("reportConsistency");
 const reportCoachNote = document.getElementById("reportCoachNote");
 const reportActionAnalysisBlock = document.getElementById("reportActionAnalysisBlock");
@@ -117,6 +125,14 @@ const reportPowerCurveMeta = document.getElementById("reportPowerCurveMeta");
 const reportPowerCurveTabs = document.getElementById("reportPowerCurveTabs");
 const reportPowerCurveSvg = document.getElementById("reportPowerCurveSvg");
 const reportPowerCurveFoot = document.getElementById("reportPowerCurveFoot");
+const reportPowerScroll = document.getElementById("reportPowerScroll");
+const reportPowerNavPrev = document.getElementById("reportPowerNavPrev");
+const reportPowerNavNext = document.getElementById("reportPowerNavNext");
+const reportAmpSvg = document.getElementById("reportAmpSvg");
+const reportAmpFoot = document.getElementById("reportAmpFoot");
+const reportAmpScroll = document.getElementById("reportAmpScroll");
+const reportAmpNavPrev = document.getElementById("reportAmpNavPrev");
+const reportAmpNavNext = document.getElementById("reportAmpNavNext");
 const reportFinalScoreWrap = document.getElementById("reportFinalScoreWrap");
 const reportFinalScoreValue = document.getElementById("reportFinalScoreValue");
 const reportAccuracyDistBlock = document.getElementById("reportAccuracyDistBlock");
@@ -163,6 +179,126 @@ const videoPlayParamConfig = {
   spring: { minLevel: 1, maxLevel: 10, rawSoft: 250, rawHard: 10 },
   isokinetic: { minLevel: 1, maxLevel: 25, rawMultiplier: 10 }
 };
+
+const PILATES_RESISTANCE = { min: 5, max: 45, step: 1, default: 5 };
+
+/** kcal → kJ conversion (Energy Output = Calories × KCAL_TO_KJ). */
+const KCAL_TO_KJ = 4.184;
+const MET_CONST = 0.0175;
+const DEFAULT_WEIGHT_KG = 70;
+const MET_BODYWEIGHT_CARDIO = 6;
+const MET_RESISTANCE_CARDIO_FALLBACK = 7;
+
+function energyKjFromCalories(caloriesKcal) {
+  return Math.max(0, Number(caloriesKcal) || 0) * KCAL_TO_KJ;
+}
+
+function caloriesFromFixedMet(met, weightKg, durationSeconds) {
+  const durationMin = Math.max(0, Number(durationSeconds) || 0) / 60;
+  const safeWeight = Math.max(1, Number(weightKg) || DEFAULT_WEIGHT_KG);
+  const safeMet = Math.max(0, Number(met) || 0);
+  return safeMet * MET_CONST * safeWeight * durationMin;
+}
+
+function caloriesFromCapacityKg(capacityKg) {
+  return Math.max(0, Number(capacityKg) || 0) * 0.38 * 0.24;
+}
+
+function isBodyweightCardioPayload(payload, reportContext) {
+  const scene = payload?.reportFromScene || "";
+  const trainingType = payload?.trainingType || "";
+  const context = `${scene} ${reportContext || ""} ${trainingType}`;
+  return scene === "bodyweight-cardio"
+    || trainingType === "cardio"
+    || trainingType === "bodyweight_cardio"
+    || /bodyweight[_\s-]*cardio|non[-\s]*resistance[_\s-]*cardio/i.test(context);
+}
+
+function resolveSessionCaloriesKcal(payload, durationSeconds, capacityKg) {
+  const reportContext = `${payload?.reportFromScene || ""} ${payload?.sceneLabel || ""} ${payload?.trainingType || ""}`;
+  if (isBodyweightCardioPayload(payload, reportContext)) {
+    return caloriesFromFixedMet(MET_BODYWEIGHT_CARDIO, payload?.weightKg || DEFAULT_WEIGHT_KG, durationSeconds);
+  }
+  const capacityBased = caloriesFromCapacityKg(capacityKg);
+  if (capacityBased <= 0 && (payload?.trainingType === "resistance_cardio" || /resistance[_\s-]*cardio/i.test(reportContext))) {
+    return caloriesFromFixedMet(MET_RESISTANCE_CARDIO_FALLBACK, payload?.weightKg || DEFAULT_WEIGHT_KG, durationSeconds);
+  }
+  return capacityBased;
+}
+
+function isPilatesSport(sport) {
+  return /pilates/i.test(String(sport || ""));
+}
+
+function isIwPilatesContext() {
+  return isPilatesSport(adMeta.sport);
+}
+
+function getIwBounds() {
+  if (isIwPilatesContext()) {
+    return {
+      min: PILATES_RESISTANCE.min,
+      max: PILATES_RESISTANCE.max,
+      step: PILATES_RESISTANCE.step,
+      default: PILATES_RESISTANCE.default
+    };
+  }
+  return {
+    min: videoPlayParamConfig.minWeight,
+    max: videoPlayParamConfig.maxWeight,
+    step: videoPlayParamConfig.weightStep,
+    default: videoPlayParamConfig.defaultWeight
+  };
+}
+
+function springHue(kg, min, max) {
+  const span = max - min;
+  if (span <= 0) return 120;
+  const ratio = Math.max(0, Math.min(1, (kg - min) / span));
+  return 120 * (1 - ratio);
+}
+
+function springColor(kg, min, max) {
+  const hue = springHue(kg, min, max);
+  return `hsl(${hue}, 75%, 55%)`;
+}
+
+function updateSpringBarVisual(coilEl, valueEl, kg, min, max) {
+  if (!coilEl) return;
+  const color = springColor(kg, min, max);
+  coilEl.style.setProperty("--spring-color", color);
+  coilEl.style.background = color;
+  if (valueEl) {
+    const display = Number.isInteger(kg) ? String(kg) : kg.toFixed(1);
+    valueEl.textContent = `${display} kg`;
+  }
+}
+
+function formatResistanceDisplay(kg, bounds) {
+  if (bounds.step >= 1) return String(Math.round(kg));
+  return kg.toFixed(1);
+}
+
+function snapshotUserSetWeightKg(weightValue, bounds) {
+  const boundsSafe = bounds || getIwBounds();
+  const clamped = clamp(Number(weightValue) || 0, boundsSafe.min, boundsSafe.max);
+  return boundsSafe.step >= 1 ? Math.round(clamped) : Math.round(clamped * 10) / 10;
+}
+
+function syncIwSpringBarUI() {
+  if (!iwSpringBar || iwSpringBar.hidden) return;
+  const bounds = getIwBounds();
+  updateSpringBarVisual(iwSpringCoil, iwSpringBarValue, iwState.weight, bounds.min, bounds.max);
+}
+
+function applyIwPilatesContext() {
+  const bounds = getIwBounds();
+  const isPilates = isIwPilatesContext();
+  if (iwSpringBar) iwSpringBar.hidden = !isPilates;
+  if (iwStepNote) iwStepNote.textContent = `Step: ${bounds.step} kg`;
+  if (isPilates) iwState.weight = bounds.default;
+  syncIwWeightUI();
+}
 
 const iwModeMap = { standard: "Standard", spring: "Spring", eccentric: "Eccentric", isokinetic: "Isokinetic" };
 const iwModeMapReport = { standard: "Standard", spring: "Spring", eccentric: "Eccentric", isokinetic: "Isokinetic" };
@@ -241,6 +377,9 @@ let reportFromScene = "";
 let reportPowerCurveSelectedKey = "session";
 let pilatesEndTrainingFn = null;
 let selectedTrainer = "";
+let iwRecognitionTimerId = 0;
+const IW_AI_GUIDANCE_DWELL_MS = 2200;
+const IW_AI_SCAN_MS = 800;
 const adInstallPreviewAsset = {
   image: "assets/show.jpg",
   video: ""
@@ -749,15 +888,10 @@ function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
 }
 
-function buildSyntheticTimeline(durationSeconds, baseResistance, mode) {
+function buildSyntheticTimeline(durationSeconds, baseResistance) {
   const total = Math.max(1, Math.floor(durationSeconds));
-  const modeBias = mode === "spring" ? 6 : mode === "isokinetic" ? 5 : mode === "eccentric" ? 4 : 2;
-  const result = [];
-  for (let i = 0; i < total; i += 1) {
-    const swing = Math.sin(i / 2.6) * 4.2 + Math.cos(i / 6.8) * 2.1;
-    result.push(Math.round(clamp(baseResistance + modeBias + swing, 0, 120) * 10) / 10);
-  }
-  return result;
+  const userKg = snapshotUserSetWeightKg(baseResistance);
+  return Array.from({ length: total }, () => userKg);
 }
 
 function computeDistribution(timeline, maxResistance) {
@@ -937,14 +1071,11 @@ function showIwComboBadge(comboCount) {
 
 function updateIwAiSkeletonPresence(personVisible, message) {
   const isVisible = personVisible !== false;
-  if (iwAiSkeletonCard) {
-    iwAiSkeletonCard.dataset.personVisible = isVisible ? "true" : "false";
+  if (iwAiResult) {
+    iwAiResult.dataset.personVisible = isVisible ? "true" : "false";
   }
-  if (iwAiSkeletonMessage) {
-    iwAiSkeletonMessage.hidden = isVisible;
-    if (!isVisible) {
-      iwAiSkeletonMessage.textContent = message || IW_AI_OUT_OF_ZONE_HINT;
-    }
+  if (iwAiHintText && !isVisible) {
+    iwAiHintText.textContent = message || IW_AI_OUT_OF_ZONE_HINT;
   }
 }
 
@@ -1008,8 +1139,6 @@ function openReportFromIwTraining() {
     : buildSyntheticTimeline(Math.max(18, measuredDuration || Math.round(iwVideo.currentTime || 0)), iwState.weight, iwState.mode);
   const durationSeconds = Math.max(1, measuredDuration || timeline.length);
   const capacityKg = sumResistanceTimeline(timeline);
-  const energyKj = capacityKg * 0.38;
-  const caloriesKcal = energyKj * 0.24;
   const scoreSamples = Math.max(0, Number(iwAiState.scoreSamples) || 0);
   const finalAiScore = scoreSamples > 0
     ? Math.round(iwAiState.scoreSum / scoreSamples)
@@ -1028,15 +1157,13 @@ function openReportFromIwTraining() {
     accuracyDistribution.better = Math.max(0, accuracyDistribution.better + (100 - distSum));
   }
   const aiSummary = `Better ${accuracyDistribution.better}% · Good ${accuracyDistribution.good}% · Perfect ${accuracyDistribution.perfect}%`;
-  const reportPayload = {
+  const reportPayloadBase = {
     reportFromScene: "immersive",
     userName: reportUser.name,
     userAvatar: reportUser.avatar,
     sceneLabel: "Action Training",
     durationSeconds,
     capacityKg,
-    energyKj,
-    caloriesKcal,
     modeLabel: iwModeMapReport[iwState.mode] || "Standard",
     equipmentLabel: iwState.equipment === "barbell" ? "Barbell" : "No Barbell",
     maxResistance: 120,
@@ -1044,6 +1171,13 @@ function openReportFromIwTraining() {
     finalAiScore,
     accuracyDistribution,
     aiSummary
+  };
+  const caloriesKcal = resolveSessionCaloriesKcal(reportPayloadBase, durationSeconds, capacityKg);
+  const energyKj = energyKjFromCalories(caloriesKcal);
+  const reportPayload = {
+    ...reportPayloadBase,
+    energyKj,
+    caloriesKcal
   };
   if (PLAN_B_PAGE === "immersive") {
     try {
@@ -1085,6 +1219,108 @@ function buildPowerSeries(resistanceSeries) {
   });
 }
 
+const INTENSITY_ZONE_CLASSES = [
+  "tr-intensity-z1",
+  "tr-intensity-z2",
+  "tr-intensity-z3",
+  "tr-intensity-z4",
+  "tr-intensity-z5"
+];
+
+function roundResistanceBucket(value) {
+  const numeric = Number(value) || 0;
+  if (numeric <= 0) return 0;
+  return Math.round(numeric);
+}
+
+function intensityClassForResistance(resistanceKg, sessionMin, sessionMax) {
+  if (sessionMax <= sessionMin) return INTENSITY_ZONE_CLASSES[2];
+  const position = (resistanceKg - sessionMin) / (sessionMax - sessionMin);
+  const idx = Math.min(
+    INTENSITY_ZONE_CLASSES.length - 1,
+    Math.round(position * (INTENSITY_ZONE_CLASSES.length - 1))
+  );
+  return INTENSITY_ZONE_CLASSES[idx];
+}
+
+function formatDurationCompact(seconds) {
+  const safe = Math.max(0, Math.floor(Number(seconds) || 0));
+  const m = Math.floor(safe / 60);
+  const s = safe % 60;
+  if (m > 0 && s > 0) return `${m}m ${s}s`;
+  if (m > 0) return `${m}m`;
+  return `${s}s`;
+}
+
+function buildIntensityDistribution(timeline) {
+  const samples = (Array.isArray(timeline) ? timeline : [])
+    .map((value) => Number(value) || 0)
+    .filter((value) => value > 0);
+  const bucketCounts = new Map();
+
+  samples.forEach((value) => {
+    const kg = roundResistanceBucket(value);
+    if (kg <= 0) return;
+    bucketCounts.set(kg, (bucketCounts.get(kg) || 0) + 1);
+  });
+
+  if (!bucketCounts.size) {
+    return { zones: [], ceiling: 0, settingsCount: 0, workingSeconds: 0, sessionSpan: "" };
+  }
+
+  const total = [...bucketCounts.values()].reduce((sum, count) => sum + count, 0) || 1;
+  const entries = [...bucketCounts.entries()]
+    .map(([resistanceKg, count]) => ({
+      resistanceKg,
+      seconds: count,
+      ratio: count / total
+    }))
+    .sort((a, b) => a.resistanceKg - b.resistanceKg);
+
+  const sessionMin = entries[0].resistanceKg;
+  const sessionMax = entries[entries.length - 1].resistanceKg;
+  let dominantRatio = 0;
+  entries.forEach((entry) => { if (entry.ratio > dominantRatio) dominantRatio = entry.ratio; });
+
+  const zones = entries.map((entry) => ({
+    className: intensityClassForResistance(entry.resistanceKg, sessionMin, sessionMax),
+    label: `${entry.resistanceKg}kg`,
+    resistanceKg: entry.resistanceKg,
+    ratio: entry.ratio,
+    seconds: entry.seconds,
+    durationLabel: formatDurationCompact(entry.seconds),
+    dominant: entry.ratio === dominantRatio
+  }));
+
+  return {
+    zones,
+    ceiling: sessionMax,
+    settingsCount: zones.length,
+    workingSeconds: total,
+    sessionSpan: sessionMin === sessionMax ? `${sessionMin}kg` : `${sessionMin}-${sessionMax}kg`
+  };
+}
+
+function buildAmplitudeSeries(sourceSeries) {
+  const safe = (Array.isArray(sourceSeries) ? sourceSeries : []).map((value) => Number(value) || 0);
+  if (!safe.length) return [];
+  const maxValue = Math.max(1, ...safe);
+  // Range of motion tends to run inversely to load and oscillate per rep,
+  // so derive a plausible amplitude curve from the available load/power series.
+  const rough = safe.map((value, idx) => {
+    const normalized = value / maxValue;
+    const wave = Math.sin(idx * 0.55) * 0.16 + Math.sin(idx * 0.21 + 0.8) * 0.1;
+    const base = 0.92 - normalized * 0.42;
+    return Math.max(0.18, base + wave);
+  });
+  return rough.map((_, idx) => {
+    const from = Math.max(0, idx - 1);
+    const to = Math.min(rough.length - 1, idx + 1);
+    const segment = rough.slice(from, to + 1);
+    return segment.reduce((sum, item) => sum + item, 0) / segment.length;
+  });
+}
+
 function buildAiQualitySnapshot(move, actualReps, actualSets) {
   const seed = hashTextSeed((move && move.name) || "") + actualReps * 11 + actualSets * 7;
   const perfectRate = Math.max(58, Math.min(96, 68 + (seed % 24)));
@@ -1110,12 +1346,15 @@ function buildAiQualitySnapshot(move, actualReps, actualSets) {
   return { perfectRate, errorStats, summary, topErrors };
 }
 
-function buildPowerCurvePath(series) {
+const POWER_CURVE_HEIGHT = 140;
+const POWER_CURVE_PX_PER_POINT = 14;
+const POWER_CURVE_MIN_WIDTH = 320;
+const AMPLITUDE_DISPLAY_CM = 40;
+
+function buildPowerCurvePoints(series, width, height) {
   const points = Array.isArray(series) ? series : [];
-  const width = 320;
-  const height = 140;
   const padX = 8;
-  const padY = 10;
+  const padY = 12;
   if (!points.length) return "";
   const maxValue = Math.max(1, ...points);
   const minValue = Math.min(...points);
@@ -1128,9 +1367,76 @@ function buildPowerCurvePath(series) {
   }).join(" ");
 }
 
+function renderScrollableCurve(svgEl, footEl, series, accent, unit, displayScale) {
+  if (!svgEl) return;
+  const points = Array.isArray(series) ? series : [];
+  const width = Math.max(POWER_CURVE_MIN_WIDTH, points.length * POWER_CURVE_PX_PER_POINT);
+  const height = POWER_CURVE_HEIGHT;
+  svgEl.setAttribute("viewBox", `0 0 ${width} ${height}`);
+  svgEl.setAttribute("width", String(width));
+  svgEl.style.width = `${width}px`;
+  const linePoints = buildPowerCurvePoints(points, width, height);
+  if (!linePoints) {
+    svgEl.innerHTML = "";
+    if (footEl) footEl.textContent = "No data captured";
+    return;
+  }
+  const areaPoints = `8,${height} ${linePoints} ${(width - 8).toFixed(2)},${height}`;
+  svgEl.innerHTML = `
+    <polygon points="${areaPoints}" fill="${accent.fill}" stroke="none"></polygon>
+    <polyline points="${linePoints}" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"></polyline>
+    <polyline points="${linePoints}" fill="none" stroke="${accent.line}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></polyline>
+  `;
+  if (footEl) {
+    const scale = Number(displayScale) || 1;
+    const peak = Math.max(...points) * scale;
+    const avg = (points.reduce((sum, item) => sum + item, 0) / points.length) * scale;
+    footEl.textContent = `Peak ${peak.toFixed(0)}${unit} · Avg ${avg.toFixed(0)}${unit}`;
+  }
+}
+
+function bindChartScrollNav(scrollEl, prevBtn, nextBtn) {
+  if (!scrollEl || scrollEl.dataset.navBound === "1") return;
+  scrollEl.dataset.navBound = "1";
+
+  const updateNav = () => {
+    const overflow = scrollEl.scrollWidth - scrollEl.clientWidth > 6;
+    if (!overflow) {
+      if (prevBtn) prevBtn.hidden = true;
+      if (nextBtn) nextBtn.hidden = true;
+      return;
+    }
+    const atStart = scrollEl.scrollLeft <= 6;
+    const atEnd = scrollEl.scrollLeft + scrollEl.clientWidth >= scrollEl.scrollWidth - 6;
+    if (prevBtn) prevBtn.hidden = atStart;
+    if (nextBtn) nextBtn.hidden = atEnd;
+  };
+
+  scrollEl.addEventListener("scroll", updateNav, { passive: true });
+  if (prevBtn) {
+    prevBtn.addEventListener("click", () => {
+      scrollEl.scrollBy({ left: -(Math.round(scrollEl.clientWidth * 0.75) || 200), behavior: "smooth" });
+    });
+  }
+  if (nextBtn) {
+    nextBtn.addEventListener("click", () => {
+      scrollEl.scrollBy({ left: Math.round(scrollEl.clientWidth * 0.75) || 200, behavior: "smooth" });
+    });
+  }
+  scrollEl._chartNavUpdate = updateNav;
+}
+
+function syncChartScrollNav(scrollEl) {
+  if (!scrollEl) return;
+  scrollEl.scrollLeft = 0;
+  requestAnimationFrame(() => {
+    if (typeof scrollEl._chartNavUpdate === "function") scrollEl._chartNavUpdate();
+  });
+}
+
 function renderReportPowerCurve(payload) {
-  if (!reportPowerCurveBlock || !reportPowerCurveSvg || !reportPowerCurveTabs || !reportPowerCurveFoot || !reportPowerCurveMeta) return;
-  const sessionSeries = buildPowerSeries(payload && payload.timeline);
+  if (!reportPowerCurveBlock || !reportPowerCurveSvg || !reportPowerCurveTabs || !reportPowerCurveMeta) return;
+  const sessionPower = buildPowerSeries(payload && payload.timeline);
   const moveRows = Array.isArray(payload && payload.planMovesData) ? payload.planMovesData : [];
   const moveOptions = moveRows
     .filter((row) => Array.isArray(row && row.powerSeries) && row.powerSeries.length)
@@ -1139,7 +1445,7 @@ function renderReportPowerCurve(payload) {
       label: row.name || `Move ${idx + 1}`,
       series: row.powerSeries
     }));
-  const options = [{ key: "session", label: "Session", series: sessionSeries }, ...moveOptions];
+  const options = [{ key: "session", label: "Session", series: sessionPower }, ...moveOptions];
   reportPowerCurveBlock.hidden = !options.some((item) => item.series.length);
   if (reportPowerCurveBlock.hidden) return;
   if (!options.some((item) => item.key === reportPowerCurveSelectedKey)) {
@@ -1158,16 +1464,31 @@ function renderReportPowerCurve(payload) {
     reportPowerCurveTabs.appendChild(btn);
   });
   const active = options.find((item) => item.key === reportPowerCurveSelectedKey) || options[0];
-  const points = Array.isArray(active.series) ? active.series : [];
-  const pathPoints = buildPowerCurvePath(points);
-  const peak = points.length ? Math.max(...points) : 0;
-  const avg = points.length ? points.reduce((sum, item) => sum + item, 0) / points.length : 0;
-  reportPowerCurveSvg.innerHTML = `
-    <polyline points="${pathPoints}" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"></polyline>
-    <polyline points="${pathPoints}" fill="none" stroke="rgba(94,234,255,0.95)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></polyline>
-  `;
+  const powerPoints = Array.isArray(active.series) ? active.series : [];
+  const amplitudePoints = buildAmplitudeSeries(powerPoints);
   reportPowerCurveMeta.textContent = active.key === "session" ? "Session" : active.label;
-  reportPowerCurveFoot.textContent = `Peak ${peak.toFixed(1)} · Avg ${avg.toFixed(1)}`;
+
+  renderScrollableCurve(
+    reportPowerCurveSvg,
+    reportPowerCurveFoot,
+    powerPoints,
+    { line: "rgba(255,171,99,0.96)", fill: "rgba(255,140,70,0.16)" },
+    "W",
+    1
+  );
+  renderScrollableCurve(
+    reportAmpSvg,
+    reportAmpFoot,
+    amplitudePoints,
+    { line: "rgba(94,234,255,0.96)", fill: "rgba(94,234,255,0.16)" },
+    "cm",
+    AMPLITUDE_DISPLAY_CM
+  );
+
+  bindChartScrollNav(reportPowerScroll, reportPowerNavPrev, reportPowerNavNext);
+  bindChartScrollNav(reportAmpScroll, reportAmpNavPrev, reportAmpNavNext);
+  syncChartScrollNav(reportPowerScroll);
+  syncChartScrollNav(reportAmpScroll);
 }
 
 function renderReportActionCompletion(planMovesData) {
@@ -1294,14 +1615,12 @@ function showTrainingReport(payload) {
   const isPlanTrainingReport = reportFromScene === "plan-training";
   const reportContext = `${reportFromScene || ""} ${sceneLabel || ""} ${modeLabel || ""} ${equipmentLabel || ""} ${planName || ""} ${payload.trainingType || ""}`;
   const isPilatesReport = reportFromScene === "pilates" || /\bpilates\b/i.test(reportContext);
-  const isBodyweightCardioReport = reportFromScene === "bodyweight-cardio"
-    || /bodyweight[_\s-]*cardio|non[-\s]*resistance[_\s-]*cardio/i.test(reportContext);
+  const isBodyweightCardioReport = isBodyweightCardioPayload(payload, reportContext);
   const hideResistanceMetrics = isPilatesReport || isBodyweightCardioReport;
-  const reportIntensityDistribution = [
-    { className: "tr-intensity-z1", label: "0-24kg", ratio: 0.6 },
-    { className: "tr-intensity-z2", label: "24-48kg", ratio: 0.2 },
-    { className: "tr-intensity-z3", label: "48-72kg", ratio: 0.2 }
-  ];
+  const effectiveCaloriesKcal = resolveSessionCaloriesKcal(payload, durationSeconds, capacityKg);
+  const useEstimatedBurnLabels = isBodyweightCardioReport || payload?.isEstimatedBurn === true;
+  const intensity = buildIntensityDistribution(timeline);
+  const reportIntensityDistribution = intensity.zones;
   if (reportUserAvatar) reportUserAvatar.textContent = String(userAvatar || "A").slice(0, 1).toUpperCase();
   if (reportCongratsTitle) reportCongratsTitle.textContent = `Great Job, ${userName}`;
   if (reportSessionMeta) {
@@ -1315,18 +1634,52 @@ function showTrainingReport(payload) {
   if (reportFinalScoreValue && hasFinalAiScore) reportFinalScoreValue.textContent = `${Math.round(Number(finalAiScore))}`;
   if (reportDurationValue) reportDurationValue.textContent = formatTime(durationSeconds);
   if (reportCapacityValue) reportCapacityValue.textContent = Number(capacityKg).toFixed(1);
-  if (reportEnergyValue) reportEnergyValue.textContent = String(Math.max(0, Math.round(energyKj)));
-  if (reportCaloriesValue) reportCaloriesValue.textContent = String(Math.max(0, Math.round(caloriesKcal)));
+  if (reportEnergyLabel) reportEnergyLabel.textContent = useEstimatedBurnLabels ? "Est. Energy Output" : "Output Energy";
+  if (reportCaloriesLabel) reportCaloriesLabel.textContent = useEstimatedBurnLabels ? "Est. Calories" : "Calories";
+  if (reportEnergyValue) reportEnergyValue.textContent = String(Math.max(0, Math.round(energyKjFromCalories(effectiveCaloriesKcal))));
+  if (reportCaloriesValue) reportCaloriesValue.textContent = String(Math.max(0, Math.round(effectiveCaloriesKcal)));
   if (reportModeLabel) reportModeLabel.textContent = modeLabel;
   if (reportEquipmentLabel) reportEquipmentLabel.textContent = equipmentLabel;
   if (reportSceneLabel) reportSceneLabel.textContent = sceneLabel;
-  if (reportIntensityRange) reportIntensityRange.textContent = `Max Resistance ${Math.round(maxResistance)}kg`;
-  if (reportIntensityBar) reportIntensityBar.innerHTML = reportIntensityDistribution
-    .map((zone) => `<span class="tr-intensity-segment ${zone.className}" style="width:${(zone.ratio * 100).toFixed(2)}%"></span>`)
-    .join("");
-  if (reportIntensityLegend) reportIntensityLegend.innerHTML = reportIntensityDistribution
-    .map((zone) => `<div class="tr-legend-item"><span class="tr-legend-dot ${zone.className}"></span><span>${zone.label} · ${Math.round(zone.ratio * 100)}%</span></div>`)
-    .join("");
+  if (reportIntensityRange) {
+    if (!intensity.settingsCount) {
+      reportIntensityRange.textContent = "No resistance recorded";
+    } else {
+      reportIntensityRange.textContent = intensity.settingsCount > 1
+        ? `${intensity.settingsCount} settings · ${intensity.sessionSpan}`
+        : `1 setting · ${intensity.sessionSpan}`;
+    }
+  }
+  if (reportIntensityBar) {
+    if (!reportIntensityDistribution.length) {
+      reportIntensityBar.innerHTML = `<span class="tr-intensity-empty">No resistance data for this session.</span>`;
+    } else {
+      reportIntensityBar.innerHTML = reportIntensityDistribution
+        .map((zone) => {
+          const pct = Math.round(zone.ratio * 100);
+          const showLabel = zone.ratio >= 0.08;
+          const segmentLabel = showLabel
+            ? (zone.ratio >= 0.14 ? `${zone.label} · ${pct}%` : `${pct}%`)
+            : "";
+          return `<span class="tr-intensity-segment ${zone.className}${zone.dominant ? " is-dominant" : ""}" style="width:${(zone.ratio * 100).toFixed(2)}%" role="img" aria-label="${zone.label}, ${zone.durationLabel}, ${pct}% of working time">${segmentLabel ? `<b class="tr-intensity-segment-label">${segmentLabel}</b>` : ""}</span>`;
+        })
+        .join("");
+    }
+  }
+  if (reportIntensityLegend) {
+    if (!reportIntensityDistribution.length) {
+      reportIntensityLegend.innerHTML = "";
+    } else {
+      reportIntensityLegend.innerHTML = reportIntensityDistribution
+        .map((zone) => `<div class="tr-legend-item${zone.dominant ? " is-dominant" : ""}"><span class="tr-legend-dot ${zone.className}"></span><span>${zone.label} · ${zone.durationLabel} · ${Math.round(zone.ratio * 100)}%${zone.dominant ? " · Top" : ""}</span></div>`)
+        .join("");
+    }
+  }
+  if (reportIntensityLegendNote) {
+    reportIntensityLegendNote.textContent = reportIntensityDistribution.length
+      ? "Each row is a resistance level you set during this session. Segments are ordered low to high; color shows relative intensity."
+      : "Complete a strength session to see which resistance levels you used and for how long.";
+  }
   if (reportCapacityStat) reportCapacityStat.hidden = hideResistanceMetrics;
   if (reportModeSetupBlock) reportModeSetupBlock.hidden = isPlanTrainingReport || hideResistanceMetrics;
   if (reportStrengthPowerBlock) reportStrengthPowerBlock.hidden = hideResistanceMetrics;
@@ -1348,11 +1701,8 @@ function sampleIwTraining(currentSeconds) {
   const second = Math.floor(currentSeconds);
   if (second === iwTrainingState.lastSecond) return;
   iwTrainingState.lastSecond = second;
-  const modeOffset = iwState.mode === "spring" ? 6 : iwState.mode === "isokinetic" ? 5 : iwState.mode === "eccentric" ? 4 : 2;
-  const equipOffset = iwState.equipment === "barbell" ? 2 : -1;
-  const sway = Math.sin(second / 2.4) * 4 + Math.cos(second / 5.4) * 2.2;
-  const resistance = clamp(iwState.weight + modeOffset + equipOffset + sway, 0, 120);
-  iwTrainingState.resistanceTimeline.push(Math.round(resistance * 10) / 10);
+  const bounds = getIwBounds();
+  iwTrainingState.resistanceTimeline.push(snapshotUserSetWeightKg(iwState.weight, bounds));
   if (iwTrainingState.resistanceTimeline.length > 7200) iwTrainingState.resistanceTimeline.shift();
   // AI score state now changes by clicking the score card.
 }
@@ -1369,19 +1719,26 @@ function updateIwTimeUI() {
 
 function syncIwWeightUI() {
   if (!iwWeightValue) return;
-  const clamped = Math.min(videoPlayParamConfig.maxWeight, Math.max(videoPlayParamConfig.minWeight, iwState.weight));
-  iwState.weight = Math.round(clamped * 10) / 10;
-  const v = iwState.weight.toFixed(1);
+  const bounds = getIwBounds();
+  const clamped = Math.min(bounds.max, Math.max(bounds.min, iwState.weight));
+  if (bounds.step >= 1) {
+    iwState.weight = Math.round(clamped);
+  } else {
+    iwState.weight = Math.round(clamped * 10) / 10;
+  }
+  const v = formatResistanceDisplay(iwState.weight, bounds);
   iwWeightValue.textContent = v;
   if (iwSummaryWeight) iwSummaryWeight.textContent = v;
-  
+
   const iwDialProgress = document.getElementById("iwDialProgress");
   if (iwDialProgress) {
-    const percent = (iwState.weight - videoPlayParamConfig.minWeight) / (videoPlayParamConfig.maxWeight - videoPlayParamConfig.minWeight);
-    const dasharray = 339.29; // 2 * PI * 54
-    const offset = dasharray - (dasharray * percent);
+    const span = bounds.max - bounds.min;
+    const percent = span > 0 ? (iwState.weight - bounds.min) / span : 0;
+    const dasharray = 339.29;
+    const offset = dasharray - (dasharray * Math.max(0, Math.min(1, percent)));
     iwDialProgress.style.strokeDashoffset = offset;
   }
+  syncIwSpringBarUI();
 }
 
 function springLevelToRaw(level) {
@@ -1573,6 +1930,7 @@ function openImmersiveWorkout() {
   iwTrainingState.lastSecond = -1;
   iwTrainingState.resistanceTimeline = [];
   resetIwAiCapture();
+  applyIwPilatesContext();
   if (!iwState.rafId && iwChartCtx) drawIwChartFrame();
   
   // Default to drawer open
@@ -1584,10 +1942,12 @@ function openImmersiveWorkout() {
     iwAiReadyOverlay.classList.add("is-visible");
     iwAiReadyOverlay.setAttribute("aria-hidden", "false");
   }
-  if (iwTrainerOptions.length) {
-    const defaultOption = iwTrainerOptions.find((option) => option.classList.contains("is-lg")) || iwTrainerOptions[0];
-    setSelectedTrainer(defaultOption);
+  if (iwRecognitionTimerId) {
+    clearTimeout(iwRecognitionTimerId);
+    iwRecognitionTimerId = 0;
   }
+  selectedTrainer = "";
+  scheduleAutoRecognition();
 }
 
 function closeImmersiveWorkout() {
@@ -1607,6 +1967,47 @@ function closeImmersiveWorkout() {
     iwAiReadyOverlay.classList.remove("is-visible");
     iwAiReadyOverlay.setAttribute("aria-hidden", "true");
   }
+  clearIwRecognitionFlow();
+  setIwReadyStep("env");
+}
+
+function setIwReadyStep(step) {
+  if (!iwAiReadyPanel) return;
+  const nextStep = step === "select" ? "select" : "env";
+  iwAiReadyPanel.dataset.currentStep = nextStep;
+}
+
+function clearIwRecognitionFlow() {
+  if (iwRecognitionTimerId) {
+    clearTimeout(iwRecognitionTimerId);
+    iwRecognitionTimerId = 0;
+  }
+  if (iwAiReadyPanel) iwAiReadyPanel.classList.remove("is-scanning");
+}
+
+function scheduleAutoRecognition() {
+  clearIwRecognitionFlow();
+  setIwReadyStep("env");
+  if (iwRecogStatus) iwRecogStatus.textContent = "Recognizing, please wait…";
+  iwRecognitionTimerId = window.setTimeout(beginRecognitionScan, IW_AI_GUIDANCE_DWELL_MS);
+}
+
+function beginRecognitionScan() {
+  if (!iwAiReadyPanel) return;
+  iwRecognitionTimerId = 0;
+  iwAiReadyPanel.classList.add("is-scanning");
+  if (iwRecogStatus) iwRecogStatus.textContent = "Detecting your face, please stay standing…";
+  iwRecognitionTimerId = window.setTimeout(finishAutoRecognition, IW_AI_SCAN_MS);
+}
+
+function finishAutoRecognition() {
+  iwRecognitionTimerId = 0;
+  if (iwAiReadyPanel) iwAiReadyPanel.classList.remove("is-scanning");
+  setIwReadyStep("select");
+  if (iwTrainerOptions.length) {
+    const defaultOption = iwTrainerOptions.find((option) => option.classList.contains("is-lg")) || iwTrainerOptions[0];
+    setSelectedTrainer(defaultOption);
+  }
 }
 
 function startIwTrainingAfterReady() {
@@ -1619,6 +2020,7 @@ function startIwTrainingAfterReady() {
     iwAiReadyOverlay.classList.remove("is-visible");
     iwAiReadyOverlay.setAttribute("aria-hidden", "true");
   }
+  if (iwAiReadyPanel) iwAiReadyPanel.classList.remove("is-scanning");
   iwAiState.ready = true;
   iwAiState.cycleStep = 0;
   iwAiState.lastSecond = -1;
@@ -1786,13 +2188,15 @@ if (iwVideo) {
 }
 if (iwDecreaseBtn) {
   iwDecreaseBtn.addEventListener("click", () => {
-    iwState.weight -= videoPlayParamConfig.weightStep;
+    const bounds = getIwBounds();
+    iwState.weight -= bounds.step;
     syncIwWeightUI();
   });
 }
 if (iwIncreaseBtn) {
   iwIncreaseBtn.addEventListener("click", () => {
-    iwState.weight += videoPlayParamConfig.weightStep;
+    const bounds = getIwBounds();
+    iwState.weight += bounds.step;
     syncIwWeightUI();
   });
 }
@@ -1995,10 +2399,14 @@ if (pilatesBackBtn) {
   });
 }
 
+let pilatesDashboardWired = false;
+
 function initPilatesDashboard() {
   const root = document.getElementById("pilatesView");
   if (!root || !root.classList.contains("is-active")) return;
-  const springs = Array.from(root.querySelectorAll(".spring"));
+  if (pilatesDashboardWired) return;
+  pilatesDashboardWired = true;
+
   const dashboard = root.querySelector("#pilatesDashboard");
   const durationValue = document.getElementById("pilatesDurationValue");
   const resistanceValue = document.getElementById("pilatesResistanceValue");
@@ -2008,13 +2416,37 @@ function initPilatesDashboard() {
   const startBtn = document.getElementById("pilatesStartBtn");
   const endBtn = document.getElementById("pilatesEndBtn");
   const flipBtn = document.getElementById("pilatesFlipBtn");
+  const resistanceMinus = document.getElementById("pilatesResistanceMinus");
+  const resistancePlus = document.getElementById("pilatesResistancePlus");
+  const resistanceDisplayVal = document.getElementById("pilatesResistanceDisplayVal");
+  const dialProgress = document.getElementById("pilatesDialProgress");
+  const springCoil = document.getElementById("pilatesSpringCoil");
+  const springBarValue = document.getElementById("pilatesSpringBarValue");
+  const modeBtns = Array.from(root.querySelectorAll(".mode-btn"));
+  const springSliderBlock = document.getElementById("pilatesSpringSliderBlock");
+  const springSlider = document.getElementById("pilatesSpringSlider");
+  const springSliderLabel = document.getElementById("pilatesSpringSliderLabel");
+  const isokineticSliderBlock = document.getElementById("pilatesIsokineticSliderBlock");
+  const isokineticSlider = document.getElementById("pilatesIsokineticSlider");
+  const isokineticSliderLabel = document.getElementById("pilatesIsokineticSliderLabel");
+  const isokineticSliderHint = document.getElementById("pilatesIsokineticSliderHint");
   const canvas = document.getElementById("romPowerCanvas");
   if (!canvas) return;
   const ctx = canvas.getContext("2d");
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  const bounds = {
+    min: PILATES_RESISTANCE.min,
+    max: PILATES_RESISTANCE.max,
+    step: PILATES_RESISTANCE.step,
+    default: PILATES_RESISTANCE.default
+  };
+
+  let trainingMode = "standard";
+  let resistanceKg = bounds.default;
+  let springLevel = 1;
+  let isokineticLevel = 1;
   let elapsedSeconds = 0;
-  let outputEnergy = 0;
   let calories = 0;
   let isRunning = false;
   let timerId = null;
@@ -2032,17 +2464,66 @@ function initPilatesDashboard() {
     return `${min}:${sec}`;
   }
 
-  function getResistanceSum() {
-    return springs
-      .filter((item) => item.classList.contains("is-active"))
-      .reduce((sum, item) => sum + Number(item.dataset.kg), 0);
+  function renderResistance() {
+    if (resistanceValue) resistanceValue.textContent = String(resistanceKg);
+    if (currentResistance) currentResistance.textContent = `${resistanceKg}kg`;
+    if (resistanceDisplayVal) resistanceDisplayVal.textContent = String(resistanceKg);
+    if (dialProgress) {
+      const span = bounds.max - bounds.min;
+      const percent = span > 0 ? (resistanceKg - bounds.min) / span : 0;
+      const dasharray = 213.63;
+      dialProgress.style.strokeDashoffset = dasharray - (dasharray * Math.max(0, Math.min(1, percent)));
+    }
+    updateSpringBarVisual(springCoil, springBarValue, resistanceKg, bounds.min, bounds.max);
+    return resistanceKg;
   }
 
-  function renderResistance() {
-    const total = getResistanceSum();
-    if (resistanceValue) resistanceValue.textContent = total.toFixed(1);
-    if (currentResistance) currentResistance.textContent = `${total.toFixed(1)}kg`;
-    return total;
+  function setTrainingMode(mode) {
+    trainingMode = mode;
+    modeBtns.forEach((btn) => btn.classList.toggle("active", btn.dataset.mode === mode));
+    if (springSliderBlock) springSliderBlock.classList.toggle("visible", mode === "spring");
+    if (isokineticSliderBlock) isokineticSliderBlock.classList.toggle("visible", mode === "isokinetic");
+  }
+
+  function getPilatesIsokineticHint(level) {
+    if (level >= 1 && level <= 5) return "Slow/Stability — strong speed limit, suited for strength at lockout.";
+    if (level >= 6 && level <= 15) return "Standard/Hypertrophy — simulates typical gym tempo.";
+    return "Power/Sport — allows very fast start; minimal speed limit.";
+  }
+
+  modeBtns.forEach((btn) => {
+    btn.addEventListener("click", () => setTrainingMode(btn.dataset.mode || "standard"));
+  });
+
+  if (resistanceMinus) {
+    resistanceMinus.addEventListener("click", () => {
+      if (resistanceKg > bounds.min) {
+        resistanceKg = Math.max(bounds.min, resistanceKg - bounds.step);
+        renderResistance();
+      }
+    });
+  }
+  if (resistancePlus) {
+    resistancePlus.addEventListener("click", () => {
+      if (resistanceKg < bounds.max) {
+        resistanceKg = Math.min(bounds.max, resistanceKg + bounds.step);
+        renderResistance();
+      }
+    });
+  }
+
+  if (springSlider) {
+    springSlider.addEventListener("input", () => {
+      springLevel = parseInt(springSlider.value, 10);
+      if (springSliderLabel) springSliderLabel.textContent = `Level ${springLevel}`;
+    });
+  }
+  if (isokineticSlider) {
+    isokineticSlider.addEventListener("input", () => {
+      isokineticLevel = parseInt(isokineticSlider.value, 10);
+      if (isokineticSliderLabel) isokineticSliderLabel.textContent = `Level ${isokineticLevel}`;
+      if (isokineticSliderHint) isokineticSliderHint.textContent = getPilatesIsokineticHint(isokineticLevel);
+    });
   }
 
   function valueNoise(x) {
@@ -2168,13 +2649,12 @@ function initPilatesDashboard() {
     if (!isRunning) return;
     elapsedSeconds += 1;
     const resistance = renderResistance();
-    resistanceTimeline.push(Math.round(resistance * 10) / 10);
+    resistanceTimeline.push(resistance);
     if (resistanceTimeline.length > 7200) resistanceTimeline.shift();
     targetPowerPercent = Math.max(20, Math.min(100, 20 + resistance * 1.15 + Math.random() * 26));
     const energyStep = resistance * (0.42 + targetPowerPercent / 188);
-    outputEnergy += energyStep;
     calories += energyStep * 0.24;
-    if (energyValue) energyValue.textContent = outputEnergy.toFixed(0);
+    if (energyValue) energyValue.textContent = energyKjFromCalories(calories).toFixed(0);
     if (calorieValue) calorieValue.textContent = calories.toFixed(0);
     if (durationValue) durationValue.textContent = formatDuration(elapsedSeconds);
   }
@@ -2201,8 +2681,9 @@ function initPilatesDashboard() {
     setIdleWave();
     const timeline = resistanceTimeline.length
       ? resistanceTimeline.slice()
-      : buildSyntheticTimeline(Math.max(12, elapsedSeconds), renderResistance(), "spring");
+      : buildSyntheticTimeline(Math.max(12, elapsedSeconds), renderResistance(), trainingMode);
     const capacityKg = sumResistanceTimeline(timeline);
+    const modeLabel = iwModeMapReport[trainingMode] || "Standard";
     const pilatesReportPayload = {
       reportFromScene: "pilates",
       userName: reportUser.name,
@@ -2210,11 +2691,11 @@ function initPilatesDashboard() {
       sceneLabel: "Free Training",
       durationSeconds: Math.max(1, elapsedSeconds || timeline.length),
       capacityKg,
-      energyKj: outputEnergy,
+      energyKj: energyKjFromCalories(calories),
       caloriesKcal: calories,
-      modeLabel: "Spring",
+      modeLabel,
       equipmentLabel: "No Barbell",
-      maxResistance: 120,
+      maxResistance: bounds.max,
       timeline
     };
     if (PLAN_B_PAGE === "pilates") {
@@ -2230,12 +2711,6 @@ function initPilatesDashboard() {
     showTrainingReport(pilatesReportPayload);
   }
 
-  springs.forEach((spring) => {
-    spring.addEventListener("click", () => {
-      spring.classList.toggle("is-active");
-      renderResistance();
-    });
-  });
   if (startBtn) startBtn.addEventListener("click", startTraining);
   if (endBtn) {
     endBtn.addEventListener("click", () => {
@@ -2251,6 +2726,8 @@ function initPilatesDashboard() {
     });
   }
 
+  setTrainingMode("standard");
+  if (isokineticSliderHint) isokineticSliderHint.textContent = getPilatesIsokineticHint(1);
   renderResistance();
   if (durationValue) durationValue.textContent = formatDuration(elapsedSeconds);
   setIdleWave();
@@ -3372,6 +3849,8 @@ function initImmersivePage() {
     /* ignore */
   }
   syncActionDetail();
+  applyIwPilatesContext();
+  if (iwModeGroup && iwSummaryMode && iwModeChip) setIwMode(videoPlayParamConfig.defaultMode);
   openImmersiveWorkout();
 }
 initImmersivePage();
@@ -3552,8 +4031,13 @@ function initPlanTrainingPage() {
         : buildSyntheticTimeline(Math.max(18, measuredDuration || ptState.sessionElapsedSeconds || 30), iwState.weight, iwState.mode);
       const durationSeconds = Math.max(1, measuredDuration || ptState.sessionElapsedSeconds || timeline.length);
       const capacityKg = sumResistanceTimeline(timeline);
-      const energyKj = capacityKg * 0.38;
-      const caloriesKcal = energyKj * 0.24;
+      const reportPayloadDraft = {
+        reportFromScene: "plan-training",
+        durationSeconds,
+        capacityKg
+      };
+      const caloriesKcal = resolveSessionCaloriesKcal(reportPayloadDraft, durationSeconds, capacityKg);
+      const energyKj = energyKjFromCalories(caloriesKcal);
       const weekNumber = Math.max(1, Number(payload && payload.week) || 1);
       const dayNumber = Math.max(1, Number(payload && payload.day) || 1);
       const moveResultMap = new Map(

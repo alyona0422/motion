@@ -1,15 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Plan B · Device Settings</title>
+  <title>Plan B · 设备设置</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/plan-b-base.css" />
   <link rel="stylesheet" href="css/plan-b-modal-detail.css" />
   <link rel="stylesheet" href="css/plan-b-profile.css" />
+  <link rel="stylesheet" href="css/plan-b-light-medium.css" />
   <style>
     .settings-screen {
       position: absolute;
@@ -24,6 +25,7 @@
     .settings-header {
       display: flex;
       align-items: center;
+      justify-content: center;
       margin-bottom: 32px;
     }
     .settings-back-btn {
@@ -37,7 +39,8 @@
       justify-content: center;
       color: var(--text-primary);
       cursor: pointer;
-      margin-right: 16px;
+      margin-right: 0;
+      flex-shrink: 0;
       transition: all 0.2s ease;
     }
     .settings-back-btn:hover {
@@ -289,95 +292,409 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
+
+    /* Device Self-Check Page */
+    .self-check-page {
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      display: none;
+      flex-direction: column;
+      background: linear-gradient(180deg, var(--bg-2), var(--bg-0));
+      padding: 66px 18px 96px;
+      overflow-y: auto;
+    }
+    .self-check-page.active {
+      display: flex;
+    }
+    .self-check-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 36px;
+    }
+    .self-check-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 30px;
+      font-weight: 600;
+      color: var(--text);
+      margin: 0;
+      letter-spacing: 1px;
+    }
+    .self-check-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
+      padding: 12px 0 28px;
+    }
+    .self-check-progress-wrap {
+      position: relative;
+      width: 220px;
+      height: 220px;
+      flex-shrink: 0;
+    }
+    .self-check-ring {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+      overflow: visible;
+    }
+    .self-check-ring .ring-track {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.1);
+      stroke-width: 10;
+    }
+    .self-check-ring .ring-progress {
+      fill: none;
+      stroke: var(--orange);
+      stroke-width: 10;
+      stroke-linecap: round;
+      stroke-dasharray: 427.26;
+      stroke-dashoffset: 427.26;
+      transition: stroke-dashoffset 0.15s ease;
+    }
+    .self-check-percent {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 38px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 0.02em;
+    }
+    .self-check-status-label {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+      margin: 0;
+      text-align: center;
+    }
+    .self-check-current {
+      font-size: 16px;
+      color: var(--muted);
+      margin: 0;
+      text-align: center;
+    }
+    .self-check-items {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .self-check-item {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--line-soft);
+      border-radius: 16px;
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+    .self-check-item.is-active {
+      border-color: rgba(255, 107, 53, 0.35);
+      background: rgba(255, 107, 53, 0.08);
+    }
+    .self-check-item-name {
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .self-check-item-status {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .self-check-item-status.is-checking {
+      color: var(--orange);
+    }
+    .self-check-item-status.is-normal {
+      color: #059669;
+    }
+    .self-check-item-status.is-abnormal {
+      color: #dc2626;
+      background: rgba(220, 38, 38, 0.1);
+      border: 1px solid rgba(220, 38, 38, 0.28);
+      border-radius: 999px;
+      padding: 6px 14px;
+      cursor: pointer;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+    .self-check-item-status.is-abnormal:hover {
+      background: rgba(220, 38, 38, 0.16);
+      border-color: rgba(220, 38, 38, 0.42);
+    }
+    .self-check-footer {
+      padding-top: 12px;
+    }
+    .self-check-start-btn,
+    .self-check-done-btn {
+      width: 100%;
+      min-height: 56px;
+      height: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--orange);
+      box-shadow: var(--glow-orange), 0 14px 24px rgba(0, 0, 0, 0.28);
+      color: #fff;
+      cursor: pointer;
+      border: none;
+      border-radius: 999px;
+      padding: 0 28px;
+      font-size: 17px;
+      font-weight: 600;
+      line-height: 1;
+      letter-spacing: 0.02em;
+      transition: filter 0.2s ease, transform 0.2s ease;
+    }
+    .self-check-start-btn:hover,
+    .self-check-done-btn:hover {
+      filter: brightness(1.06);
+    }
+    .self-check-page[data-state="running"] .self-check-start-btn,
+    .self-check-page[data-state="done"] .self-check-start-btn {
+      display: none;
+    }
+    .self-check-page[data-state="idle"] .self-check-done-btn,
+    .self-check-page[data-state="running"] .self-check-done-btn {
+      display: none;
+    }
+    .self-check-page[data-state="done"] .self-check-done-btn {
+      display: flex;
+    }
+    .self-check-page[data-state="idle"] .self-check-current {
+      display: none;
+    }
+    #selfCheckIssueModal {
+      z-index: 25;
+    }
+    .self-check-issue-body {
+      padding: 16px 0 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .self-check-issue-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .self-check-issue-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+    .self-check-issue-value {
+      font-size: 15px;
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .self-check-issue-code {
+      font-family: 'Barlow Condensed', monospace;
+      font-size: 22px;
+      font-weight: 700;
+      color: #dc2626;
+    }
+    .self-check-issue-qr-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      padding-top: 4px;
+    }
+    .self-check-issue-qr {
+      width: 168px;
+      height: 168px;
+      border-radius: 14px;
+      background: #fff;
+      padding: 10px;
+      box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.2);
+      object-fit: contain;
+    }
+    .self-check-issue-qr-hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin: 0;
+      text-align: center;
+    }
+    body.cream-medium .self-check-page {
+      background: linear-gradient(180deg, rgba(255, 252, 244, 0.96) 0%, #f5f8fb 44%, #e8eef5 100%);
+    }
+    body.cream-medium .self-check-item {
+      background: rgba(255, 255, 255, 0.82);
+    }
+    body.cream-medium .self-check-ring .ring-track {
+      stroke: rgba(15, 23, 42, 0.1);
+    }
   </style>
-  <link rel="stylesheet" href="css/plan-b-light-medium.css" />
 </head>
 <body class="cream-medium" data-plan-b-page="device-settings">
-  <main class="device-shell" aria-label="Plan B device settings">
+  <main class="device-shell" aria-label="Plan B 设备设置">
     <div class="particle-layer" aria-hidden="true"></div>
     <div class="vignette" aria-hidden="true"></div>
 
-    <section class="settings-screen" aria-label="Device Settings">
+    <section class="settings-screen" aria-label="设备设置">
       <div class="top-status-row">
         <div class="status-pill">
           <div class="status-time">
-            <span>10:26 AM</span>
-            <small>Dec 6, 2024</small>
+            <span>上午 10:26</span>
+            <small>2024年12月6日</small>
           </div>
           <div class="status-icons">
             <span class="status-chip" id="wifiStatusChip" style="display: none;">Wi-Fi</span>
-            <span class="status-chip">Bt</span>
+            <span class="status-chip">蓝牙</span>
             <span class="status-chip">85%</span>
           </div>
         </div>
       </div>
 
       <div class="settings-header">
-        <button class="settings-back-btn" type="button" onclick="window.location.href='plan-b-profile.html'" aria-label="Back to profile">
-          <svg viewBox="0 0 24 24">
-            <path d="M15 18l-6-6 6-6"></path>
-          </svg>
-        </button>
-        <h1 class="settings-title" data-i18n="title">DEVICE SETTINGS</h1>
+        <h1 class="settings-title" data-i18n="title">设备设置</h1>
       </div>
 
       <div class="settings-list">
         <button class="list-btn" type="button" id="wifiSettingsBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
-          <span data-i18n="wifi">WI-FI SETTINGS</span>
+          <span data-i18n="wifi">Wi-Fi 设置</span>
+        </button>
+        <button class="list-btn" type="button" id="ambientLightBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8 14a5 5 0 1 1 8 0c-.8.7-1.2 1.6-1.3 2.6H9.3C9.2 15.6 8.8 14.7 8 14z"/></svg>
+          <span data-i18n="ambient">氛围灯设置</span>
         </button>
         <button class="list-btn" type="button" id="languageBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-          <span data-i18n="lang">LANGUAGE</span>
+          <span data-i18n="lang">语言</span>
         </button>
         <button class="list-btn" type="button" id="privacyBtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          <span data-i18n="privacy">PRIVACY & AGREEMENT</span>
+          <span data-i18n="privacy">隐私与协议</span>
+        </button>
+        <button class="list-btn" type="button" id="selfCheckBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          <span>设备自检</span>
+        </button>
+      </div>
+      <div class="action-dock" aria-label="页面操作">
+        <button class="settings-back-btn" type="button" onclick="window.location.href='plan-b-profile.html'" aria-label="返回个人主页">
+          <svg viewBox="0 0 24 24">
+            <path d="M15 18l-6-6 6-6"></path>
+          </svg>
         </button>
       </div>
     </section>
+
+    <!-- 设备自检 -->
+    <section class="self-check-page" id="selfCheckScreen" data-state="idle" aria-label="设备自检" aria-hidden="true">
+      <div class="self-check-header">
+        <h2 class="self-check-title">设备自检</h2>
+      </div>
+      <div class="self-check-body">
+        <div class="self-check-progress-wrap" aria-live="polite">
+          <svg class="self-check-ring" viewBox="0 0 156 156" aria-hidden="true">
+            <circle class="ring-track" cx="78" cy="78" r="68"></circle>
+            <circle class="ring-progress" id="selfCheckRingProgress" cx="78" cy="78" r="68"></circle>
+          </svg>
+          <div class="self-check-percent" id="selfCheckPercent">0%</div>
+        </div>
+        <p class="self-check-status-label" id="selfCheckStatusLabel">点击下方开始自检</p>
+        <p class="self-check-current" id="selfCheckCurrentItem">正在检测：相机</p>
+        <ul class="self-check-items" id="selfCheckItemsList" aria-label="自检项目"></ul>
+      </div>
+      <div class="self-check-footer">
+        <button class="resume-btn self-check-start-btn" type="button" id="startSelfCheckBtn">开始自检</button>
+        <button class="resume-btn self-check-done-btn" type="button" id="selfCheckDoneBtn">完成</button>
+      </div>
+      <div class="action-dock" aria-label="页面操作">
+        <button class="settings-back-btn" type="button" id="selfCheckCloseBtn" aria-label="返回设备设置">
+          <svg viewBox="0 0 24 24">
+            <path d="M15 18l-6-6 6-6"></path>
+          </svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- 自检异常弹窗 -->
+    <div class="training-modal" id="selfCheckIssueModal" aria-hidden="true" style="padding: 40px 24px;">
+      <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="selfCheckIssueTitle" style="margin: auto; border-radius: 20px; width: 100%; max-width: 360px;">
+        <div class="modal-head" style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 16px; border-bottom: 1px solid var(--line-soft);">
+          <h3 id="selfCheckIssueTitle" class="truncate-text" style="margin: 0;">异常详情</h3>
+          <button class="close-btn" id="closeSelfCheckIssueBtn" type="button" aria-label="关闭" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; padding: 0; margin-left: 16px; flex-shrink: 0; color: var(--muted);">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+        <div class="self-check-issue-body">
+          <div class="self-check-issue-row">
+            <span class="self-check-issue-label">异常原因</span>
+            <p class="self-check-issue-value" id="selfCheckIssueReason">—</p>
+          </div>
+          <div class="self-check-issue-row">
+            <span class="self-check-issue-label">异常代码</span>
+            <p class="self-check-issue-code" id="selfCheckIssueCode">—</p>
+          </div>
+          <div class="self-check-issue-qr-wrap">
+            <span class="self-check-issue-label">异常二维码</span>
+            <img id="selfCheckIssueQr" class="self-check-issue-qr" src="" alt="异常二维码" width="168" height="168" />
+            <p class="self-check-issue-qr-hint">扫码查看支持信息</p>
+          </div>
+        </div>
+        <div class="wifi-modal-actions" style="margin-top: 8px;">
+          <button class="resume-btn" id="selfCheckIssueOkBtn" type="button" style="width: 100%; background: var(--orange); box-shadow: var(--glow-orange), 0 14px 24px rgba(0, 0, 0, 0.28); color: #fff; cursor: pointer;">确定</button>
+        </div>
+      </div>
+    </div>
 
     <!-- Wi-Fi Bottom Sheet & Overlay -->
     <div class="sheet-overlay" id="wifiOverlay"></div>
     <div class="wifi-bottom-sheet" id="wifiBottomSheet">
       <div class="wifi-sheet-header">
-        <h3>Wi-Fi Settings</h3>
+        <h3>Wi-Fi 设置</h3>
         <div class="wifi-sheet-actions">
-          <button type="button" class="wifi-action-btn" id="wifiRefreshBtn" aria-label="Refresh">
+          <button type="button" class="wifi-action-btn" id="wifiRefreshBtn" aria-label="刷新">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.59-8.27l-4.59 4.64"/></svg>
           </button>
-          <button type="button" class="wifi-action-btn" id="wifiCloseBtn" aria-label="Close">
+          <button type="button" class="wifi-action-btn" id="wifiCloseBtn" aria-label="关闭">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
       </div>
       <div class="wifi-list" id="wifiList">
-        <!-- Rendered by JS -->
+        <!-- 由 JS 渲染 -->
       </div>
     </div>
 
-    <!-- Password Modal -->
+    <!-- 密码弹窗 -->
     <div class="training-modal" id="wifiPasswordModal" aria-hidden="true">
       <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="wifiModalTitle">
         <div class="modal-head">
-          <h3 id="wifiModalTitle" class="truncate-text" style="max-width: 280px;">Network Name</h3>
-          <button class="close-btn" id="closeWifiModalBtn" type="button" aria-label="Close">✕</button>
+          <h3 id="wifiModalTitle" class="truncate-text" style="max-width: 280px;">网络名称</h3>
+          <button class="close-btn" id="closeWifiModalBtn" type="button" aria-label="关闭">✕</button>
         </div>
         <div class="wifi-pwd-input-group">
-          <input type="password" id="wifiPasswordInput" class="wifi-pwd-input" placeholder="Enter password" />
+          <input type="password" id="wifiPasswordInput" class="wifi-pwd-input" placeholder="请输入密码" />
         </div>
         <div class="wifi-modal-actions" style="margin-top: 8px;">
-          <button class="resume-btn" id="wifiConnectBtn" type="button" style="width: 100%; background: var(--orange); box-shadow: var(--glow-orange), 0 14px 24px rgba(0, 0, 0, 0.28); color: #fff;">Connect</button>
+          <button class="resume-btn" id="wifiConnectBtn" type="button" style="width: 100%; background: var(--orange); box-shadow: var(--glow-orange), 0 14px 24px rgba(0, 0, 0, 0.28); color: #fff;">连接</button>
         </div>
       </div>
     </div>
 
-    <!-- Language Modal -->
+    <!-- 语言弹窗 -->
     <div class="training-modal" id="languageModal" aria-hidden="true" style="padding: 40px 24px;">
       <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="languageModalTitle" style="margin: auto; border-radius: 20px; width: 100%; max-width: 320px;">
         <div class="modal-head" style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 16px; border-bottom: 1px solid var(--line-soft);">
-          <h3 id="languageModalTitle" class="truncate-text" style="margin: 0;" data-i18n="langTitle">Language</h3>
-          <button class="close-btn" id="closeLanguageModalBtn" type="button" aria-label="Close" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; padding: 0; margin-left: 16px; flex-shrink: 0; color: var(--muted);">
+          <h3 id="languageModalTitle" class="truncate-text" style="margin: 0;" data-i18n="langTitle">语言</h3>
+          <button class="close-btn" id="closeLanguageModalBtn" type="button" aria-label="关闭" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; padding: 0; margin-left: 16px; flex-shrink: 0; color: var(--muted);">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
         </div>
@@ -392,549 +709,549 @@
           </label>
         </div>
         <div class="wifi-modal-actions" style="margin-top: 8px;">
-          <button class="resume-btn" id="languageConfirmBtn" type="button" style="width: 100%; background: var(--orange); box-shadow: var(--glow-orange), 0 14px 24px rgba(0, 0, 0, 0.28); color: #fff;" data-i18n="confirm">Confirm</button>
+          <button class="resume-btn" id="languageConfirmBtn" type="button" style="width: 100%; background: var(--orange); box-shadow: var(--glow-orange), 0 14px 24px rgba(0, 0, 0, 0.28); color: #fff;" data-i18n="confirm">确定</button>
         </div>
       </div>
     </div>
 
-    <!-- Privacy Modal -->
+    <!-- 隐私弹窗 -->
     <div class="training-modal" id="privacyModal" aria-hidden="true" style="padding: 40px 24px;">
       <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="privacyModalTitle" style="height: 100%; max-height: none; display: flex; flex-direction: column; margin: 0; border-radius: 20px;">
         <div class="modal-head" style="flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding-bottom: 16px; border-bottom: 1px solid var(--line-soft);">
-          <h3 id="privacyModalTitle" class="truncate-text" style="margin: 0;">PRIVACY & AGREEMENT</h3>
-          <button class="close-btn" id="closePrivacyModalBtn" type="button" aria-label="Close" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; padding: 0; margin-left: 16px; flex-shrink: 0; color: var(--muted);">
+          <h3 id="privacyModalTitle" class="truncate-text" style="margin: 0;">隐私与协议</h3>
+          <button class="close-btn" id="closePrivacyModalBtn" type="button" aria-label="关闭" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; padding: 0; margin-left: 16px; flex-shrink: 0; color: var(--muted);">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
         </div>
         <div class="privacy-content" style="overflow-y: auto; padding: 20px 0; font-size: 14px; color: var(--text); line-height: 1.6; flex: 1;">
-          <p><strong>Effective Date: February 10, 2025</strong></p>
-          <p>Visbody (hereinafter referred to as "the Company") complies with personal information protection regulations and strives to protect user rights by establishing a privacy policy for its products Visbody, its website Visbody.com, Visbody applications, and WellnessHub system (collectively referred to as "network services").</p>
-          <p>This policy applies to the following:</p>
+          <p><strong>生效日期：2025年2月10日</strong></p>
+          <p>Visbody（以下简称"公司"）遵守个人信息保护相关法规，并为其产品 Visbody、网站 Visbody.com、Visbody 应用程序以及 WellnessHub 系统（统称"网络服务"）制定隐私政策，努力保护用户权益。</p>
+          <p>本政策适用于以下范围：</p>
           <ul style="padding-left: 20px; margin-bottom: 16px;">
-            <li>Visbody's body fat analysis devices, physical fitness assessment devices, running posture assessment devices, and their accessories (collectively referred to as "products");</li>
-            <li>Applications provided by Visbody that allow you to view, add, update, or delete data (collectively referred to as "applications");</li>
-            <li>Visbody's data management websites and/or website extensions, including but not limited to https://Visbody.com, xxx.visbody.com, www.visbody.ai, www.ai.visbody.com, https://wellnesshub.visbodyfit.com (collectively referred to as "websites")</li>
-            <li>Data, analysis, and other content collected, used, analyzed, generated, or provided by products, applications, or websites, including but not limited to text, charts, calculations, copies, audio, video, photos, illustrations, images, graphics, and other visual materials ("Visbody Content") (collectively referred to as "services").</li>
-            <li>HTML-formatted emails we send to you that link to this Privacy Policy.</li>
-            <li>And any other products and services provided through any other venues, websites, and mobile applications that direct you to this Privacy Policy.</li>
+            <li>Visbody 的体脂分析设备、体能评估设备、跑姿评估设备及其配件（统称"产品"）；</li>
+            <li>Visbody 提供的允许你查看、添加、更新或删除数据的应用程序（统称"应用程序"）；</li>
+            <li>Visbody 的数据管理网站和/或网站扩展，包括但不限于 https://Visbody.com、xxx.visbody.com、www.visbody.ai、www.ai.visbody.com、https://wellnesshub.visbodyfit.com（统称"网站"）；</li>
+            <li>由产品、应用程序或网站收集、使用、分析、生成或提供的数据、分析及其他内容，包括但不限于文本、图表、计算、文案、音频、视频、照片、插图、图像、图形及其他视觉素材（"Visbody 内容"）（统称"服务"）；</li>
+            <li>我们向你发送的、链接至本隐私政策的 HTML 格式邮件；</li>
+            <li>以及通过任何其他渠道、网站和移动应用程序提供并引导你阅读本隐私政策的其他产品和服务。</li>
           </ul>
-          <p>Providing personal information is not mandatory, and users have the right to refuse consent to the collection of their personal information. However, if users choose not to provide personal information, certain features may not be available to them, their experience may be negatively affected, and they may not be able to receive support services from the Company.</p>
-          <p><em>*Malaysia: In this Privacy Policy, the terms "personal data," "sensitive personal data," and "use" shall have the meanings given in the Malaysian Personal Data Protection Act 2010.</em></p>
-          <p>If you are a California resident, please also review our California Privacy Law Addendum, which explains how our privacy policy specifically applies to California residents and businesses.</p>
-          <p>If you are a New York State resident, please also review our New York Privacy Law Addendum, which explains how our privacy policy specifically applies to New York State residents and businesses.</p>
+          <p>提供个人信息并非强制，用户有权拒绝同意收集其个人信息。但如果用户选择不提供个人信息，部分功能可能无法使用，使用体验可能受到影响，并且可能无法获得公司的支持服务。</p>
+          <p><em>*马来西亚：在本隐私政策中，"个人数据""敏感个人数据"及"使用"等术语的含义以《2010年马来西亚个人数据保护法》中的规定为准。</em></p>
+          <p>如果你是加利福尼亚州居民，请同时查阅我们的《加州隐私法补充条款》，其中说明了我们的隐私政策如何具体适用于加州居民和企业。</p>
+          <p>如果你是纽约州居民，请同时查阅我们的《纽约隐私法补充条款》，其中说明了我们的隐私政策如何具体适用于纽约州居民和企业。</p>
           
-          <h4 style="margin-top: 16px; margin-bottom: 8px; font-weight: 600;">Types of Personal Information Collected and Collection Methods</h4>
-          <p><strong>Collection of Personal Information and Purpose of Use</strong></p>
-          <p><strong>Sharing and Providing Personal Information</strong></p>
-          <p><strong>Commissioned Use of Personal Information</strong></p>
-          <p><strong>Reasons for Use and Legal Basis</strong></p>
-          <p><strong>Retention and Use Period of Personal Information</strong></p>
-          <p><strong>Destruction of Personal Information</strong></p>
-          <p><strong>Rights of Users and Legal Representatives and Methods of Exercising Rights</strong></p>
-          <p><strong>Installation・Operation and Refusal of Automatic Personal Information Collection Devices</strong></p>
-          <p><strong>Technical/Administrative Measures for Protecting Personal Information</strong></p>
-          <p><strong>How to Contact Us</strong></p>
-          <p><strong>Notification Obligations</strong></p>
-          <p><strong>Others</strong></p>
+          <h4 style="margin-top: 16px; margin-bottom: 8px; font-weight: 600;">所收集个人信息的类型及收集方式</h4>
+          <p><strong>个人信息的收集与使用目的</strong></p>
+          <p><strong>个人信息的共享与提供</strong></p>
+          <p><strong>个人信息的委托使用</strong></p>
+          <p><strong>使用原因与法律依据</strong></p>
+          <p><strong>个人信息的保存与使用期限</strong></p>
+          <p><strong>个人信息的销毁</strong></p>
+          <p><strong>用户及法定代理人的权利与行使方式</strong></p>
+          <p><strong>自动个人信息收集装置的安装·运行与拒绝</strong></p>
+          <p><strong>保护个人信息的技术/管理措施</strong></p>
+          <p><strong>如何联系我们</strong></p>
+          <p><strong>通知义务</strong></p>
+          <p><strong>其他</strong></p>
           
-          <h4 style="margin-top: 16px; margin-bottom: 8px; font-weight: 600;">Defined Terms</h4>
-          <p>The following terms will have the meanings indicated below.</p>
-          <p>"End User" refers to any individual who interacts with Visbody services, including users of our mobile applications (such as the Visbody application), as well as individuals who book appointments, purchase services, and interact with our subscribers through Visbody services.</p>
-          <p>"Other Information" refers to any information that does not reveal your specific identity or is not directly related to an individual, such as usage data not linked to any unique identifier.</p>
-          <p>"Personal Information" refers to data related to an identified or identifiable natural person or household (as applicable) as defined by relevant laws. This may include information such as name, postal address, telephone number, email address, or unique online identifier.</p>
-          <p>"Subscriber" is any business or entity that subscribes to (or otherwise accesses or uses) our software services, including any employees, staff, consultants, advisors, or independent contractors who access Visbody services on behalf of the subscriber.</p>
-          <p>Sometimes, we use the term "information" in this Privacy Policy, which may refer to either personal information or other information.</p>
+          <h4 style="margin-top: 16px; margin-bottom: 8px; font-weight: 600;">术语定义</h4>
+          <p>以下术语的含义如下所示。</p>
+          <p>"最终用户"指与 Visbody 服务进行交互的任何个人，包括我们移动应用程序（如 Visbody 应用程序）的用户，以及通过 Visbody 服务预约、购买服务并与我们的订阅方进行交互的个人。</p>
+          <p>"其他信息"指不会揭示你的具体身份或与个人没有直接关联的任何信息，例如未与任何唯一标识符关联的使用数据。</p>
+          <p>"个人信息"指根据相关法律定义的、与已识别或可识别的自然人或家庭（视情况而定）相关的数据。这可能包括姓名、邮寄地址、电话号码、电子邮箱地址或唯一在线标识符等信息。</p>
+          <p>"订阅方"指订阅（或以其他方式访问或使用）我们软件服务的任何企业或实体，包括代表订阅方访问 Visbody 服务的任何员工、职员、顾问、咨询人员或独立承包商。</p>
+          <p>在本隐私政策中，我们有时会使用"信息"一词，它可能指个人信息，也可能指其他信息。</p>
           
-          <h4 style="margin-top: 16px; margin-bottom: 8px; font-weight: 600;">Types of Personal Information Collected and Collection Methods</h4>
-          <p><strong>Types of Personal Information Collected</strong></p>
-          <p>First, the Company collects the following personal information through "entering phone number," "entering ID," "entering height," "entering gender," or "entering age" when using Visbody for body composition analysis, or during the initial "registration" process in Visbody Web. This helps provide various services such as membership registration and efficient customer care.</p>
+          <h4 style="margin-top: 16px; margin-bottom: 8px; font-weight: 600;">所收集个人信息的类型及收集方式</h4>
+          <p><strong>所收集个人信息的类型</strong></p>
+          <p>首先，公司会在用户使用 Visbody 进行身体成分分析时，通过"输入手机号""输入 ID""输入身高""输入性别"或"输入年龄"，或在 Visbody Web 的首次"注册"流程中，收集以下个人信息。这有助于提供会员注册、高效客户关怀等各类服务。</p>
           <ul style="padding-left: 20px; margin-bottom: 16px;">
-            <li>Required: Country or region, email address/phone number, gender, age, height, weight</li>
-            <li>Optional: Name, address, facial recognition information, wearable device information</li>
+            <li>必填：国家或地区、电子邮箱地址/手机号、性别、年龄、身高、体重</li>
+            <li>选填：姓名、地址、面部识别信息、可穿戴设备信息</li>
           </ul>
-          <p>While the personal information we collect varies depending on the nature of the Visbody services provided or used and our interactions with individuals, the personal information we may collect or obtain includes:</p>
+          <p>虽然我们收集的个人信息会因所提供或使用的 Visbody 服务的性质以及我们与个人的交互方式而有所不同，但我们可能收集或获取的个人信息包括：</p>
           <ul style="padding-left: 20px; margin-bottom: 16px;">
-            <li>Contact information (e.g., name, address, email, phone number, which may include third-party emergency contact information)</li>
-            <li>Personal details (e.g., date of birth, height, weight, nationality)</li>
-            <li>Financial and transaction data (e.g., purchase history, account information, shipping and billing information, including credit card information, etc.)</li>
-            <li>Health and fitness tracker data collected from heart rate monitors and other performance monitoring activities</li>
-            <li>Other Visbody service-related data (e.g., customer requests, statistical data, etc.)</li>
+            <li>联系信息（如姓名、地址、电子邮箱、电话号码，可能包括第三方紧急联系人信息）</li>
+            <li>个人详细信息（如出生日期、身高、体重、国籍）</li>
+            <li>财务和交易数据（如购买记录、账户信息、收货与账单信息，包括信用卡信息等）</li>
+            <li>从心率监测器及其他运动监测活动中收集的健康与健身追踪数据</li>
+            <li>其他与 Visbody 服务相关的数据（如客户请求、统计数据等）</li>
           </ul>
-          <p>Where we possess de-identified information, we commit to maintaining and using de-identified information without attempting to re-identify it.</p>
-          <p>Second, the following types of information may be automatically generated and collected during the use of Visbody services or in the course of business operations.</p>
-          <p>IP address, cookies, access date, service usage logs, error logs. Your domain name, browser type, operating system, pages you browse, links you click, your IP address, the length of time you visit our website and/or use our applications, mobile device, mobile number, URL that directed you to our website application, etc.</p>
-          <p>Third, information is collected from users of additional services, customized services, or activities only when users give additional consent for personal information collection during the process of using additional services, customized services, or participating in activities.</p>
-          <p>Note: The application of this privacy policy is subject to the constraints of the required devices and applications uploading and/or downloading data from our servers, and is subject to any applicable federal and state laws, federal and state regulations, agreements, or court or other lawful authority decisions. All Visbody employees and contractors with access permissions to end user personal information are required to comply with this privacy policy.</p>
+          <p>对于我们持有的去标识化信息，我们承诺在维护和使用去标识化信息时不会尝试重新识别其身份。</p>
+          <p>其次，以下类型的信息可能在使用 Visbody 服务期间或在业务运营过程中被自动生成和收集。</p>
+          <p>IP 地址、Cookie、访问日期、服务使用日志、错误日志。你的域名、浏览器类型、操作系统、你浏览的页面、你点击的链接、你的 IP 地址、你访问我们网站和/或使用我们应用程序的时长、移动设备、手机号、引导你访问我们网站应用程序的 URL 等。</p>
+          <p>第三，只有当用户在使用附加服务、定制服务或参与活动的过程中，额外同意收集个人信息时，才会从附加服务、定制服务或活动的用户处收集信息。</p>
+          <p>注意：本隐私政策的适用受所需设备和应用程序向我们服务器上传和/或下载数据的约束，并受任何适用的联邦及州法律、联邦及州法规、协议，或法院或其他合法机构裁决的约束。所有拥有最终用户个人信息访问权限的 Visbody 员工和承包商，均须遵守本隐私政策。</p>
           
-          <p><strong>Malaysia:</strong></p>
-          <p>Regarding network services, the Company uses the following personal information of users:</p>
+          <p><strong>马来西亚：</strong></p>
+          <p>关于网络服务，公司使用用户的以下个人信息：</p>
           <ul style="padding-left: 20px; margin-bottom: 16px;">
-            <li>Personal Information: Name, email address, address and postal code, mobile phone number, height, weight, age, gender, date of birth, and other forms of personal data when providing additional or customized services to users, which users have agreed to provide to the Company.</li>
-            <li>Sensitive Personal Information: The Company also uses the following sensitive personal data of users: body composition analysis results, physical fitness analysis results, running posture assessment results.</li>
+            <li>个人信息：在向用户提供附加或定制服务时，用户已同意向公司提供的姓名、电子邮箱地址、地址及邮政编码、手机号、身高、体重、年龄、性别、出生日期及其他形式的个人数据。</li>
+            <li>敏感个人信息：公司还会使用用户的以下敏感个人数据：身体成分分析结果、体能分析结果、跑姿评估结果。</li>
           </ul>
-          <p>Users explicitly consent to the use of their sensitive personal data, understanding that providing the aforementioned sensitive personal data is necessary for the Company to provide analysis services.</p>
+          <p>用户明确同意使用其敏感个人数据，并理解提供上述敏感个人数据对于公司提供分析服务是必要的。</p>
           
-          <h4 style="margin-top: 16px; margin-bottom: 8px; font-weight: 600;">Collection Methods for Personal Information</h4>
-          <p>The Company collects personal information using the following methods.</p>
-          <p>Collecting personal information using "enter phone number," "enter email address," "enter height," "enter weight," "enter gender," or "enter age" during Visbody registration.</p>
-          <p><strong>Malaysia:</strong></p>
-          <p>The Company collects personal information in the following ways:</p>
+          <h4 style="margin-top: 16px; margin-bottom: 8px; font-weight: 600;">个人信息的收集方式</h4>
+          <p>公司通过以下方式收集个人信息。</p>
+          <p>在 Visbody 注册期间，通过"输入手机号""输入电子邮箱地址""输入身高""输入体重""输入性别"或"输入年龄"来收集个人信息。</p>
+          <p><strong>马来西亚：</strong></p>
+          <p>公司通过以下方式收集个人信息：</p>
           <ul style="padding-left: 20px; margin-bottom: 16px;">
-            <li>Requesting users to input their personal data during the use of body composition analysis system, physical fitness analysis system, running posture assessment system;</li>
-            <li>When users register for network services;</li>
-            <li>When users contact the Company, send feedback to the Company, post materials on network services, complete customer surveys, or participate in competitions.</li>
-          </ul>
-          
-          <p><strong>Personal Data About Other Individuals</strong></p>
-          <p>If you provide us with personal data about another person (such as a child, see above), you confirm that the other person has appointed you to act on his/her behalf and has agreed that you can:</p>
-          <ul style="padding-left: 20px; margin-bottom: 16px;">
-            <li>Consent to the use of his/her personal data on his/her behalf;</li>
-            <li>Receive on his/her behalf any data protection notices;</li>
+            <li>在用户使用身体成分分析系统、体能分析系统、跑姿评估系统的过程中，请求用户输入其个人数据；</li>
+            <li>当用户注册网络服务时；</li>
+            <li>当用户联系公司、向公司发送反馈、在网络服务上发布资料、完成客户调查或参与竞赛时。</li>
           </ul>
           
-          <h4 style="margin-top: 16px; margin-bottom: 8px; font-weight: 600;">Collection of Personal Information and Purpose of Use</h4>
-          <p>The Company collects personal information from users for the following purposes:</p>
-          <p><strong>Service Provision</strong></p>
+          <p><strong>有关他人的个人数据</strong></p>
+          <p>如果你向我们提供有关他人的个人数据（例如儿童，见上文），即表示你确认对方已委托你代其行事，并同意你可以：</p>
           <ul style="padding-left: 20px; margin-bottom: 16px;">
-            <li>Creating and managing accounts, fulfilling and recording transactions, and providing relevant assistance (e.g., technical help, answering inquiries related to personal information, etc.).</li>
-            <li>Sending administrative information to you, such as information about our services and changes to our terms, conditions, and policies.</li>
-            <li>To better understand you and our other users so that we can adjust and personalize our products.</li>
-            <li>Trends and statistics, and improving our products and services.</li>
-          </ul>
-          <p>We will engage in these activities to manage our contractual relationship with you, with your consent, and/or to comply with legal obligations.</p>
-          
-          <p><strong>Member Management</strong></p>
-          <p>Using identity verification based on member-based services or effective identity verification procedures, personal identity verification, preventing unauthorized use or abuse by members with defects, confirming registration intent, limiting registration or registration attempts, recording dispute resolution, using complaints, and serving notices</p>
-          
-          <p><strong>For Developing New Services and Marketing/Advertising</strong></p>
-          <ul style="padding-left: 20px; margin-bottom: 16px;">
-            <li>Sending marketing communications and providing other materials we think may interest you, such as sending newsletters or other direct communications.</li>
-            <li>Sharing information with other marketers (and their service providers) to allow them to send marketing communications to you based on your choices.</li>
-            <li>Allowing you to participate in sweepstakes, contests, or similar promotional activities.</li>
-            <li>Facilitating social sharing functionality if you choose to do so.</li>
-          </ul>
-          <p>We will engage in this activity with your consent, to manage our contractual relationship with you, or where we have a legitimate interest. (Note: Health and fitness tracker data obtained through third parties will not be used for this purpose).</p>
-          <p>Please note that when speaking with subscribers and other third parties via Zoom, we may ask if you would like to receive additional information via text message. If you agree, the phone number you provide and opt-in will not be sold to or shared with third-party providers or affiliates for marketing or promotional purposes.</p>
-          
-          <p><strong>Use of End User Information:</strong></p>
-          <ul style="padding-left: 20px; margin-bottom: 16px;">
-            <li>To Serve You: Providing support for you or the analysis facility regarding services; in case of inquiries, we will use your name and/or ID for identification</li>
-            <li>Allowing third parties to use personal information: Third parties affiliated with us may access your personal information to use information and/or provide services to you When information is entered into products (connected to the internet), applications, or websites, it is automatically uploaded to servers. Server access is open to Visbody and its contracted affiliates for the same purposes as Visbody When we share your personal information with any such third parties, we ensure they have established appropriate safeguards to protect your personal information and personal health information so that subcontractors and/or business associates comply with HIPAA and other applicable state and federal privacy laws.</li>
+            <li>代其同意使用其个人数据；</li>
+            <li>代其接收任何数据保护通知；</li>
           </ul>
           
-          <p><strong>Other Uses of Personal Information</strong></p>
-          <p>Other uses and disclosures of personal information not covered by this policy, and permitted by our law, may require your consent, your written authorization, or the authorization of your legal representative, or may be made as permitted or required by applicable law. If we are authorized to use or disclose your personal information, you or your legal representative may revoke that authorization in writing to the analysis facility at any time, unless we have already relied on that authorization to take action, or if obtaining authorization is a condition of obtaining your account, or if we are required by law to make a specific use or disclosure of your information. You should understand that we will be unable to take back any disclosures we have already made with your authorization.</p>
-          
-          <p><strong>General Purposes</strong></p>
-          <p>To improve the quality of the Company's services, monitor and record communications (such as telephone conversations and emails), send newsletters to users when they subscribe to the Company's newsletters, comply with the Company's regulatory and corporate governance obligations, collect information for regulatory investigations or related to legal proceedings or requests, for operational reasons such as recording transactions, training and quality control, ensuring the confidentiality of commercially sensitive information, investigating complaints and criminal offense allegations, providing customer service, and achieving business transactions between the Company and users.</p>
-          
-          <h4 style="margin-top: 16px; margin-bottom: 8px; font-weight: 600;">Sharing and Providing Personal Information</h4>
-          <p>The Company uses users' personal information within the scope notified in "2. Collection of Personal Information and Purpose of Use," will not use any personal information beyond the above scope, and will not disclose any user's personal information to third parties without the user's prior consent. However, the following cases are exceptions:</p>
+          <h4 style="margin-top: 16px; margin-bottom: 8px; font-weight: 600;">个人信息的收集与使用目的</h4>
+          <p>公司基于以下目的收集用户的个人信息：</p>
+          <p><strong>服务提供</strong></p>
           <ul style="padding-left: 20px; margin-bottom: 16px;">
-            <li>The user has given prior consent for such disclosure;</li>
-            <li>There is a request from investigation agencies for investigation purposes according to legal provisions or through legally prescribed procedures and methods;</li>
-            <li>Government agencies need personal information to provide various services.</li>
+            <li>创建和管理账户，完成并记录交易，提供相关协助（如技术帮助、解答与个人信息相关的咨询等）。</li>
+            <li>向你发送管理性信息，例如有关我们服务的信息，以及我们条款、条件和政策的变更。</li>
+            <li>更好地了解你和我们的其他用户，以便我们调整产品并提供个性化服务。</li>
+            <li>趋势与统计分析，以及改进我们的产品和服务。</li>
+          </ul>
+          <p>我们将基于管理与你的合同关系、经你同意和/或为遵守法律义务而开展这些活动。</p>
+          
+          <p><strong>会员管理</strong></p>
+          <p>基于会员制服务或有效的身份验证程序进行身份验证、个人身份核实，防止存在不当行为的会员未经授权使用或滥用服务，确认注册意愿，限制注册或注册尝试，记录纠纷解决情况，处理投诉以及送达通知。</p>
+          
+          <p><strong>用于开发新服务及营销/广告</strong></p>
+          <ul style="padding-left: 20px; margin-bottom: 16px;">
+            <li>发送营销信息并提供我们认为你可能感兴趣的其他资料，例如发送电子简报或其他直接通讯。</li>
+            <li>与其他营销方（及其服务提供商）共享信息，使其能够根据你的选择向你发送营销信息。</li>
+            <li>允许你参与抽奖、竞赛或类似的促销活动。</li>
+            <li>在你选择使用社交分享功能时为你提供便利。</li>
+          </ul>
+          <p>我们将在征得你同意、为管理与你的合同关系，或在我们具有正当利益的情况下开展此项活动。（注意：通过第三方获取的健康与健身追踪数据不会用于此目的。）</p>
+          <p>请注意，当通过 Zoom 与订阅方及其他第三方交流时，我们可能会询问你是否希望通过短信接收更多信息。如果你同意，你所提供并选择接收的电话号码不会被出售给第三方提供商或关联方，也不会出于营销或推广目的与其共享。</p>
+          
+          <p><strong>最终用户信息的使用：</strong></p>
+          <ul style="padding-left: 20px; margin-bottom: 16px;">
+            <li>为你服务：就服务为你或分析机构提供支持；如有咨询，我们将使用你的姓名和/或 ID 进行身份识别。</li>
+            <li>允许第三方使用个人信息：与我们关联的第三方可能会访问你的个人信息，以使用信息和/或向你提供服务。当信息被输入（联网的）产品、应用程序或网站时，会自动上传至服务器。服务器访问权限向 Visbody 及其签约关联方开放，用于与 Visbody 相同的目的。当我们与任何此类第三方共享你的个人信息时，我们会确保其已建立适当的保护措施，以保护你的个人信息和个人健康信息，从而使分包商和/或业务合作方遵守 HIPAA 及其他适用的州和联邦隐私法律。</li>
           </ul>
           
-          <p><strong>Malaysia:</strong></p>
-          <p>It is necessary to disclose the user's personal information to the Company's contractual third-party service providers and suppliers.</p>
-          <p>The Company may also disclose the user's personal information to the following:</p>
+          <p><strong>个人信息的其他用途</strong></p>
+          <p>本政策未涵盖、但我们的法律允许的个人信息的其他使用和披露，可能需要你的同意、你的书面授权或你的法定代理人的授权，或可在适用法律允许或要求的情况下进行。如果我们获授权使用或披露你的个人信息，你或你的法定代理人可随时以书面形式向分析机构撤销该授权，除非我们已依据该授权采取了行动，或获取授权是开通你账户的条件，或法律要求我们对你的信息进行特定的使用或披露。你应理解，我们将无法收回已在你授权下作出的任何披露。</p>
+          
+          <p><strong>一般目的</strong></p>
+          <p>为提高公司服务质量、监控并记录通讯（如电话通话和电子邮件）、在用户订阅公司电子简报时向其发送简报、遵守公司的监管和公司治理义务、为监管调查或与法律程序或请求相关而收集信息、出于记录交易、培训和质量控制等运营原因、确保商业敏感信息的保密性、调查投诉和刑事犯罪指控、提供客户服务，以及实现公司与用户之间的业务交易。</p>
+          
+          <h4 style="margin-top: 16px; margin-bottom: 8px; font-weight: 600;">个人信息的共享与提供</h4>
+          <p>公司在"2. 个人信息的收集与使用目的"中所告知的范围内使用用户的个人信息，不会超出上述范围使用任何个人信息，并且未经用户事先同意，不会向第三方披露任何用户的个人信息。但以下情形除外：</p>
           <ul style="padding-left: 20px; margin-bottom: 16px;">
-            <li>Other companies within the Visbody group;</li>
-            <li>Service providers, agencies, or business organizations that collaborate with the Company;</li>
-            <li>Third parties who acquire the Company or a substantial part of the Company's assets, in which case personal data will be one of the acquired assets;</li>
-            <li>Other software providers that the user directs us to give access to the user's Visbody device data.</li>
+            <li>用户已就该等披露事先表示同意；</li>
+            <li>调查机构出于调查目的，依据法律规定或通过法定程序和方式提出请求；</li>
+            <li>政府机构为提供各类服务而需要个人信息。</li>
           </ul>
           
-          <p><strong>Transfer of Personal Information to France</strong></p>
-          <p>Visbody's servers are located in France, where privacy laws may not be as protective as those in your country. When your information is transferred to your country, we use contractual and industry-standard security measures to protect your information.</p>
-          
-          <p><strong>Consent</strong></p>
-          <p>Unless we determine that additional consent is needed for specific services or any new purposes, you agree and acknowledge that we may collect, use, share, or otherwise use your personal information in accordance with this policy.</p>
-          <p>Your consent indicates that you have fully read and understood this policy and how we collect, use, and disclose your personal information within our organization.</p>
-          <p>In most cases, you have the right to withdraw your consent. However, there may be specific situations where you may not be able to withdraw consent to collect, use, or share your personal information due to regulatory requirements we need to comply with or your contractual obligations with us. If you choose not to provide us with certain personal information, or if you have withdrawn your consent, we may not be able to provide you with the services or information you request, or the services or information we may provide may be limited. For example, if you withdraw consent to use personal information (such as weight, height, or gender), then Visbody body composition analysis, posture analysis, running posture assessment devices will not be able to test your composition. Personal information will not be disclosed without the individual's consent, except in the following situations as permitted under applicable law:</p>
+          <p><strong>马来西亚：</strong></p>
+          <p>有必要向公司签约的第三方服务提供商和供应商披露用户的个人信息。</p>
+          <p>公司还可能向以下方披露用户的个人信息：</p>
           <ul style="padding-left: 20px; margin-bottom: 16px;">
-            <li>a. Contact related to service consultation or maintenance;</li>
-            <li>b. Requests for disclosure for legitimate reasons;</li>
-            <li>c. When it is necessary to protect the end user's life, health, property, or other important interests;</li>
-            <li>d. When it is deemed necessary to transfer personal information to continue providing services, for example: company merger;</li>
-            <li>e. Other disclosures required or permitted by applicable law;</li>
+            <li>Visbody 集团内的其他公司；</li>
+            <li>与公司合作的服务提供商、代理机构或商业组织；</li>
+            <li>收购公司或公司大部分资产的第三方，在此情况下个人数据将作为被收购资产之一；</li>
+            <li>用户指示我们授予其访问用户 Visbody 设备数据权限的其他软件提供商。</li>
           </ul>
           
-          <h4 style="margin-top: 16px; margin-bottom: 8px; font-weight: 600;">Commissioned Use of Personal Information</h4>
-          <p>The Company may commission the use of personal information at the location of the program to personnel who enter personal information. These personnel will receive adequate training to ensure that stored personal information is not lost, stolen, disclosed, modified, or damaged.</p>
+          <p><strong>个人信息向法国的转移</strong></p>
+          <p>Visbody 的服务器位于法国，当地的隐私法律保护程度可能不如你所在国家。当你的信息被转移回你所在国家时，我们会采用合同约定和行业标准的安全措施来保护你的信息。</p>
           
-          <h4 style="margin-top: 16px; margin-bottom: 8px; font-weight: 600;">Reasons for Use and Legal Basis</h4>
-          <p>We use your personal data for the following reasons:</p>
+          <p><strong>同意</strong></p>
+          <p>除非我们认定特定服务或任何新目的需要额外同意，否则你同意并确认，我们可以按照本政策收集、使用、共享或以其他方式使用你的个人信息。</p>
+          <p>你的同意表明你已充分阅读并理解本政策，以及我们在组织内部如何收集、使用和披露你的个人信息。</p>
+          <p>在大多数情况下，你有权撤回同意。但在某些特定情形下，由于我们需要遵守的监管要求或你与我们之间的合同义务，你可能无法撤回收集、使用或共享你个人信息的同意。如果你选择不向我们提供某些个人信息，或你已撤回同意，我们可能无法向你提供你所请求的服务或信息，或我们能够提供的服务或信息可能会受到限制。例如，如果你撤回对使用个人信息（如体重、身高或性别）的同意，那么 Visbody 身体成分分析、体态分析、跑姿评估设备将无法检测你的身体成分。未经个人同意，不会披露个人信息，但在适用法律允许的以下情形除外：</p>
           <ul style="padding-left: 20px; margin-bottom: 16px;">
-            <li>Communication with you about us and/or products that may be of interest to you</li>
-            <li>Monitoring and recording communications (such as telephone conversations and emails) to improve the quality of our services and/or prevent fraud</li>
-            <li>Sending our newsletters to you when you subscribe to our newsletters</li>
-            <li>Regulatory and corporate governance obligations and good practice</li>
-            <li>Gathering information as part of investigations by regulatory bodies or in connection with legal proceedings or requests</li>
-            <li>Operational reasons, such as recording transactions, training, and quality control</li>
-            <li>Ensuring the confidentiality of commercially sensitive information</li>
-            <li>Investigating complaints and criminal offense allegations</li>
-            <li>Statistical analysis</li>
-            <li>Analyzing preferences and improving services</li>
-            <li>Providing customer service</li>
-            <li>Marketing purposes</li>
+            <li>a. 与服务咨询或维护相关的联系；</li>
+            <li>b. 出于正当理由的披露请求；</li>
+            <li>c. 为保护最终用户的生命、健康、财产或其他重大利益所必需时；</li>
+            <li>d. 为继续提供服务而被认为有必要转移个人信息时，例如：公司合并；</li>
+            <li>e. 适用法律要求或允许的其他披露；</li>
           </ul>
           
-          <p>We use your personal data on the following legal bases</p>
-          <p>Regarding communication, operational reasons, investigating complaints and allegations, product support, contacting us, statistical analysis, analyzing preferences and improving services, providing customer service, and marketing purposes:</p>
+          <h4 style="margin-top: 16px; margin-bottom: 8px; font-weight: 600;">个人信息的委托使用</h4>
+          <p>公司可能在程序所在地将个人信息的使用委托给录入个人信息的人员。这些人员将接受充分培训，以确保所存储的个人信息不会丢失、被窃取、泄露、被修改或损坏。</p>
+          
+          <h4 style="margin-top: 16px; margin-bottom: 8px; font-weight: 600;">使用原因与法律依据</h4>
+          <p>我们出于以下原因使用你的个人数据：</p>
           <ul style="padding-left: 20px; margin-bottom: 16px;">
-            <li>For the performance of a contract and/or</li>
-            <li>Pursuing our legitimate interests, namely promoting and selling our products, conducting our business, monitoring and improving the quality of our services, and preventing fraud</li>
-            <li>Compliance with legal obligations, such as tax regulations, healthcare regulations, etc.</li>
+            <li>就我们自身和/或你可能感兴趣的产品与你进行沟通</li>
+            <li>监控并记录通讯（如电话通话和电子邮件），以提高我们的服务质量和/或防止欺诈</li>
+            <li>在你订阅我们的电子简报时向你发送简报</li>
+            <li>监管和公司治理义务及良好实践</li>
+            <li>作为监管机构调查的一部分，或与法律程序或请求相关而收集信息</li>
+            <li>运营原因，如记录交易、培训和质量控制</li>
+            <li>确保商业敏感信息的保密性</li>
+            <li>调查投诉和刑事犯罪指控</li>
+            <li>统计分析</li>
+            <li>分析偏好并改进服务</li>
+            <li>提供客户服务</li>
+            <li>营销目的</li>
           </ul>
           
-          <p>Regarding newsletters:</p>
+          <p>我们基于以下法律依据使用你的个人数据：</p>
+          <p>关于沟通、运营原因、调查投诉和指控、产品支持、与我们联系、统计分析、分析偏好并改进服务、提供客户服务以及营销目的：</p>
           <ul style="padding-left: 20px; margin-bottom: 16px;">
-            <li>Consent and/or</li>
-            <li>Performance of a contract and/or</li>
-            <li>Pursuing our legitimate interests, namely introducing you to us and our products and for marketing purposes.</li>
-          </ul>
-          <p>You always have the right to unsubscribe from our newsletters.</p>
-          <p>You are not obligated to provide us with your personal data. However, if you do not provide this information, we may not be able to provide you with our website, answer your questions, and/or contact you.</p>
-          <p>We will not use your personal data for reasons other than those stated above. No more personal data than strictly necessary will be used for the purposes mentioned in this policy.</p>
-          
-          <h4 style="margin-top: 16px; margin-bottom: 8px; font-weight: 600;">Retention and Use Period of Personal Information</h4>
-          <p>Your data will be kept in accordance with our retention policy. In general, we will keep your data until you (request to) delete your personal data. In some cases, a longer retention period may be required, for example, where there is a statutory retention period, claims, etc. Once you request us to delete your information, we will only retain information necessary to fulfill our legal obligations or for our legitimate interests.</p>
-          
-          <h4 style="margin-top: 16px; margin-bottom: 8px; font-weight: 600;">Destruction of Personal Information</h4>
-          <p>When personal information is no longer needed, such as expiration, achievement of the purpose of use, etc., the Company will immediately destroy such personal information.</p>
-          <p>Even if the retention period for personal information obtained from the information subject has expired or the purpose of use has been achieved, if it is necessary to continue storing personal information according to other laws, the Company will move such personal information to a separate database (DB) or change the storage location for preservation.</p>
-          <p>The procedure and method for destroying personal information are as follows:</p>
-          <ul style="padding-left: 20px; margin-bottom: 16px;">
-            <li>Destruction procedure: Once the purpose of the information is achieved, information entered by users for membership registration, etc., is moved to a separate database (or to a separate cabinet if it is paper information), stored for a specific period for information protection reasons according to internal policies and other relevant laws, and then destroyed. *Such personal information will not be used for purposes other than retention purposes unless required by law.</li>
-            <li>Destruction method: Personal information printed on paper is destroyed by shredding through a shredder or burning. Personal information stored in electronic files is deleted using technical methods that cannot be recovered.</li>
+            <li>为履行合同，和/或</li>
+            <li>追求我们的正当利益，即推广和销售我们的产品、开展我们的业务、监控并改进我们的服务质量，以及防止欺诈</li>
+            <li>遵守法律义务，如税务法规、医疗保健法规等。</li>
           </ul>
           
-          <h4 style="margin-top: 16px; margin-bottom: 8px; font-weight: 600;">Rights of Users and Legal Representatives and Methods of Exercising Rights</h4>
-          <p>Users or their legal representatives can view, correct, and edit registered personal information of users or children under 18 at any time, and can request cancellation of membership.</p>
-          <p>Users can view and edit personal information of users or children under 18 by clicking "Edit Personal Information" (or "Edit User Information," etc.). Once users complete the identity authentication process, they will be able to view and edit information or cancel membership themselves.</p>
-          <p>*Children requiring parental consent in the EU;<br>
-          Under 13: Belgium, Denmark, Estonia, Finland, Latvia, Malta, Portugal, Sweden,<br>
-          Under 14: Austria, Bulgaria, Cyprus, Italy, Lithuania, Spain<br>
-          Under 15: Czech Republic, France<br>
-          Under 16: Croatia, Germany, Greece, Hungary, Ireland, Luxembourg, Netherlands, Poland, Romania, Slovakia, Slovenia</p>
-          <p>*Children requiring parental consent in California;<br>
-          Under 18</p>
-          <p>*Children requiring parental consent in China;<br>
-          Under 14</p>
-          <p>*The above is as of October 2019 and may change thereafter.</p>
-          <p>Additionally, users can contact the personal information manager by writing, phone, or email to take immediate action. Once a user requests correction of errors in personal information, that information will not be used or provided until the correction is completed. Also, if incorrect personal information has been provided to a third party, the Company will immediately notify the third party of the correction results for necessary corrections. The Company uses personal information requested by users or legal representatives to be canceled or deleted according to the "6. Retention and Use Period of Personal Information" clause, ensuring that personal information is not viewed or used for other purposes.</p>
+          <p>关于电子简报：</p>
           <ul style="padding-left: 20px; margin-bottom: 16px;">
-            <li>①Requests to view personal information and stop its use may restrict the rights of the information subject according to relevant laws.</li>
-            <li>②If other laws specify the collection object of personal information, deletion of that personal information cannot be requested.</li>
-            <li>③The Company will confirm whether the requester for viewing, correction·deletion, or use stoppage requests is the person themselves or a legal representative.</li>
+            <li>同意，和/或</li>
+            <li>履行合同，和/或</li>
+            <li>追求我们的正当利益，即向你介绍我们及我们的产品并用于营销目的。</li>
           </ul>
-          <p>*Malaysia: Users can choose to unsubscribe from the Company's newsletters and opt out of receiving marketing and advertising-related emails from the Company.</p>
+          <p>你始终有权取消订阅我们的电子简报。</p>
+          <p>你没有义务向我们提供你的个人数据。但如果你不提供这些信息，我们可能无法向你提供我们的网站、解答你的问题和/或与你联系。</p>
+          <p>除上述目的外，我们不会出于其他原因使用你的个人数据。用于本政策所述目的的个人数据不会超出严格必要的范围。</p>
           
-          <h4 style="margin-top: 16px; margin-bottom: 8px; font-weight: 600;">Installation・Operation and Refusal of Automatic Personal Information Collection Devices</h4>
-          <p>To provide personalized and customized services, the Company uses "cookies" to save and frequently load user information. A cookie is a very small text file sent by a server used to operate a website and sent to the user's web browser. Cookies are stored on the user's computer's hard drive.</p>
-          <p><strong>Purpose of Using Cookies:</strong><br>
-          To understand users' visits and usage of various services and websites, popular search terms, secure connection status, etc., to provide optimized information to users.</p>
-          <p><strong>Installation・Operation and Refusal of Cookies:</strong><br>
-          Users have the right to choose whether to install cookies. Therefore, users can set options in their web browsers to accept all cookies, confirm each time a cookie is saved, or refuse to save any cookies.<br>
-          However, when refusing to save cookies, some services may not be usable.</p>
-          <p>Method for deleting saved cookies<br>
-          ① Select [Network Options] from the [Tools] menu.<br>
-          ② Click on the [General Tab].<br>
-          ③ Click the [Delete] button in the search history.</p>
-          <p>Method for specifying whether to allow cookie installation (example for Internet Explorer)<br>
-          ① Select [Network Options] from the [Tools] menu.<br>
-          ② Click on the [Personal Information Tab].<br>
-          ③ Click the [Advanced] button in the settings.<br>
-          ④ Select the method of using cookies from allow/block/user selection, then click the OK button.</p>
+          <h4 style="margin-top: 16px; margin-bottom: 8px; font-weight: 600;">个人信息的保存与使用期限</h4>
+          <p>你的数据将按照我们的保存政策予以保留。一般而言，我们会保留你的数据，直到你（请求）删除你的个人数据为止。在某些情况下，可能需要更长的保存期限，例如存在法定保存期限、索赔等情形。一旦你请求我们删除你的信息，我们将仅保留为履行法律义务或维护正当利益所必需的信息。</p>
           
-          <p><strong>Cookies and Other Collection Tools</strong><br>
-          We may use our cookies and other collection tools to track information about your use of our website and other services, or to track aggregate and statistical information about user activity. A cookie is a small file containing a string of characters that is sent to your computer when you visit a website; in this case, the website. When you visit the website again, the cookie allows that site to recognize your browser. Cookies may store user preferences and other information, such as login credentials and/or passwords. You can reset your browser to refuse all cookies or to indicate when a cookie is being sent. Other technologies are used for similar purposes on other platforms where cookies are not available or applicable. Some cookies make it easier for us to navigate our website and other services, while others are used to enable a faster login process or to allow us to track your activities on our website. All cookies are allowed by default, but you can adjust this setting and clear cookies for all websites or certain pages. You can disable or delete first-party and third-party cookie information and data. If you delete cookies, some website preferences may be deleted, and some website features or services may not work properly. But if you wish, you can edit your browser options to block them in the future. Most browser toolbar help sections will tell you how to block your browser from accepting new cookies, how to have your browser notify you when you receive a new cookie, and how to disable cookies completely.</p>
-          
-          <h4 style="margin-top: 16px; margin-bottom: 8px; font-weight: 600;">Technical/Administrative Measures for Protecting Personal Information</h4>
-          <p>When using users' personal information, the Company takes the following technical/administrative measures to ensure personal information is protected from loss, theft, disclosure, unnecessary changes, or damage.</p>
-          <p>We work very hard to protect the data you provide. We take reasonable and appropriate measures to protect the data you submit, including technical/administrative measures, to ensure personal information is protected from loss, theft, disclosure, unnecessary changes, or damage. Furthermore, we commit to never selling your personal information. However, please note that the internet is a global communication tool that faces threats, viruses, and intrusions from others. By accepting this policy, end users acknowledge that despite the good faith efforts of Visbody and its third-party affiliates, unintentional data loss may occur.</p>
-          <p>Third-party affiliates' access and use purposes in different countries will be consistent with this policy. Data may be accessed and used from other countries where data protection laws may differ from those in your jurisdiction. Therefore, this information may be subject to access requests from governments, courts, or law enforcement agencies in those jurisdictions according to the laws of those jurisdictions. You warrant to Visbody that you have obtained all necessary consents and provided all necessary notices required by applicable law to enable the purposes of this policy.</p>
-          
-          <p><strong>Encryption of Personal Information</strong><br>
-          Users' passwords are stored and managed in encrypted form, known only to the users themselves. Therefore, only users who know the password can view and change the user's password. Additionally, information such as phone numbers, email addresses, dates of birth, etc., is also encrypted to prevent information leakage and changes to personal information.</p>
-          
-          <p><strong>Measures to Prevent Hacking, etc.</strong><br>
-          The Company makes every effort to prevent users' personal information from being leaked and damaged through hacking, computer viruses, etc. The Company regularly backs up data to minimize damage to personal information, uses the latest anti-virus software to prevent leakage and damage to users' personal information and data; and uses encrypted communication and other means to securely transmit personal information over the network. The Company also uses an intrusion prevention system to limit unauthorized access by external personnel and strives to adopt all possible technical mechanisms to ensure system security.</p>
-          
-          <p><strong>Personnel Using Personal Information</strong><br>
-          The Company limits the task of using personal information to specially designated personnel who are assigned with regularly updated independent passwords. The Company regularly provides training to personnel who use personal information, emphasizing the importance of always adhering to privacy policies. They are subject to strict contractual confidentiality obligations, and may be subject to disciplinary action or dismissal if they fail to meet these obligations. Third parties are also required to restrict access to our servers, allowing only authorized personnel access, who use the information for purposes that have been indicated in this policy.</p>
-          
-          <p><strong>Operation of an Organization Specifically Responsible for Personal Information Protection</strong><br>
-          The Company has an organization specifically responsible for personal information protection and other matters to oversee the implementation of privacy policies; the compliance of those responsible; and to promptly correct and remedy any issues found.<br>
-          However, the Company is not responsible for issues such as leakage of personal information like phone numbers and passwords due to user negligence or other internet-related issues.</p>
-          
-          <p><strong>Security</strong><br>
-          We take appropriate organizational and technical measures to protect your personal data against abuse, loss, or modification of your personal data. When stored on our servers, your personal data is encrypted. In addition, personal data is transmitted between our servers and you through secure encrypted internet connections.<br>
-          While we will make all reasonable efforts to protect your personal data, you acknowledge that using the internet is not entirely secure, and therefore we cannot guarantee the security or integrity of any personal data transmitted to or from you via the internet.</p>
-          
-          <p><strong>Your Right to Complain</strong><br>
-          If you have any complaints about our use of your information, we hope you will contact us directly first, so that we can resolve your complaint. However, you can also contact the regulatory authority for the use of personal data in your country.</p>
-          
-          <h4 style="margin-top: 16px; margin-bottom: 8px; font-weight: 600;">How to Contact Us</h4>
-          <p>If you have any questions about this privacy policy or the personal data we hold about you, please contact us.<br>
-          If you wish to contact us, please send an email to [hello@Visbody.com], or write to [5th Floor, Zhengqi Industrial Park, 555 Shanghua Road, Weiyang District, Xi'an, Shaanxi Province, China]</p>
-          
-          <h4 style="margin-top: 16px; margin-bottom: 8px; font-weight: 600;">Notification Obligations</h4>
-          <p>If a legal representative requests to view, change, or delete the subject's personal data as described in "8. Rights of Users and Legal Representatives and Methods of Exercising Rights," the Company shall notify the subject in writing before complying with this request. If a personal information infringement event occurs that may pose a risk to the rights and freedoms of individuals, the Company shall report to the regulatory authority within 72 hours of becoming aware of the personal information infringement. The data subject must be notified of the infringement event immediately.<br>
-          However, if the possibility of personal information infringement on an individual's freedom and rights is low, notification may not be made. If not reported to the regulatory authority within 72 hours, the reason for the delay must be reported simultaneously.<br>
-          If a data breach could potentially harm user rights, we will notify affected users within 72 hours of confirming the incident via email and in-site notifications, and provide remedial measures (such as free credit monitoring services).</p>
-          
-          <p><strong>Malaysia:</strong><br>
-          We reserve the right to update and modify this privacy policy at any time. If we update or modify this privacy policy, we will notify users by posting the updated privacy policy on the network service. If we update or modify this privacy policy, the updated or modified terms will only apply to personal data collected from the date of this privacy policy update or modification.<br>
-          To comply with Section 7(3) of the Malaysian Personal Data Protection Act 2010, we have provided users with a simplified personal data notice written in Bahasa Malaysia in accordance with this privacy policy. If there is any inconsistency between the personal data notice and this privacy policy, the terms of this privacy policy will prevail.<br>
-          This privacy policy was last updated on March 7, 2024.</p>
-          
-          <h4 style="margin-top: 16px; margin-bottom: 8px; font-weight: 600;">Others</h4>
-          <p><strong>Children's Privacy</strong><br>
-          We understand that the service has appeal and interest to potential users under 18 or the local legal age, regardless of which country the analysis facility is located in, and it is our policy to ensure that parents or legal guardians can monitor data collection for these users. Our services are open to end users under 18 or the local legal age. The parent or legal guardian of any end user under 18 needs to consent to the collection and use of their child's personal information and personal health information when registering and using our services. When you agree to this policy, if applicable, you agree to the collection, use, and disclosure of your child's personal information and personal health information. The parent or legal guardian of any child under 18 or the local legal age can review their child's personal information and personal health information, request deletion, and refuse to allow further collection or use of the child's information from the analysis facility.<br>
-          If a user is under the local legal age of majority, parental/guardian written consent is required (by uploading identification documents and signing electronic forms), or identity verification must be completed via video call.</p>
-          
-          <p><strong>Incident Management</strong><br>
-          Visbody and its third-party affiliates have developed a comprehensive incident preparedness and response plan designed to identify the cause, scope, and nature of incidents involving personal information and personal health information, and to allow for timely reporting in accordance with our contractual terms or legal obligations.</p>
-          
-          <p><strong>Visbody Personal Data Notice</strong><br>
-          The Personal Data Notice ("Personal Data Notice") is a statement about our Visbody ("Company" or "we") use of personal data, given to users of our WellnessHub system, body composition analysis system, physical fitness assessment system, running posture assessment system, Visbody website, Visbody.com, visbody.ai.com, visbodyfit.com and Visbody mobile application (collectively referred to as "network services"), in compliance with the requirements of the Personal Data Protection Act 2010 ("PDPA"). In the course of using our network services, we will collect personal data including but not limited to the following:</p>
+          <h4 style="margin-top: 16px; margin-bottom: 8px; font-weight: 600;">个人信息的销毁</h4>
+          <p>当个人信息不再需要时，例如到期、使用目的已实现等，公司将立即销毁该等个人信息。</p>
+          <p>即使从信息主体处获取的个人信息的保存期限已届满或使用目的已实现，如根据其他法律有必要继续保存个人信息，公司将把该等个人信息转移至单独的数据库（DB）或更改存储位置予以保存。</p>
+          <p>销毁个人信息的程序和方式如下：</p>
           <ul style="padding-left: 20px; margin-bottom: 16px;">
-            <li>Your name;</li>
-            <li>Your country;</li>
-            <li>Your time zone;</li>
-            <li>Your email;</li>
-            <li>Your phone number;</li>
-            <li>Your height;</li>
-            <li>Your weight;</li>
-            <li>Your age;</li>
-            <li>Your gender;</li>
-            <li>Your birthday; and</li>
-            <li>Other personal data you provide in the course of using our network services.</li>
-          </ul>
-          <p>We will also collect the following sensitive personal data:</p>
-          <ul style="padding-left: 20px; margin-bottom: 16px;">
-            <li>Your body composition data;</li>
-            <li>Your running posture data;</li>
-            <li>Your physical fitness data;</li>
-          </ul>
-          <p>You explicitly consent to the use of the above sensitive personal data and understand that the above sensitive personal data is necessary for using our analysis services.</p>
-          
-          <p>Your personal data is collected in the following circumstances:</p>
-          <ul style="padding-left: 20px; margin-bottom: 16px;">
-            <li>When you use body composition, running posture, physical fitness, and other analysis services;</li>
-            <li>When you register as a member of our network services; and</li>
-            <li>When you contact us, provide feedback to us, post in network services, complete user surveys, or participate in competitions we organize.</li>
+            <li>销毁程序：一旦信息的目的已实现，用户为会员注册等输入的信息会被转移至单独的数据库（如为纸质信息则转移至单独的柜子），并根据内部政策和其他相关法律出于信息保护原因保存特定期限，然后予以销毁。*除非法律要求，否则此类个人信息不会用于保存目的以外的用途。</li>
+            <li>销毁方式：打印在纸张上的个人信息通过碎纸机粉碎或焚烧予以销毁。存储于电子文件中的个人信息使用无法恢复的技术方法予以删除。</li>
           </ul>
           
-          <p>We will collect and use your personal data for the following purposes:</p>
+          <h4 style="margin-top: 16px; margin-bottom: 8px; font-weight: 600;">用户及法定代理人的权利与行使方式</h4>
+          <p>用户或其法定代理人可随时查看、更正和编辑用户本人或 18 岁以下儿童的已注册个人信息，并可申请取消会员资格。</p>
+          <p>用户可通过点击"编辑个人信息"（或"编辑用户信息"等）查看和编辑用户本人或 18 岁以下儿童的个人信息。用户完成身份认证流程后，即可自行查看和编辑信息或取消会员资格。</p>
+          <p>*在欧盟需要父母同意的儿童；<br>
+          13 岁以下：比利时、丹麦、爱沙尼亚、芬兰、拉脱维亚、马耳他、葡萄牙、瑞典，<br>
+          14 岁以下：奥地利、保加利亚、塞浦路斯、意大利、立陶宛、西班牙<br>
+          15 岁以下：捷克、法国<br>
+          16 岁以下：克罗地亚、德国、希腊、匈牙利、爱尔兰、卢森堡、荷兰、波兰、罗马尼亚、斯洛伐克、斯洛文尼亚</p>
+          <p>*在加利福尼亚需要父母同意的儿童；<br>
+          18 岁以下</p>
+          <p>*在中国需要父母同意的儿童；<br>
+          14 岁以下</p>
+          <p>*以上信息截至 2019 年 10 月，此后可能有所变化。</p>
+          <p>此外，用户可通过书面、电话或电子邮件联系个人信息管理员以立即采取行动。一旦用户请求更正个人信息中的错误，在更正完成之前，该信息不会被使用或提供。此外，如果不正确的个人信息已提供给第三方，公司将立即将更正结果通知第三方以进行必要的更正。公司会根据"6. 个人信息的保存与使用期限"条款，处理用户或法定代理人请求取消或删除的个人信息，确保个人信息不会被查看或用于其他目的。</p>
           <ul style="padding-left: 20px; margin-bottom: 16px;">
-            <li>To provide you with services (including providing customized services, verifying your identity, using your payment, and our fee payment);</li>
-            <li>Network service member management (including verifying your identity, preventing abuse of network services, verifying user registration, record keeping to resolve disputes, using complaints, and sending notifications);</li>
-            <li>Developing our services;</li>
-            <li>Advertising and marketing purposes;</li>
-            <li>Communicating with you;</li>
-            <li>Sending you communications;</li>
-            <li>Fulfilling our contractual obligations;</li>
-            <li>Complying with relevant laws and regulations; and</li>
-            <li>Other related purposes.</li>
+            <li>①查看个人信息并停止其使用的请求，可能依据相关法律对信息主体的权利予以限制。</li>
+            <li>②如果其他法律规定了个人信息的收集对象，则不能请求删除该个人信息。</li>
+            <li>③公司将确认查看、更正·删除或停止使用请求的提出者是本人还是法定代理人。</li>
           </ul>
-          <p>(collectively referred to as "purposes").</p>
+          <p>*马来西亚：用户可选择取消订阅公司的电子简报，并选择不再接收公司发送的营销和广告相关邮件。</p>
           
-          <p>We will not disclose your personal data to any third party except in the following circumstances:</p>
+          <h4 style="margin-top: 16px; margin-bottom: 8px; font-weight: 600;">自动个人信息收集装置的安装·运行与拒绝</h4>
+          <p>为提供个性化和定制化服务，公司使用"Cookie"来保存并频繁加载用户信息。Cookie 是由用于运营网站的服务器发送、并发送到用户网页浏览器的一个极小的文本文件。Cookie 存储在用户计算机的硬盘上。</p>
+          <p><strong>使用 Cookie 的目的：</strong><br>
+          了解用户对各类服务和网站的访问及使用情况、热门搜索词、安全连接状态等，以向用户提供优化的信息。</p>
+          <p><strong>Cookie 的安装·运行与拒绝：</strong><br>
+          用户有权选择是否安装 Cookie。因此，用户可在其网页浏览器中设置选项，以接受所有 Cookie、每次保存 Cookie 时进行确认，或拒绝保存任何 Cookie。<br>
+          但是，拒绝保存 Cookie 时，部分服务可能无法使用。</p>
+          <p>删除已保存 Cookie 的方法<br>
+          ① 从【工具】菜单中选择【网络选项】。<br>
+          ② 点击【常规选项卡】。<br>
+          ③ 点击搜索历史记录中的【删除】按钮。</p>
+          <p>指定是否允许安装 Cookie 的方法（以 Internet Explorer 为例）<br>
+          ① 从【工具】菜单中选择【网络选项】。<br>
+          ② 点击【个人信息选项卡】。<br>
+          ③ 点击设置中的【高级】按钮。<br>
+          ④ 从允许/阻止/由用户选择中选择 Cookie 的使用方式，然后点击确定按钮。</p>
+          
+          <p><strong>Cookie 及其他收集工具</strong><br>
+          我们可能使用我们的 Cookie 及其他收集工具来追踪有关你使用我们网站及其他服务的信息，或追踪有关用户活动的汇总和统计信息。Cookie 是一个包含一串字符的小文件，当你访问网站（此处指本网站）时发送到你的计算机。当你再次访问该网站时，Cookie 可使该网站识别你的浏览器。Cookie 可能存储用户偏好及其他信息，例如登录凭据和/或密码。你可以重新设置浏览器以拒绝所有 Cookie，或在发送 Cookie 时进行提示。在 Cookie 不可用或不适用的其他平台上，会使用其他技术来达成类似目的。某些 Cookie 便于我们浏览我们的网站及其他服务，另一些则用于实现更快的登录流程，或允许我们追踪你在我们网站上的活动。默认情况下允许所有 Cookie，但你可以调整此设置，并清除所有网站或某些页面的 Cookie。你可以禁用或删除第一方和第三方 Cookie 信息及数据。如果你删除 Cookie，某些网站偏好可能会被删除，部分网站功能或服务可能无法正常工作。但如果你愿意，可以编辑浏览器选项以在将来阻止它们。大多数浏览器工具栏的帮助部分会告诉你如何阻止浏览器接受新 Cookie、如何让浏览器在收到新 Cookie 时通知你，以及如何完全禁用 Cookie。</p>
+          
+          <h4 style="margin-top: 16px; margin-bottom: 8px; font-weight: 600;">保护个人信息的技术/管理措施</h4>
+          <p>在使用用户个人信息时，公司采取以下技术/管理措施，确保个人信息免遭丢失、被窃取、泄露、不必要的更改或损坏。</p>
+          <p>我们竭尽全力保护你所提供的数据。我们采取合理且适当的措施（包括技术/管理措施）来保护你提交的数据，确保个人信息免遭丢失、被窃取、泄露、不必要的更改或损坏。此外，我们承诺绝不出售你的个人信息。但请注意，互联网是一种面临他人威胁、病毒和入侵的全球性通信工具。接受本政策即表示最终用户确认，尽管 Visbody 及其第三方关联方已尽善意努力，仍可能发生意外的数据丢失。</p>
+          <p>第三方关联方在不同国家的访问和使用目的将与本政策保持一致。数据可能从数据保护法律与你所在司法管辖区不同的其他国家被访问和使用。因此，根据这些司法管辖区的法律，这些信息可能受到这些司法管辖区政府、法院或执法机构的访问请求约束。你向 Visbody 保证，你已获得适用法律为实现本政策目的所要求的一切必要同意，并提供了一切必要通知。</p>
+          
+          <p><strong>个人信息的加密</strong><br>
+          用户的密码以加密形式存储和管理，仅用户本人知晓。因此，只有知道密码的用户才能查看和更改用户的密码。此外，电话号码、电子邮箱地址、出生日期等信息也会加密，以防止信息泄露和个人信息被更改。</p>
+          
+          <p><strong>防止黑客攻击等的措施</strong><br>
+          公司竭尽全力防止用户个人信息通过黑客攻击、计算机病毒等方式被泄露和损坏。公司定期备份数据以尽量减少对个人信息的损害，使用最新的杀毒软件防止用户个人信息和数据的泄露和损坏；并使用加密通信等手段在网络上安全传输个人信息。公司还使用入侵防御系统来限制外部人员的未经授权访问，并努力采用一切可能的技术机制以确保系统安全。</p>
+          
+          <p><strong>使用个人信息的人员</strong><br>
+          公司将使用个人信息的工作限定于特别指定的人员，这些人员被分配定期更新的独立密码。公司定期为使用个人信息的人员提供培训，强调始终遵守隐私政策的重要性。他们须承担严格的合同保密义务，如未能履行这些义务，可能会受到纪律处分或被解雇。第三方同样须限制对我们服务器的访问，仅允许授权人员访问，且其将信息用于本政策所示目的。</p>
+          
+          <p><strong>设立专门负责个人信息保护的组织</strong><br>
+          公司设有专门负责个人信息保护及其他事项的组织，以监督隐私政策的执行、相关责任人的合规情况，并及时纠正和补救发现的任何问题。<br>
+          但是，对于因用户疏忽导致的电话号码、密码等个人信息泄露，或其他与互联网相关的问题，公司概不负责。</p>
+          
+          <p><strong>安全</strong><br>
+          我们采取适当的组织和技术措施，保护你的个人数据免遭滥用、丢失或修改。当存储在我们的服务器上时，你的个人数据会被加密。此外，个人数据在我们的服务器与你之间通过安全加密的互联网连接进行传输。<br>
+          虽然我们将尽一切合理努力保护你的个人数据，但你确认使用互联网并非完全安全，因此我们无法保证经由互联网向你传输或从你处传输的任何个人数据的安全性或完整性。</p>
+          
+          <p><strong>你的投诉权</strong><br>
+          如果你对我们使用你信息的方式有任何投诉，我们希望你先直接与我们联系，以便我们解决你的投诉。但你也可以联系你所在国家负责个人数据使用的监管机构。</p>
+          
+          <h4 style="margin-top: 16px; margin-bottom: 8px; font-weight: 600;">如何联系我们</h4>
+          <p>如果你对本隐私政策或我们持有的关于你的个人数据有任何疑问，请与我们联系。<br>
+          如你希望联系我们，请发送电子邮件至 [hello@Visbody.com]，或写信至 [中国陕西省西安市未央区尚华路 555 号正启工业园 5 层]</p>
+          
+          <h4 style="margin-top: 16px; margin-bottom: 8px; font-weight: 600;">通知义务</h4>
+          <p>如果法定代理人按照"8. 用户及法定代理人的权利与行使方式"所述，请求查看、更改或删除信息主体的个人数据，公司应在满足该请求之前以书面形式通知信息主体。如果发生可能对个人权利和自由构成风险的个人信息侵权事件，公司应在知悉个人信息侵权后 72 小时内向监管机构报告。必须立即将侵权事件通知数据主体。<br>
+          但是，如果个人信息侵权对个人自由和权利造成影响的可能性较低，可不予通知。如未在 72 小时内向监管机构报告，必须同时报告延迟的原因。<br>
+          如果数据泄露可能损害用户权利，我们将在确认事件后 72 小时内通过电子邮件和站内通知告知受影响的用户，并提供补救措施（如免费的信用监控服务）。</p>
+          
+          <p><strong>马来西亚：</strong><br>
+          我们保留随时更新和修改本隐私政策的权利。如果我们更新或修改本隐私政策，将通过在网络服务上发布更新后的隐私政策来通知用户。如果我们更新或修改本隐私政策，更新或修改后的条款仅适用于自本隐私政策更新或修改之日起收集的个人数据。<br>
+          为遵守《2010 年马来西亚个人数据保护法》第 7(3) 条，我们已根据本隐私政策向用户提供了一份以马来语书写的简化版个人数据通知。如个人数据通知与本隐私政策之间存在任何不一致，以本隐私政策的条款为准。<br>
+          本隐私政策最近一次更新于 2024 年 3 月 7 日。</p>
+          
+          <h4 style="margin-top: 16px; margin-bottom: 8px; font-weight: 600;">其他</h4>
+          <p><strong>儿童隐私</strong><br>
+          我们理解，无论分析机构位于哪个国家，本服务对 18 岁以下或当地法定年龄以下的潜在用户都具有吸引力和兴趣，我们的政策是确保父母或法定监护人能够监督针对这些用户的数据收集。我们的服务面向 18 岁以下或当地法定年龄以下的最终用户开放。任何 18 岁以下最终用户的父母或法定监护人在注册和使用我们的服务时，需同意收集和使用其子女的个人信息和个人健康信息。当你同意本政策时，如适用，即表示你同意收集、使用和披露你子女的个人信息和个人健康信息。任何 18 岁以下或当地法定年龄以下儿童的父母或法定监护人可查看其子女的个人信息和个人健康信息，请求删除，并拒绝分析机构进一步收集或使用该儿童的信息。<br>
+          如果用户未达到当地法定成年年龄，则需要父母/监护人的书面同意（通过上传身份证明文件并签署电子表格），或必须通过视频通话完成身份验证。</p>
+          
+          <p><strong>事件管理</strong><br>
+          Visbody 及其第三方关联方已制定全面的事件准备和响应计划，旨在识别涉及个人信息和个人健康信息的事件的原因、范围和性质，并按照我们的合同条款或法律义务进行及时报告。</p>
+          
+          <p><strong>Visbody 个人数据通知</strong><br>
+          个人数据通知（"个人数据通知"）是关于我们 Visbody（"公司"或"我们"）使用个人数据的声明，依据《2010 年个人数据保护法》（"PDPA"）的要求，提供给我们 WellnessHub 系统、身体成分分析系统、体能评估系统、跑姿评估系统、Visbody 网站、Visbody.com、visbody.ai.com、visbodyfit.com 及 Visbody 移动应用程序（统称"网络服务"）的用户。在你使用我们网络服务的过程中，我们将收集包括但不限于以下个人数据：</p>
           <ul style="padding-left: 20px; margin-bottom: 16px;">
-            <li>You have given consent;</li>
-            <li>We are required by law enforcement agencies to disclose your personal data according to legal requirements;</li>
-            <li>We are required by the government to disclose your personal data;</li>
-            <li>There are circumstances requiring disclosure of your personal data to our suppliers.</li>
+            <li>你的姓名；</li>
+            <li>你的国家；</li>
+            <li>你的时区；</li>
+            <li>你的电子邮箱；</li>
+            <li>你的电话号码；</li>
+            <li>你的身高；</li>
+            <li>你的体重；</li>
+            <li>你的年龄；</li>
+            <li>你的性别；</li>
+            <li>你的生日；以及</li>
+            <li>你在使用我们网络服务过程中提供的其他个人数据。</li>
           </ul>
-          
-          <p>We may also disclose your personal data to:</p>
+          <p>我们还将收集以下敏感个人数据：</p>
           <ul style="padding-left: 20px; margin-bottom: 16px;">
-            <li>Our affiliated companies;</li>
-            <li>Our service providers, agencies, or business organizations we collaborate with;</li>
-            <li>Third parties who have acquired our company or our assets; and</li>
-            <li>Computer software suppliers who have been granted access to Visbody detailed data at your request.</li>
+            <li>你的身体成分数据；</li>
+            <li>你的跑姿数据；</li>
+            <li>你的体能数据；</li>
           </ul>
+          <p>你明确同意使用上述敏感个人数据，并理解上述敏感个人数据对于使用我们的分析服务是必要的。</p>
           
-          <p>If you do not provide your personal data to us, or do not agree to this personal data notice, you may not be able to access certain features of the network service, your user experience may be affected, and you may not be able to receive support services from us.</p>
-          <p>We will ensure that your personal data is protected and securely stored. You have the right (as described below) to request access to your personal data, or request a copy of your personal data, or request to update or correct your personal data.</p>
-          <p>You have the right to request that we limit the use of your personal data, subject to any legal exceptions that allow us to collect, use, and disclose your personal data.</p>
-          <p>We reserve the right to update and modify this personal data notice at any time. We will notify you by posting a notice about modifications to the personal data notice on the network service. If we modify the personal data notice, the modifications made will only apply to personal data collected from the date of modifying the personal data notice.</p>
-          <p>In accordance with Section 7(3) of the PDPA, this personal data notice is provided in Malay, and our privacy policy is provided in English. If there is any conflict between this personal data notice and our privacy policy, our privacy policy will apply.</p>
-          <p>If you wish to access or need to update your personal data, please do so in your network service account.</p>
-          
-          <p><strong>European Union General Data Protection Regulation (GDPR)</strong><br>
-          If you are a resident of the European Union, you enjoy the following additional rights:</p>
+          <p>在以下情形下收集你的个人数据：</p>
           <ul style="padding-left: 20px; margin-bottom: 16px;">
-            <li>Data portability right: Obtain and transfer copies of personal data;</li>
-            <li>Right to restrict use: Limit data use under specific conditions;</li>
-            <li>Right to complain to EU regulatory authorities.</li>
-          </ul>
-          <p>The legal basis for data use will explicitly include the legal grounds specified in Article 6 of the GDPR (such as consent, contract performance, legitimate interests, etc.).</p>
-          
-          <p><strong>California Consumer Privacy Policy</strong><br>
-          This California Consumer Privacy Policy ("Policy") applies only to California residents and supplements other privacy policy issues, terms, and conditions regarding services provided by Visbody ("Visbody"). According to the California Privacy Rights Act ("CPRA"), this policy describes the rights of California consumers of Visbody products regarding their personal information and Visbody's practices regarding the collection, use, disclosure, and sale of personal information as defined by the CPRA. When reviewing this policy, we further recommend that you review our other terms and conditions for more information about our overall privacy practices and your other rights under federal law. You agree to the following:</p>
-          <p>I. Your Rights:</p>
-          <ul style="padding-left: 20px; margin-bottom: 16px;">
-            <li>a. Right to Know: This is your right to understand what categories of personal information we collect about you, how we use your personal information, whether we share, disclose, and/or sell your personal information to third parties, and other rights you may have regarding your personal information under the CPRA.</li>
-            <li>b. Right to Delete: This is your right to request that we delete personal information collected from you and stored in our systems, with certain exceptions that allow us to retain your personal information for specific purposes.</li>
-            <li>c. Right to Access: This is your right to request access to the personal information we have collected about you.</li>
-            <li>d. Right to Opt-Out of Sale: This is your right to opt out of having your personal information sold to third parties (if applicable).</li>
-            <li>e. Right to Equal Service: This is your right not to be retaliated against by Visbody in any way for exercising any rights under the CPRA or any other privacy policy agreement between you and Visbody.</li>
-            <li>f. Right to Correct: This is your right to request that Visbody correct inaccurate personal information you provided to Visbody, which you can reasonably prove is inaccurate.</li>
-            <li>g. Right to Limit Use: This is your right to limit Visbody's use of your personal information, as long as such limitation/restriction does not conflict with Visbody's rights and obligations under the law.</li>
-            <li>h. Right to Take Action: This is your right to bring a private legal action against Visbody for violations of the CPRA.</li>
-          </ul>
-          
-          <p>II. Categories of Personal Information Collected by Visbody Under the CPRA<br>
-          In the past twelve months, Visbody may have collected the following categories of personal information, as defined by the CPRA, about California consumers (for more information about our collection practices, please review our Terms of Service):</p>
-          <ul style="padding-left: 20px; margin-bottom: 16px;">
-            <li>Personal identifiers: Real name, alias, unique personal identifier, online identifier, Internet Protocol address, email address, account name, or other similar identifiers, including those personal information categories listed in the California Customer Records law, which also includes signature, physical characteristics or description, address, telephone number.</li>
-            <li>Biometric information: Genetic, physiological, behavioral, and biometric characteristics, or activity patterns used to extract templates or other identifiers or identifying information, such as facial marks, keystrokes, gait or other physical patterns, health or exercise data.</li>
-            <li>Internet or other similar network activity: Browsing history, search history, information on a consumer's interaction with a website, application, or advertisement.</li>
-            <li>Geolocation data: Physical location or movement.</li>
-          </ul>
-          
-          <p>III. Sources From Which We Collect Information Under the CPRA<br>
-          Visbody collects certain personal information about you from various sources to provide our services, communicate with you and your service providers, and support your use of our services. These sources may include:</p>
-          <ul style="padding-left: 20px; margin-bottom: 16px;">
-            <li>Information you provide directly to Visbody, such as when you contact or communicate with us, or when you establish a user account.</li>
-            <li>Information we automatically collect through your use of Visbody's services and products (including our websites and applications).</li>
-            <li>Information provided by third parties, such as your service providers.</li>
-            <li>Publicly available information about you.</li>
-          </ul>
-          
-          <p>IV. How Visbody Uses Your Information<br>
-          For information on how Visbody uses the information we obtain from you, please review our Terms of Service.</p>
-          
-          <p>V. Disclosure of Your Information<br>
-          As described in Visbody's Terms of Service, Visbody does not sell your personal information to third parties for any purpose (including advertising) for monetary consideration. However, Visbody may share your personal information with the following entities for the following purposes:</p>
-          <p>A. Business Transfers:<br>
-          In the process of a sale, merger, asset sale, or reorganization of Visbody or its affiliates, Visbody may disclose personal information. In such cases, your information will be transferred to the acquiring company. You will be provided with notice of such a transfer.</p>
-          <p>B. Third Parties:<br>
-          Visbody has business relationships with third-party service providers. They help Visbody provide services to you, manage Visbody's business, and design, maintain, and improve Visbody's services, systems, programs, protocols, and security.<br>
-          When we allow our contracted third-party service providers access to your personal information, they may only use it for purposes consistent with this policy. We ensure, through existing agreements, that these third parties have established levels of protection within their organizations equivalent to robust protection of your information. If our or our affiliates' business models undergo significant changes affecting the use of your information, an updated privacy policy will be provided.</p>
-          <p>C. Working with Service Providers and Business Partners:<br>
-          Visbody works with other companies and individuals to provide services on behalf of Visbody. Any such subcontractors will comply with the provisions of 45 CFR § 164.502(b). Examples of service providers include data analytics companies, credit card usage companies, customer service and support providers, email and text message suppliers, web hosting and development companies, and fulfillment companies. These third parties may need access to your personal information to perform functions for Visbody, but use will be subject to contracts and agreements that protect the confidentiality of protected information.</p>
-          <p>D. Law Enforcement:<br>
-          Visbody may disclose and report to law enforcement information about activities that Visbody reasonably believes to be unlawful, or information that Visbody reasonably believes may assist with law enforcement investigations of unlawful activity. In addition, Visbody reserves the right to release your information if Visbody determines, in its judgment, that releasing your information may help protect the safety or property of any person or entity.</p>
-          <p>E. Required or Permitted by Law:<br>
-          Visbody may disclose your information to others as required or permitted by law. This may include disclosure of your information to government entities, or pursuant to court orders, subpoenas, warrants, summonses, or similar processes.</p>
-          <p>F. Protection of Visbody and Others:<br>
-          Visbody may disclose information obtained from you when it believes it is necessary to investigate, prevent, or take action regarding illegal activities, suspected fraud, potential threats to the safety of any individual, violations of our Terms of Service or this policy, or as evidence in litigation in which Visbody is involved.</p>
-          
-          <p>VI. Unrestricted Uses<br>
-          The CPRA does not limit Visbody's ability to disclose the above personal information to third parties for previously stated purposes and the following purposes, including:</p>
-          <ul style="padding-left: 20px; margin-bottom: 16px;">
-            <li>Compliance with federal, state, or local laws.</li>
-            <li>Compliance with civil, criminal, or regulatory inquiries, investigations, subpoenas, or summonses by federal, state, or local authorities.</li>
-            <li>Cooperation with law enforcement agencies concerning conduct or activity that Visbody, service providers, or third parties reasonably and in good faith believe may violate federal, state, or local laws.</li>
-            <li>Exercise or defense of legal claims.</li>
-            <li>Collection, use, retention, sale, or disclosure of deidentified or aggregated consumer information.</li>
-            <li>If all aspects of the collection or sale of the consumer's personal information takes place wholly outside of California.</li>
-          </ul>
-          
-          <p>VII. Your Right to Know About Your Personal Information<br>
-          The CPRA requires that, upon request, Visbody must provide you with the following information:</p>
-          <ul style="padding-left: 20px; margin-bottom: 16px;">
-            <li>The categories of personal information obtained from you.</li>
-            <li>The categories of sources from which the personal information was obtained.</li>
-            <li>The business and/or commercial purpose for collecting, disclosing, or selling personal information (if applicable).</li>
-            <li>The categories of third parties with whom Visbody shares your personal information.</li>
-            <li>The specific pieces of personal information obtained from you.</li>
-          </ul>
-          <p>This is known as your "right to know" under the CPRA.</p>
-          
-          <p>VIII. Your Right to Request Access to Your Personal Information<br>
-          The CPRA requires Visbody to provide you with access to the actual personal information collected about you in the past twelve months; this is known as your "right of access" under the CPRA.<br>
-          The CPRA requires Visbody to fulfill no more than two access requests within a twelve-month period, which are subject to limitations for manifestly unfounded or excessive requests.<br>
-          Additionally, there are certain categories of personal information that Visbody may not return to you in response to your access request because the nature of that information is sensitive and may pose a substantial, articulable, and unreasonable risk to the security of that personal information.</p>
-          
-          <p>IX. Your Right to Request Deletion of Your Personal Information<br>
-          If you wish to request that Visbody delete your personal information, upon a verifiable consumer request, Visbody will delete your personal information from Visbody's systems, except where there are exceptions. Service providers and third parties will be notified that your personal information has been shared by Visbody.<br>
-          However, in addition to some applicable terms and conditions requiring deletion of information, as found in Visbody's Terms of Service, your deletion request is subject to certain exceptions, which Visbody may rely on, where the company needs to retain personal information to:</p>
-          <ul style="padding-left: 20px; margin-bottom: 16px;">
-            <li>Complete the transaction for which the personal information was collected, provide a product or service requested by you, or reasonably anticipated within the context of Visbody's ongoing business relationship with you, or otherwise perform a contract between Visbody and you.</li>
-            <li>Detect security incidents, protect against malicious, fraudulent, illegal activity, or prosecute those responsible for such activities.</li>
-            <li>Debug to identify and repair errors that impair existing intended functionality.</li>
-            <li>Exercise free speech, ensure the right of another consumer to exercise their right to free speech, or exercise another right provided for by law.</li>
-            <li>Comply with the California Electronic Communications Privacy Act, as applicable.</li>
-            <li>Engage in public or peer-reviewed scientific, historical, or statistical research in the public interest that adheres to all other applicable ethics and privacy laws, when the deletion of information may render impossible or seriously impair the achievement of such research, if you have provided informed consent.</li>
-            <li>Enable solely internal uses that are reasonably aligned with consumer expectations based on the consumer's relationship with Visbody.</li>
-            <li>Comply with a legal obligation.</li>
-            <li>Otherwise use the personal information, internally, in a lawful manner that is compatible with the context in which you provided the information.</li>
-          </ul>
-          <p>If any of these exceptions apply, Visbody need not delete your personal information. If your request is denied because of any of these exceptions, Visbody will notify you in writing of the reason.</p>
-          
-          <p>X. Submitting Requests<br>
-          Given the sensitivity of information under the CPRA and the provisions of the law itself, Visbody must verify your identity when using your request, whether for access to or deletion of your personal information. While the verification process involves using personal information associated with you as the requester, Visbody will not collect or retain information you provide during the request process, provided that Visbody will retain contact information provided to fulfill your request or otherwise communicate with you regarding your request. If Visbody cannot verify your identity, your request will be denied.<br>
-          To exercise any of your rights under the CPRA, please contact us by sending an email to LBSupport@Visbody.com or contacting us.</p>
-          
-          <p>XI. Your Right to Equal Service<br>
-          The CPRA prohibits businesses from discriminating against California consumers for exercising any of their rights under the CPRA. This means that if you exercise any rights under this policy in the CPRA, Visbody may not:</p>
-          <ul style="padding-left: 20px; margin-bottom: 16px;">
-            <li>Deny goods or services to you;</li>
-            <li>Charge you different prices for goods or services than you would otherwise be charged; or</li>
-            <li>Provide you with a different quality level of goods or services;</li>
+            <li>当你使用身体成分、跑姿、体能及其他分析服务时；</li>
+            <li>当你注册成为我们网络服务的会员时；以及</li>
+            <li>当你联系我们、向我们提供反馈、在网络服务中发帖、完成用户调查或参与我们组织的竞赛时。</li>
           </ul>
           
-          <p>XII. Other Information<br>
-          For information about Visbody's general privacy practices (some of which may apply to you, some of which may not), please visit Visbody's privacy policy page.</p>
-          
-          <p>XIII. Updates<br>
-          We reserve the right to change and revise any part of the policy at any time without prior notice. Details of these updates will be made available to you through Visbody's website. Visbody recommends that you check our website from time to time to ensure you agree with any changes and revisions. Your continued use of our services indicates your acceptance of this policy and any updates to it. This policy has been incorporated into the End User Terms of Service (if you are an end user) and the Analysis Facility Terms of Service (if you are a facility user), as well as our standard privacy policy for topics and subjects not covered herein.</p>
-          
-          <p>XIV. Contact Information<br>
-          If you have any questions or comments about this policy, our information use practices, or other aspects of your privacy and information security, please email hello@Visbody.com.<br>
-          Before accessing or using the services, you agree and acknowledge that you have read this policy in its entirety and expressly consent to our collection, use, and disclosure of your personal information subject to the limitations of this policy.<br>
-          If you are not of legal consenting age in your jurisdiction, you may not be able to consent to this policy; only your parent or legal guardian may consent, and they further agree and acknowledge to obtain, execute, and deliver to the analysis facility appropriate parental consent and release forms.</p>
-          
-          <p><strong>New York Consumer Privacy Policy</strong><br>
-          This New York Consumer Privacy Policy ("Policy") applies only to New York State residents and supplements other privacy policy issues, terms, and conditions regarding services provided by Visbody ("Visbody"). This policy covers various enacted New York State privacy laws, including the "Stop Hacks and Improve Electronic Security Act" ("SHIELD"), Identity Theft Protection and Mitigation Services Act, and the New York Privacy Act ("NYPA") (collectively, the "Acts"), and describes the rights of New York consumers of Visbody products regarding their personal information, as well as Visbody's practices regarding the collection, use, disclosure, and sale of personal information as defined in the Acts. When reviewing this policy, we also encourage you to review our other terms and conditions for more information about our overall privacy practices and your other rights under federal law. You agree and understand the following:</p>
-          
-          <p>I. Your Rights:</p>
+          <p>我们将出于以下目的收集和使用你的个人数据：</p>
           <ul style="padding-left: 20px; margin-bottom: 16px;">
-            <li>Right to Know: This is your right to know what categories of personal information we collect about you, how we use your personal information, whether we share, disclose, and/or sell your personal information to third parties, and other rights you may have regarding your personal information under the Acts.</li>
-            <li>Right to Delete: This is your right to request that we delete personal information collected from you and retained in our systems, with certain exceptions that allow us to retain your personal information for specific purposes.</li>
-            <li>Right to Access: This is your right to request access to the personal information we have collected about you.</li>
-            <li>Right to Opt-Out of Sale: This is your right to opt out of having your personal information sold to third parties (if applicable).</li>
-            <li>Right to Equal Service: This is your right not to be retaliated against by Visbody in any way for exercising any of your rights under the Acts or any other privacy policy agreement between you and Visbody.</li>
+            <li>为你提供服务（包括提供定制化服务、验证你的身份、使用你的付款以及我们的费用收取）；</li>
+            <li>网络服务会员管理（包括验证你的身份、防止滥用网络服务、核实用户注册、为解决纠纷而记录存档、处理投诉以及发送通知）；</li>
+            <li>开发我们的服务；</li>
+            <li>广告和营销目的；</li>
+            <li>与你沟通；</li>
+            <li>向你发送通讯；</li>
+            <li>履行我们的合同义务；</li>
+            <li>遵守相关法律法规；以及</li>
+            <li>其他相关目的。</li>
+          </ul>
+          <p>（统称"目的"）。</p>
+          
+          <p>除以下情形外，我们不会向任何第三方披露你的个人数据：</p>
+          <ul style="padding-left: 20px; margin-bottom: 16px;">
+            <li>你已表示同意；</li>
+            <li>执法机构依据法律要求要求我们披露你的个人数据；</li>
+            <li>政府要求我们披露你的个人数据；</li>
+            <li>存在需要向我们的供应商披露你个人数据的情形。</li>
           </ul>
           
-          <p>II. Categories of Personal Information Collected by Visbody Under the Acts<br>
-          In the past twelve months, Visbody may have collected the following categories of personal information about New York consumers, as defined by the Acts (for more information about our collection practices, please review our Terms of Service):</p>
+          <p>我们还可能向以下方披露你的个人数据：</p>
           <ul style="padding-left: 20px; margin-bottom: 16px;">
-            <li>Personal identifiers: Real name, alias, unique personal identifier, online identifier, Internet Protocol address, email address, account name, or other similar identifiers, including those personal information categories listed in the Acts, which also includes signature, physical characteristics or description, address, telephone number.</li>
-            <li>Biometric information: Genetic, physiological, behavioral, and biometric characteristics, or activity patterns used to extract templates or other identifiers or identifying information, such as facial marks, keystrokes, gait or other physical patterns, health or exercise data.</li>
-            <li>Internet or other similar network activity: Browsing history, search history, information on a consumer's interaction with a website, application, or advertisement.</li>
-            <li>Geolocation data: Physical location or movement.</li>
+            <li>我们的关联公司；</li>
+            <li>我们的服务提供商、代理机构或与我们合作的商业组织；</li>
+            <li>已收购我们公司或我们资产的第三方；以及</li>
+            <li>经你请求被授予访问 Visbody 详细数据权限的计算机软件供应商。</li>
           </ul>
           
-          <p>III. Sources From Which We Collect Information Under the Acts<br>
-          Visbody collects certain personal information about you from various sources to provide our services to you, communicate with you and your service providers, and support your use of our services. These sources may include:</p>
+          <p>如果你不向我们提供你的个人数据，或不同意本个人数据通知，你可能无法访问网络服务的某些功能，你的用户体验可能会受到影响，并且你可能无法获得我们的支持服务。</p>
+          <p>我们将确保你的个人数据受到保护并安全存储。你有权（如下所述）请求访问你的个人数据，或请求获取你个人数据的副本，或请求更新或更正你的个人数据。</p>
+          <p>你有权请求我们限制对你个人数据的使用，但须遵守允许我们收集、使用和披露你个人数据的任何法律例外情形。</p>
+          <p>我们保留随时更新和修改本个人数据通知的权利。我们将通过在网络服务上发布关于个人数据通知修改的通知来通知你。如果我们修改个人数据通知，所做的修改仅适用于自修改个人数据通知之日起收集的个人数据。</p>
+          <p>根据 PDPA 第 7(3) 条，本个人数据通知以马来语提供，我们的隐私政策以英语提供。如本个人数据通知与我们的隐私政策之间存在任何冲突，以我们的隐私政策为准。</p>
+          <p>如你希望访问或需要更新你的个人数据，请在你的网络服务账户中进行操作。</p>
+          
+          <p><strong>欧盟《通用数据保护条例》（GDPR）</strong><br>
+          如果你是欧盟居民，你享有以下附加权利：</p>
           <ul style="padding-left: 20px; margin-bottom: 16px;">
-            <li>Information you provide directly to Visbody, such as when you contact or communicate with us, or when you establish a user account.</li>
-            <li>Information we automatically collect through your use of Visbody's services and products (including our websites and applications).</li>
-            <li>Information obtained from third parties, such as your service providers.</li>
-            <li>Publicly available information about you.</li>
+            <li>数据可携权：获取并转移个人数据的副本；</li>
+            <li>限制使用权：在特定条件下限制数据使用；</li>
+            <li>向欧盟监管机构投诉的权利。</li>
+          </ul>
+          <p>数据使用的法律依据将明确包括 GDPR 第 6 条规定的法律依据（如同意、合同履行、正当利益等）。</p>
+          
+          <p><strong>加州消费者隐私政策</strong><br>
+          本《加州消费者隐私政策》（"政策"）仅适用于加州居民，并作为 Visbody（"Visbody"）所提供服务的其他隐私政策事项、条款和条件的补充。根据《加州隐私权利法》（"CPRA"），本政策描述了 Visbody 产品的加州消费者就其个人信息所享有的权利，以及 Visbody 在 CPRA 所定义的个人信息的收集、使用、披露和出售方面的做法。在查阅本政策时，我们进一步建议你查阅我们的其他条款和条件，以了解有关我们整体隐私做法以及你在联邦法律下其他权利的更多信息。你同意以下内容：</p>
+          <p>I. 你的权利：</p>
+          <ul style="padding-left: 20px; margin-bottom: 16px;">
+            <li>a. 知情权：这是你了解我们收集关于你的哪些类别个人信息、我们如何使用你的个人信息、我们是否向第三方共享、披露和/或出售你的个人信息，以及你在 CPRA 下就你的个人信息可能享有的其他权利的权利。</li>
+            <li>b. 删除权：这是你请求我们删除从你处收集并存储在我们系统中的个人信息的权利，但存在允许我们出于特定目的保留你个人信息的某些例外情形。</li>
+            <li>c. 访问权：这是你请求访问我们收集的关于你的个人信息的权利。</li>
+            <li>d. 选择退出出售的权利：这是你选择不让你的个人信息被出售给第三方的权利（如适用）。</li>
+            <li>e. 平等服务权：这是你因行使 CPRA 或你与 Visbody 之间任何其他隐私政策协议下的任何权利，而不会以任何方式受到 Visbody 报复的权利。</li>
+            <li>f. 更正权：这是你请求 Visbody 更正你向 Visbody 提供的、你能合理证明不准确的个人信息的权利。</li>
+            <li>g. 限制使用权：这是你限制 Visbody 使用你个人信息的权利，只要此类限制/约束不与 Visbody 在法律下的权利和义务相冲突。</li>
+            <li>h. 采取行动权：这是你就 Visbody 违反 CPRA 的行为对其提起私人法律诉讼的权利。</li>
           </ul>
           
-          <p>IV. How Visbody Uses Your Information<br>
-          Under the NYPA, Visbody is required to act as your data fiduciary, exercising the duty of care, loyalty, and confidentiality expected of a fiduciary with respect to your personal information. As such, Visbody should, and should require third-party service providers to, act in your best interest in a way that would reasonably be expected by a reasonable Visbody customer under similar circumstances. For information on how Visbody uses the information we obtain from you, please review our Terms of Service.</p>
-          
-          <p>V. Disclosure of Your Information<br>
-          As described in Visbody's Terms of Service, Visbody does not sell your personal information to third parties for any purpose (including advertising) for monetary consideration. However, Visbody may share your personal information with the following entities for the purposes described below:</p>
+          <p>II. Visbody 根据 CPRA 收集的个人信息类别<br>
+          在过去十二个月内，Visbody 可能已收集了 CPRA 所定义的、关于加州消费者的以下类别个人信息（有关我们收集做法的更多信息，请查阅我们的服务条款）：</p>
           <ul style="padding-left: 20px; margin-bottom: 16px;">
-            <li>Business Transfers:<br>Visbody may disclose personal information in connection with a sale, merger, asset sale, or reorganization of Visbody or its affiliates. In such events, your information will be transferred to the acquiring company. You will be provided with notice of such a transfer.</li>
-            <li>Third Parties:<br>Visbody has business relationships with third-party service providers. They help Visbody provide services to you, manage Visbody's business, and design, maintain, improve Visbody's services, systems, programs, protocols, and security.<br>When we allow our contracted third-party service providers access to your personal information, they may only use it for purposes consistent with this policy. We ensure through the agreements we have in place that these third parties have established equivalent levels of protection within their organizations to provide robust protection of your information. If our or our affiliates' business models undergo significant changes affecting the use of your information, an updated privacy policy will be provided.</li>
-            <li>Working with Service Providers and Business Partners:<br>Visbody works with other companies and individuals to provide services on behalf of Visbody. Any such subcontractors will comply with the provisions of 45 CFR § 164.502(b). Examples of service providers include data analytics companies, credit card usage companies, customer service and support providers, email and text message suppliers, web hosting and development companies, and fulfillment companies. These third parties may need access to your personal information to perform functions for Visbody, but use will be subject to contracts and agreements that protect the confidentiality of protected information.</li>
-            <li>Law Enforcement:<br>Visbody may disclose and report to law enforcement information about activities that Visbody reasonably believes to be unlawful, or information that Visbody reasonably believes may assist with law enforcement investigations of unlawful activity. In addition, Visbody reserves the right to release your information if Visbody determines, in its judgment, that releasing your information may help protect the safety or property of any person or entity.</li>
-            <li>Required or Permitted by Law:<br>Visbody may disclose your information to others as required or permitted by law. This may include disclosure of your information to government entities, or pursuant to court orders, subpoenas, warrants, summonses, or similar processes.</li>
-            <li>Protection of Visbody and Others:<br>When Visbody believes it is necessary to investigate, prevent, or take action regarding illegal activities, suspected fraud, situations involving potential threats to the safety of any individual, violations of our Terms of Service or this policy, or as evidence in litigation in which Visbody is involved, Visbody may disclose information obtained from you.</li>
-            <li>To You:<br>Under the Acts, Visbody has an obligation to notify you if your personal information is acquired by a third party without your authorization.</li>
+            <li>个人标识符：真实姓名、别名、唯一个人标识符、在线标识符、互联网协议地址、电子邮箱地址、账户名称或其他类似标识符，包括《加州客户记录法》中列出的个人信息类别，还包括签名、身体特征或描述、地址、电话号码。</li>
+            <li>生物识别信息：用于提取模板或其他标识符或识别信息的遗传、生理、行为和生物识别特征或活动模式，例如面部标记、击键、步态或其他身体模式、健康或运动数据。</li>
+            <li>互联网或其他类似网络活动：浏览历史、搜索历史、消费者与网站、应用程序或广告交互的信息。</li>
+            <li>地理位置数据：物理位置或移动。</li>
+          </ul>
+          
+          <p>III. 我们根据 CPRA 收集信息的来源<br>
+          Visbody 从各种来源收集关于你的某些个人信息，以提供我们的服务、与你及你的服务提供商沟通，并支持你使用我们的服务。这些来源可能包括：</p>
+          <ul style="padding-left: 20px; margin-bottom: 16px;">
+            <li>你直接向 Visbody 提供的信息，例如当你联系或与我们沟通，或当你建立用户账户时。</li>
+            <li>我们通过你使用 Visbody 的服务和产品（包括我们的网站和应用程序）自动收集的信息。</li>
+            <li>第三方提供的信息，例如你的服务提供商。</li>
+            <li>关于你的公开可得信息。</li>
+          </ul>
+          
+          <p>IV. Visbody 如何使用你的信息<br>
+          有关 Visbody 如何使用我们从你处获取的信息，请查阅我们的服务条款。</p>
+          
+          <p>V. 你信息的披露<br>
+          如 Visbody 服务条款所述，Visbody 不会出于任何目的（包括广告）为获取金钱对价而将你的个人信息出售给第三方。但是，Visbody 可能出于以下目的与下列实体共享你的个人信息：</p>
+          <p>A. 业务转让：<br>
+          在 Visbody 或其关联方的出售、合并、资产出售或重组过程中，Visbody 可能披露个人信息。在此类情况下，你的信息将被转移给收购方公司。我们将就此类转让向你发出通知。</p>
+          <p>B. 第三方：<br>
+          Visbody 与第三方服务提供商存在业务关系。他们协助 Visbody 向你提供服务、管理 Visbody 的业务，并设计、维护和改进 Visbody 的服务、系统、程序、协议和安全。<br>
+          当我们允许我们签约的第三方服务提供商访问你的个人信息时，他们只能将其用于与本政策一致的目的。我们通过现有协议确保这些第三方在其组织内部已建立与稳健保护你信息相当的保护水平。如果我们或我们关联方的业务模式发生影响你信息使用的重大变化，我们将提供更新后的隐私政策。</p>
+          <p>C. 与服务提供商和业务合作伙伴的合作：<br>
+          Visbody 与其他公司和个人合作，代表 Visbody 提供服务。任何此类分包商都将遵守 45 CFR § 164.502(b) 的规定。服务提供商的例子包括数据分析公司、信用卡使用公司、客户服务和支持提供商、电子邮件和短信供应商、网站托管和开发公司以及履约公司。这些第三方可能需要访问你的个人信息以为 Visbody 履行职能，但其使用将受保护受保护信息保密性的合同和协议约束。</p>
+          <p>D. 执法：<br>
+          Visbody 可能向执法部门披露和报告其合理认为属于非法的活动信息，或其合理认为可能有助于执法部门调查非法活动的信息。此外，如果 Visbody 经其判断认定披露你的信息可能有助于保护任何个人或实体的安全或财产，Visbody 保留披露你信息的权利。</p>
+          <p>E. 法律要求或允许：<br>
+          Visbody 可能按照法律要求或允许向他人披露你的信息。这可能包括向政府实体披露你的信息，或根据法院命令、传票、搜查令、传唤或类似程序进行披露。</p>
+          <p>F. 保护 Visbody 及他人：<br>
+          当 Visbody 认为有必要调查、预防或针对非法活动、涉嫌欺诈、对任何个人安全的潜在威胁、违反我们服务条款或本政策的行为采取行动，或作为 Visbody 参与的诉讼中的证据时，Visbody 可能披露从你处获取的信息。</p>
+          
+          <p>VI. 不受限制的使用<br>
+          CPRA 不限制 Visbody 出于先前所述目的及以下目的向第三方披露上述个人信息的能力，包括：</p>
+          <ul style="padding-left: 20px; margin-bottom: 16px;">
+            <li>遵守联邦、州或地方法律。</li>
+            <li>配合联邦、州或地方当局的民事、刑事或监管询问、调查、传票或传唤。</li>
+            <li>就 Visbody、服务提供商或第三方合理且善意地认为可能违反联邦、州或地方法律的行为或活动，与执法机构合作。</li>
+            <li>行使或抗辩法律主张。</li>
+            <li>收集、使用、保留、出售或披露去标识化或汇总的消费者信息。</li>
+            <li>如果消费者个人信息的收集或出售的所有环节完全发生在加州境外。</li>
+          </ul>
+          
+          <p>VII. 你了解自身个人信息的权利<br>
+          CPRA 要求，应请求，Visbody 必须向你提供以下信息：</p>
+          <ul style="padding-left: 20px; margin-bottom: 16px;">
+            <li>从你处获取的个人信息类别。</li>
+            <li>获取个人信息的来源类别。</li>
+            <li>收集、披露或出售个人信息的业务和/或商业目的（如适用）。</li>
+            <li>Visbody 与之共享你个人信息的第三方类别。</li>
+            <li>从你处获取的具体个人信息项。</li>
+          </ul>
+          <p>这就是 CPRA 下你的"知情权"。</p>
+          
+          <p>VIII. 你请求访问自身个人信息的权利<br>
+          CPRA 要求 Visbody 向你提供访问过去十二个月内收集的关于你的实际个人信息的途径；这就是 CPRA 下你的"访问权"。<br>
+          CPRA 要求 Visbody 在十二个月期间内履行不超过两次的访问请求，且这些请求受明显无依据或过度请求的限制约束。<br>
+          此外，对于某些类别的个人信息，Visbody 可能不会响应你的访问请求向你返回，因为该信息的性质属于敏感信息，可能对该个人信息的安全构成重大、可明确说明且不合理的风险。</p>
+          
+          <p>IX. 你请求删除自身个人信息的权利<br>
+          如果你希望请求 Visbody 删除你的个人信息，在收到可验证的消费者请求后，Visbody 将从 Visbody 系统中删除你的个人信息，但存在例外情形的除外。服务提供商和第三方将被告知 Visbody 已共享你的个人信息。<br>
+          但是，除 Visbody 服务条款中要求删除信息的某些适用条款和条件外，你的删除请求受某些例外情形约束，在公司需要保留个人信息以满足下列目的时，Visbody 可援引这些例外：</p>
+          <ul style="padding-left: 20px; margin-bottom: 16px;">
+            <li>完成收集该个人信息所针对的交易，提供你所请求的、或在 Visbody 与你持续业务关系背景下可合理预期的产品或服务，或以其他方式履行 Visbody 与你之间的合同。</li>
+            <li>检测安全事件，防范恶意、欺诈、非法活动，或对此类活动的责任人提起诉讼。</li>
+            <li>进行调试，以识别和修复损害现有预期功能的错误。</li>
+            <li>行使言论自由，确保另一消费者行使其言论自由权利的权利，或行使法律规定的其他权利。</li>
+            <li>遵守适用的《加州电子通信隐私法》。</li>
+            <li>在删除信息可能导致无法实现或严重妨碍科研目标，且你已提供知情同意的情况下，开展符合所有其他适用伦理和隐私法律、符合公共利益的公开或同行评审的科学、历史或统计研究。</li>
+            <li>实现仅限内部的、基于消费者与 Visbody 关系而合理符合消费者预期的使用。</li>
+            <li>遵守法律义务。</li>
+            <li>以其他方式在内部以合法且与你提供信息时的背景相符的方式使用该个人信息。</li>
+          </ul>
+          <p>如适用上述任何例外，Visbody 无需删除你的个人信息。如果你的请求因任何此类例外被拒绝，Visbody 将以书面形式将原因通知你。</p>
+          
+          <p>X. 提交请求<br>
+          鉴于 CPRA 下信息的敏感性及法律本身的规定，无论是访问还是删除你的个人信息，Visbody 在处理你的请求时都必须验证你的身份。虽然验证过程涉及使用与作为请求者的你相关联的个人信息，但 Visbody 不会收集或保留你在请求过程中提供的信息，但 Visbody 将保留为满足你的请求或就你的请求与你沟通而提供的联系信息。如果 Visbody 无法验证你的身份，你的请求将被拒绝。<br>
+          如需行使你在 CPRA 下的任何权利，请通过发送电子邮件至 LBSupport@Visbody.com 或联系我们。</p>
+          
+          <p>XI. 你的平等服务权<br>
+          CPRA 禁止企业因加州消费者行使其在 CPRA 下的任何权利而对其进行歧视。这意味着，如果你行使本政策中 CPRA 下的任何权利，Visbody 不得：</p>
+          <ul style="padding-left: 20px; margin-bottom: 16px;">
+            <li>拒绝向你提供商品或服务；</li>
+            <li>就商品或服务向你收取与你原本应被收取的价格不同的费用；或</li>
+            <li>向你提供不同质量水平的商品或服务；</li>
+          </ul>
+          
+          <p>XII. 其他信息<br>
+          有关 Visbody 一般隐私做法的信息（其中部分可能适用于你，部分可能不适用），请访问 Visbody 的隐私政策页面。</p>
+          
+          <p>XIII. 更新<br>
+          我们保留随时更改和修订本政策任何部分而无需事先通知的权利。这些更新的详细信息将通过 Visbody 的网站向你提供。Visbody 建议你不时查看我们的网站，以确保你同意任何更改和修订。你继续使用我们的服务即表示你接受本政策及其任何更新。本政策已纳入最终用户服务条款（如果你是最终用户）和分析机构服务条款（如果你是机构用户），以及我们针对本文未涵盖主题和事项的标准隐私政策。</p>
+          
+          <p>XIV. 联系信息<br>
+          如果你对本政策、我们的信息使用做法，或你隐私和信息安全的其他方面有任何疑问或意见，请发送电子邮件至 hello@Visbody.com。<br>
+          在访问或使用本服务之前，你同意并确认你已完整阅读本政策，并明确同意我们在本政策限制下收集、使用和披露你的个人信息。<br>
+          如果你未达到你所在司法管辖区的法定同意年龄，你可能无法同意本政策；只有你的父母或法定监护人才能同意，并且他们进一步同意并确认会向分析机构获取、签署并交付适当的父母同意书和免责表格。</p>
+          
+          <p><strong>纽约消费者隐私政策</strong><br>
+          本《纽约消费者隐私政策》（"政策"）仅适用于纽约州居民，并作为 Visbody（"Visbody"）所提供服务的其他隐私政策事项、条款和条件的补充。本政策涵盖纽约州已颁布的多部隐私法律，包括《阻止黑客攻击与改进电子安全法》（"SHIELD"）、《身份盗窃防护与缓解服务法》以及《纽约隐私法》（"NYPA"）（统称"各法案"），并描述了 Visbody 产品的纽约消费者就其个人信息所享有的权利，以及 Visbody 在各法案所定义的个人信息的收集、使用、披露和出售方面的做法。在查阅本政策时，我们也鼓励你查阅我们的其他条款和条件，以了解有关我们整体隐私做法以及你在联邦法律下其他权利的更多信息。你同意并理解以下内容：</p>
+          
+          <p>I. 你的权利：</p>
+          <ul style="padding-left: 20px; margin-bottom: 16px;">
+            <li>知情权：这是你了解我们收集关于你的哪些类别个人信息、我们如何使用你的个人信息、我们是否向第三方共享、披露和/或出售你的个人信息，以及你在各法案下就你的个人信息可能享有的其他权利的权利。</li>
+            <li>删除权：这是你请求我们删除从你处收集并保留在我们系统中的个人信息的权利，但存在允许我们出于特定目的保留你个人信息的某些例外情形。</li>
+            <li>访问权：这是你请求访问我们收集的关于你的个人信息的权利。</li>
+            <li>选择退出出售的权利：这是你选择不让你的个人信息被出售给第三方的权利（如适用）。</li>
+            <li>平等服务权：这是你因行使各法案或你与 Visbody 之间任何其他隐私政策协议下的任何权利，而不会以任何方式受到 Visbody 报复的权利。</li>
+          </ul>
+          
+          <p>II. Visbody 根据各法案收集的个人信息类别<br>
+          在过去十二个月内，Visbody 可能已收集了各法案所定义的、关于纽约消费者的以下类别个人信息（有关我们收集做法的更多信息，请查阅我们的服务条款）：</p>
+          <ul style="padding-left: 20px; margin-bottom: 16px;">
+            <li>个人标识符：真实姓名、别名、唯一个人标识符、在线标识符、互联网协议地址、电子邮箱地址、账户名称或其他类似标识符，包括各法案中列出的个人信息类别，还包括签名、身体特征或描述、地址、电话号码。</li>
+            <li>生物识别信息：用于提取模板或其他标识符或识别信息的遗传、生理、行为和生物识别特征或活动模式，例如面部标记、击键、步态或其他身体模式、健康或运动数据。</li>
+            <li>互联网或其他类似网络活动：浏览历史、搜索历史、消费者与网站、应用程序或广告交互的信息。</li>
+            <li>地理位置数据：物理位置或移动。</li>
+          </ul>
+          
+          <p>III. 我们根据各法案收集信息的来源<br>
+          Visbody 从各种来源收集关于你的某些个人信息，以向你提供我们的服务、与你及你的服务提供商沟通，并支持你使用我们的服务。这些来源可能包括：</p>
+          <ul style="padding-left: 20px; margin-bottom: 16px;">
+            <li>你直接向 Visbody 提供的信息，例如当你联系或与我们沟通，或当你建立用户账户时。</li>
+            <li>我们通过你使用 Visbody 的服务和产品（包括我们的网站和应用程序）自动收集的信息。</li>
+            <li>从第三方获取的信息，例如你的服务提供商。</li>
+            <li>关于你的公开可得信息。</li>
+          </ul>
+          
+          <p>IV. Visbody 如何使用你的信息<br>
+          根据 NYPA，Visbody 须作为你的数据受信人行事，就你的个人信息履行受信人所应尽的注意、忠实和保密义务。因此，Visbody 应当（并应要求第三方服务提供商）以理性的 Visbody 客户在类似情况下可合理预期的方式，为你的最佳利益行事。有关 Visbody 如何使用我们从你处获取的信息，请查阅我们的服务条款。</p>
+          
+          <p>V. 你信息的披露<br>
+          如 Visbody 服务条款所述，Visbody 不会出于任何目的（包括广告）为获取金钱对价而将你的个人信息出售给第三方。但是，Visbody 可能出于下述目的与下列实体共享你的个人信息：</p>
+          <ul style="padding-left: 20px; margin-bottom: 16px;">
+            <li>业务转让：<br>Visbody 可能在 Visbody 或其关联方的出售、合并、资产出售或重组相关情形下披露个人信息。在此类事件中，你的信息将被转移给收购方公司。我们将就此类转让向你发出通知。</li>
+            <li>第三方：<br>Visbody 与第三方服务提供商存在业务关系。他们协助 Visbody 向你提供服务、管理 Visbody 的业务，并设计、维护、改进 Visbody 的服务、系统、程序、协议和安全。<br>当我们允许我们签约的第三方服务提供商访问你的个人信息时，他们只能将其用于与本政策一致的目的。我们通过已订立的协议确保这些第三方在其组织内部已建立同等水平的保护，以稳健地保护你的信息。如果我们或我们关联方的业务模式发生影响你信息使用的重大变化，我们将提供更新后的隐私政策。</li>
+            <li>与服务提供商和业务合作伙伴的合作：<br>Visbody 与其他公司和个人合作，代表 Visbody 提供服务。任何此类分包商都将遵守 45 CFR § 164.502(b) 的规定。服务提供商的例子包括数据分析公司、信用卡使用公司、客户服务和支持提供商、电子邮件和短信供应商、网站托管和开发公司以及履约公司。这些第三方可能需要访问你的个人信息以为 Visbody 履行职能，但其使用将受保护受保护信息保密性的合同和协议约束。</li>
+            <li>执法：<br>Visbody 可能向执法部门披露和报告其合理认为属于非法的活动信息，或其合理认为可能有助于执法部门调查非法活动的信息。此外，如果 Visbody 经其判断认定披露你的信息可能有助于保护任何个人或实体的安全或财产，Visbody 保留披露你信息的权利。</li>
+            <li>法律要求或允许：<br>Visbody 可能按照法律要求或允许向他人披露你的信息。这可能包括向政府实体披露你的信息，或根据法院命令、传票、搜查令、传唤或类似程序进行披露。</li>
+            <li>保护 Visbody 及他人：<br>当 Visbody 认为有必要调查、预防或针对非法活动、涉嫌欺诈、涉及对任何个人安全的潜在威胁的情形、违反我们服务条款或本政策的行为采取行动，或作为 Visbody 参与的诉讼中的证据时，Visbody 可能披露从你处获取的信息。</li>
+            <li>向你披露：<br>根据各法案，如果你的个人信息未经你授权被第三方获取，Visbody 有义务通知你。</li>
           </ul>
         </div>
       </div>

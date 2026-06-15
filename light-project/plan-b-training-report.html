@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Plan B · Training report</title>
+  <title>Plan B · 训练报告</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -15,64 +15,63 @@
   <link rel="stylesheet" href="css/plan-b-light-medium.css" />
 </head>
 <body class="cream-medium" data-plan-b-page="report">
-  <main class="device-shell" aria-label="Plan B home verification">
+  <main class="device-shell" aria-label="训练报告">
     <div class="particle-layer" aria-hidden="true"></div>
     <div class="vignette" aria-hidden="true"></div>
 
-<section class="training-report-screen active" id="trainingReportScreen" aria-label="Training report" aria-hidden="false">
+<section class="training-report-screen active" id="trainingReportScreen" aria-label="训练报告" aria-hidden="false">
       <div class="tr-shell">
         <div class="tr-top">
-          <span class="tr-kicker">Training Report</span>
-          <button class="tr-close-btn" id="reportCloseBtn" type="button" aria-label="Close report">×</button>
+          <span class="tr-kicker">训练报告</span>
         </div>
         <header class="tr-hero">
           <div class="tr-avatar tr-avatar-initial" id="reportUserAvatar" aria-hidden="true">A</div>
           <div class="tr-greet">
-            <h2 id="reportCongratsTitle">Great Job, Alyona</h2>
-            <p id="reportSessionMeta">Session complete • Free training</p>
+            <h2 id="reportCongratsTitle">做得好，Alyona</h2>
+            <p id="reportSessionMeta">训练完成 • 自由训练</p>
           </div>
         </header>
-        <section class="tr-grid" aria-label="Core session metrics">
+        <section class="tr-grid" aria-label="核心训练数据">
           <article class="tr-stat">
-            <label>Total Duration</label>
+            <label>总时长</label>
             <strong><span id="reportDurationValue">00:00</span></strong>
           </article>
           <article class="tr-stat" id="reportCapacityStat">
-            <label>Capacity</label>
+            <label>训练容量</label>
             <strong><span id="reportCapacityValue">0.0</span><small>kg</small></strong>
           </article>
           <article class="tr-stat">
-            <label>Output Energy</label>
+            <label id="reportEnergyLabel">输出能量</label>
             <strong><span id="reportEnergyValue">0</span><small>kJ</small></strong>
           </article>
           <article class="tr-stat">
-            <label>Calories</label>
+            <label id="reportCaloriesLabel">卡路里</label>
             <strong><span id="reportCaloriesValue">0</span><small>kcal</small></strong>
           </article>
         </section>
-        <section class="tr-block" id="reportModeSetupBlock" aria-label="Mode settings">
+        <section class="tr-block" id="reportModeSetupBlock" aria-label="模式设置">
           <div class="tr-title-row">
-            <h3>Mode Setup</h3>
-            <span class="tr-note">View only</span>
+            <h3>模式设置</h3>
+            <span class="tr-note">仅查看</span>
           </div>
           <div class="tr-mode-group">
-            <span class="tr-mode-chip"><em>Mode</em><span id="reportModeLabel">Standard</span></span>
-            <span class="tr-mode-chip"><em>Equipment</em><span id="reportEquipmentLabel">Barbell</span></span>
-            <span class="tr-mode-chip"><em>Scene</em><span id="reportSceneLabel">Action Training</span></span>
+            <span class="tr-mode-chip"><em>模式</em><span id="reportModeLabel">标准</span></span>
+            <span class="tr-mode-chip"><em>器械</em><span id="reportEquipmentLabel">杠铃</span></span>
+            <span class="tr-mode-chip"><em>场景</em><span id="reportSceneLabel">动作训练</span></span>
           </div>
         </section>
-        <section class="tr-block" id="reportActionAnalysisBlock" aria-label="Action analysis" hidden>
+        <section class="tr-block" id="reportActionAnalysisBlock" aria-label="动作分析" hidden>
           <div class="tr-title-row">
-            <h3>Action Analysis</h3>
-            <span class="tr-note">AI supported</span>
+            <h3>动作分析</h3>
+            <span class="tr-note">AI 支持</span>
           </div>
           <div class="tr-extra">
             <article class="tr-extra-card tr-final-score tr-extra-card--score" id="reportFinalScoreWrap" hidden>
-              <label>Final Score</label>
+              <label>最终评分</label>
               <strong><span id="reportFinalScoreValue">93</span></strong>
             </article>
             <article class="tr-extra-card tr-final-score tr-extra-card--score">
-              <label>Consistency</label>
+              <label>稳定性</label>
               <strong id="reportConsistency">0%</strong>
             </article>
           </div>
@@ -83,46 +82,81 @@
               <i class="tr-accuracy-seg tr-accuracy-perfect" id="reportAccuracyPerfect"></i>
             </div>
             <div class="tr-accuracy-legend">
-              <span id="reportAccuracyBetterLabel">Better 0%</span>
-              <span id="reportAccuracyGoodLabel">Good 0%</span>
-              <span id="reportAccuracyPerfectLabel">Perfect 0%</span>
+              <span id="reportAccuracyBetterLabel">达标 0%</span>
+              <span id="reportAccuracyGoodLabel">良好 0%</span>
+              <span id="reportAccuracyPerfectLabel">完美 0%</span>
             </div>
           </div>
-          <p class="tr-coach-note" id="reportCoachNote">Keep a steady tempo and progress the resistance gradually.</p>
+          <p class="tr-coach-note" id="reportCoachNote">保持稳定的节奏，循序渐进地增加阻力。</p>
         </section>
-        <section class="tr-block" id="reportActionCompletionBlock" aria-label="Action completion" hidden>
+        <section class="tr-block" id="reportActionCompletionBlock" aria-label="动作完成度" hidden>
           <div class="tr-title-row">
-            <h3>Action Completion</h3>
-            <span class="tr-note">Plan day detail</span>
+            <h3>动作完成度</h3>
+            <span class="tr-note">计划当日详情</span>
           </div>
           <div class="tr-action-list" id="reportActionList"></div>
         </section>
-        <section class="tr-block" id="reportStrengthPowerBlock" aria-label="Strength and power">
+        <section class="tr-block" id="reportStrengthPowerBlock" aria-label="力量与功率">
           <div class="tr-title-row">
-            <h3>Strength &amp; Power</h3>
-            <span class="tr-note" id="reportIntensityRange">Max Resistance 120kg</span>
+            <h3>力量与功率</h3>
+            <span class="tr-note" id="reportIntensityRange">最大阻力 120kg</span>
           </div>
           <div class="tr-intensity-wrap" id="reportIntensityBar"></div>
           <div class="tr-intensity-legend" id="reportIntensityLegend"></div>
-          <div id="reportPowerCurveBlock" aria-label="Power curve" hidden>
+          <p class="tr-intensity-legend-note" id="reportIntensityLegendNote"></p>
+          <div id="reportPowerCurveBlock" aria-label="功率与幅度" hidden>
             <div class="tr-title-row">
-              <h3>Power Curve</h3>
-              <span class="tr-note" id="reportPowerCurveMeta">Session</span>
+              <h3>功率与幅度</h3>
+              <span class="tr-note" id="reportPowerCurveMeta">本次训练</span>
             </div>
             <div class="tr-power-curve-tabs" id="reportPowerCurveTabs"></div>
-            <div class="tr-power-curve-canvas-wrap">
-              <svg class="tr-power-curve-svg" id="reportPowerCurveSvg" viewBox="0 0 320 140" preserveAspectRatio="none" aria-label="Power curve chart"></svg>
-            </div>
-            <div class="tr-power-curve-foot" id="reportPowerCurveFoot">Peak -- · Avg --</div>
+
+            <article class="tr-chart" data-chart="power">
+              <div class="tr-chart-head">
+                <span class="tr-chart-name">功率</span>
+                <span class="tr-chart-foot" id="reportPowerCurveFoot">峰值 -- · 均值 --</span>
+              </div>
+              <div class="tr-chart-viewport">
+                <button class="tr-chart-nav tr-chart-nav--prev" id="reportPowerNavPrev" type="button" aria-label="向左滚动功率图表" hidden>
+                  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <div class="tr-chart-scroll" id="reportPowerScroll">
+                  <svg class="tr-chart-svg tr-chart-svg--power" id="reportPowerCurveSvg" viewBox="0 0 320 140" preserveAspectRatio="none" aria-label="本次训练功率曲线"></svg>
+                </div>
+                <button class="tr-chart-nav tr-chart-nav--next" id="reportPowerNavNext" type="button" aria-label="向右滚动功率图表" hidden>
+                  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+              </div>
+            </article>
+
+            <article class="tr-chart" data-chart="amplitude">
+              <div class="tr-chart-head">
+                <span class="tr-chart-name">动作幅度</span>
+                <span class="tr-chart-foot" id="reportAmpFoot">峰值 -- · 均值 --</span>
+              </div>
+              <div class="tr-chart-viewport">
+                <button class="tr-chart-nav tr-chart-nav--prev" id="reportAmpNavPrev" type="button" aria-label="向左滚动动作幅度图表" hidden>
+                  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <div class="tr-chart-scroll" id="reportAmpScroll">
+                  <svg class="tr-chart-svg tr-chart-svg--amp" id="reportAmpSvg" viewBox="0 0 320 140" preserveAspectRatio="none" aria-label="本次训练动作幅度曲线"></svg>
+                </div>
+                <button class="tr-chart-nav tr-chart-nav--next" id="reportAmpNavNext" type="button" aria-label="向右滚动动作幅度图表" hidden>
+                  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+              </div>
+            </article>
           </div>
         </section>
         <footer class="tr-actions">
-          <button class="tr-btn tr-btn--ghost" id="reportAgainBtn" type="button">Train Again</button>
-          <button class="tr-btn tr-btn--primary" id="reportHomeBtn" type="button">Back Home</button>
+          <button class="tr-btn tr-btn--ghost" id="reportAgainBtn" type="button">再次训练</button>
+          <button class="tr-btn tr-btn--primary" id="reportHomeBtn" type="button">返回首页</button>
         </footer>
       </div>
+      <div class="action-dock" aria-label="页面操作">
+        <button class="tr-close-btn" id="reportCloseBtn" type="button" aria-label="关闭报告">×</button>
+      </div>
     </section>
-  </main>
   </main>
   <script src="js/data/explore-library.js"></script>
   <script src="js/plan-b-verify.js" defer></script>

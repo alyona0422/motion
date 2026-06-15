@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Plan B · Plan training</title>
+  <title>Plan B · 计划训练</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -16,11 +16,11 @@
   <link rel="stylesheet" href="css/plan-b-light-medium.css" />
 </head>
 <body class="cream-medium" data-plan-b-page="plan-training">
-  <main class="device-shell" aria-label="Plan B plan training">
+  <main class="device-shell" aria-label="Plan B 计划训练">
     <div class="particle-layer" aria-hidden="true"></div>
     <div class="vignette" aria-hidden="true"></div>
 
-    <section class="immersive-workout-screen active" id="immersiveWorkoutScreen" aria-label="Plan training control" aria-hidden="false">
+    <section class="immersive-workout-screen active" id="immersiveWorkoutScreen" aria-label="计划训练控制" aria-hidden="false">
       <video id="iwVideo" class="iw-video" preload="metadata" playsinline muted loop poster="assets/video.jpg">
         <source id="iwVideoSource" src="assets/workout-demo.mp4" type="video/mp4" />
       </video>
@@ -28,11 +28,11 @@
       <div class="iw-overlay">
         <header class="iw-top iw-glass pt-top">
           <div class="iw-top-row">
-            <h2 class="iw-title" id="iwActionTitle">Plan Training</h2>
+            <h2 class="iw-title" id="iwActionTitle">计划训练</h2>
             <div class="pt-time" id="iwTimeText">00:00 / 00:00</div>
           </div>
           <div class="iw-progress-row pt-progress-row">
-            <div class="pt-progress-track" id="ptProgressTrack" aria-label="Move sequence progress"></div>
+            <div class="pt-progress-track" id="ptProgressTrack" aria-label="动作序列进度"></div>
           </div>
         </header>
 
@@ -40,15 +40,14 @@
           <div class="iw-handle" id="iwDrawerHandle">
             <div class="pt-summary">
               <div class="pt-summary-main">
-                <h3 id="ptCurrentMoveName">Current move</h3>
-                <p id="ptCurrentMoveMeta">0 / 0 reps · Set 0 / 0</p>
-                <p id="ptNextMovePreview" class="pt-next-move-preview">Next: -</p>
+                <h3 id="ptCurrentMoveName">当前动作</h3>
+                <p id="ptCurrentMoveMeta">0 / 0 次 · 第 0 / 0 组</p>
+                <p id="ptNextMovePreview" class="pt-next-move-preview">下一项：-</p>
               </div>
-              <button class="pt-skip-btn" id="ptSkipMoveBtn" type="button">Skip</button>
             </div>
           </div>
           <div class="iw-content">
-            <div class="iw-section-title">Resistance</div>
+            <div class="iw-section-title">阻力</div>
             <div class="iw-weight-row">
               <button class="iw-step-btn" id="iwDecreaseBtn" type="button">−</button>
               <div class="iw-dial-container">
@@ -70,12 +69,12 @@
               </div>
               <button class="iw-step-btn" id="iwIncreaseBtn" type="button">+</button>
             </div>
-            <div class="iw-step-note">Step: 0.5 kg</div>
+            <div class="iw-step-note">步进：0.5 kg</div>
 
             <div class="iw-param-panel" id="iwParamPanel">
               <div class="iw-param-head">
-                <span id="iwParamLabel">Spring level</span>
-                <strong id="iwParamDisplay">Level 1</strong>
+                <span id="iwParamLabel">弹簧档位</span>
+                <strong id="iwParamDisplay">1 档</strong>
               </div>
               <input class="iw-slider" id="iwParamSlider" type="range" min="1" max="10" step="1" value="1" />
               <div class="iw-param-tip" id="iwParamTip"></div>
@@ -85,38 +84,41 @@
             <div class="iw-chart-card">
               <div class="iw-chart-header">
                 <div class="iw-chart-tabs" id="iwChartTabs">
-                  <button class="iw-chart-tab active" data-tab="rom" type="button">ROM</button>
-                  <button class="iw-chart-tab" data-tab="power" type="button">Power</button>
+                  <button class="iw-chart-tab active" data-tab="rom" type="button">动作幅度</button>
+                  <button class="iw-chart-tab" data-tab="power" type="button">功率</button>
                 </div>
                 <div class="iw-chart-legend" id="iwChartLegend">
                   <div class="iw-legend-item">
                     <span class="iw-legend-color iw-legend-range" aria-hidden="true"></span>
-                    <span>Range</span>
+                    <span>幅度</span>
                   </div>
                   <div class="iw-legend-item">
                     <span class="iw-legend-color iw-legend-power" aria-hidden="true"></span>
-                    <span>Power</span>
+                    <span>功率</span>
                   </div>
                 </div>
               </div>
-              <canvas id="iwChartCanvas" width="1000" height="320" aria-label="Chart"></canvas>
+              <canvas id="iwChartCanvas" width="1000" height="320" aria-label="图表"></canvas>
             </div>
 
             <div class="pt-control-bar" id="ptControlBar">
               <div class="pt-running-controls" id="ptRunningControls">
-                <button class="pt-action-btn pt-action-btn--danger" id="ptEndTrainingBtn" type="button">End Training</button>
-                <button class="pt-action-btn pt-action-btn--primary" id="ptPauseTrainingBtn" type="button">Start Training</button>
+                <button class="pt-action-btn pt-action-btn--danger" id="ptEndTrainingBtn" type="button">结束训练</button>
+                <button class="pt-action-btn pt-action-btn--primary" id="ptPauseTrainingBtn" type="button">开始训练</button>
               </div>
             </div>
           </div>
         </section>
 
         <section class="pt-rest-overlay" id="ptRestOverlay" aria-hidden="true">
-          <p class="pt-rest-label">Rest</p>
+          <p class="pt-rest-label">休息</p>
           <p class="pt-rest-countdown" id="ptRestCountdown">30s</p>
-          <p class="pt-rest-next" id="ptRestNextMove">Up next: Next move</p>
-          <button class="pt-rest-skip" id="ptSkipRestBtn" type="button">Skip Rest</button>
+          <p class="pt-rest-next" id="ptRestNextMove">接下来：下一动作</p>
+          <button class="pt-rest-skip" id="ptSkipRestBtn" type="button">跳过休息</button>
         </section>
+        <div class="action-dock action-dock--immersive" aria-label="训练控制">
+          <button class="pt-skip-btn" id="ptSkipMoveBtn" type="button">跳过</button>
+        </div>
       </div>
     </section>
   </main>

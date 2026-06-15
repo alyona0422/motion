@@ -842,3 +842,59 @@ body {
   opacity: 1;
 }
 
+/* Bottom action dock — in document flow at end of page content */
+.action-dock {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  margin-top: 16px;
+  margin-bottom: 16px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(8, 14, 24, 0.88);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: var(--glow-soft), inset 0 0 0 1px rgba(148, 163, 184, 0.14);
+  pointer-events: auto;
+  flex-shrink: 0;
+}
+
+.action-dock--above-nav {
+  margin-bottom: calc(16px + 86px + 12px);
+}
+
+.action-dock--immersive {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: calc(10px + 84px + 12px);
+  z-index: 9;
+  width: auto;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.action-dock--spread {
+  justify-content: space-between;
+}
+
+.action-dock--center {
+  justify-content: center;
+}
+
+@media (max-width: 1080px) {
+  .action-dock--immersive {
+    left: 14px;
+    right: 14px;
+  }
+
+  .action-dock--above-nav {
+    margin-bottom: calc(16px + 86px + 10px);
+  }
+}
+

@@ -27,6 +27,7 @@
     .settings-header {
       display: flex;
       align-items: center;
+      justify-content: center;
       margin-bottom: 32px;
     }
     .settings-back-btn {
@@ -40,7 +41,8 @@
       justify-content: center;
       color: var(--text-primary);
       cursor: pointer;
-      margin-right: 16px;
+      margin-right: 0;
+      flex-shrink: 0;
       transition: all 0.2s ease;
     }
     .settings-back-btn:hover {
@@ -117,11 +119,6 @@
       </div>
 
       <header class="settings-header">
-        <button class="settings-back-btn" id="accountSettingsBackBtn" type="button" aria-label="Back">
-          <svg viewBox="0 0 24 24">
-            <path d="M15 18l-6-6 6-6"></path>
-          </svg>
-        </button>
         <h1 class="settings-title">ACCOUNT SETTINGS</h1>
       </header>
 
@@ -144,6 +141,13 @@
         <button class="list-btn" id="logoutAccountBtn" type="button">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
           <span>LOG OUT</span>
+        </button>
+      </div>
+      <div class="action-dock" aria-label="Page actions">
+        <button class="settings-back-btn" id="accountSettingsBackBtn" type="button" aria-label="Back">
+          <svg viewBox="0 0 24 24">
+            <path d="M15 18l-6-6 6-6"></path>
+          </svg>
         </button>
       </div>
     </section>
