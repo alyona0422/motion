@@ -31,7 +31,15 @@
             <button class="tr-range-btn" type="button" data-range="month" role="tab" aria-selected="false">Month</button>
             <button class="tr-range-btn" type="button" data-range="all" role="tab" aria-selected="false">All</button>
           </div>
-          <p class="tr-stat-period" id="trStatPeriod" aria-live="polite"></p>
+          <div class="tr-period-nav" id="trPeriodNav">
+            <button class="tr-period-nav-btn" id="trPeriodPrev" type="button" aria-label="Previous week">
+              <span aria-hidden="true">‹</span>
+            </button>
+            <p class="tr-stat-period" id="trStatPeriod" aria-live="polite"></p>
+            <button class="tr-period-nav-btn" id="trPeriodNext" type="button" aria-label="Next week" disabled>
+              <span aria-hidden="true">›</span>
+            </button>
+          </div>
         </header>
 
         <div id="trChartsView">
@@ -126,16 +134,72 @@
             <button class="tr-clear-filter" id="clearChartFilterBtn" type="button" hidden>Clear filter</button>
           </div>
           <div class="tr-list-filter-bar" aria-label="Training record filters">
-            <div class="tr-list-filter-row">
-              <label class="tr-date-field" for="trFilterDateStart">
-                <span class="tr-date-label">Start date</span>
-                <input type="date" id="trFilterDateStart" />
-              </label>
-              <label class="tr-date-field" for="trFilterDateEnd">
-                <span class="tr-date-label">End date</span>
-                <input type="date" id="trFilterDateEnd" />
-              </label>
-              <button class="tr-date-reset" id="trFilterDateReset" type="button">Reset dates</button>
+            <div class="tr-filter-group">
+              <span class="tr-filter-group-title">Training type</span>
+              <div class="tr-filter-chips">
+                <button class="tr-filter-chip is-active" type="button" data-group="type" data-value="">All</button>
+                <button class="tr-filter-chip" type="button" data-group="type" data-value="Plan Follow">Plan follow</button>
+                <button class="tr-filter-chip" type="button" data-group="type" data-value="Free Training">Free training</button>
+                <button class="tr-filter-chip" type="button" data-group="type" data-value="Movement Follow">Movement follow</button>
+              </div>
+            </div>
+            <div class="tr-filter-group">
+              <span class="tr-filter-group-title">Scene</span>
+              <div class="tr-filter-chips">
+                <button class="tr-filter-chip is-active" type="button" data-group="scene" data-value="">All</button>
+                <button class="tr-filter-chip" type="button" data-group="scene" data-value="Strength">Strength</button>
+                <button class="tr-filter-chip" type="button" data-group="scene" data-value="Pilates">Pilates</button>
+                <button class="tr-filter-chip" type="button" data-group="scene" data-value="Cardio">Cardio</button>
+              </div>
+            </div>
+            <div class="tr-list-filter-row" lang="en">
+              <div class="tr-date-field">
+                <span class="tr-date-label">Start month</span>
+                <div class="tr-month-picker">
+                  <select class="tr-month-select" id="trFilterStartYear" aria-label="Start year">
+                    <option value="">Year</option>
+                  </select>
+                  <select class="tr-month-select" id="trFilterStartMonth" aria-label="Start month">
+                    <option value="">Month</option>
+                    <option value="01">Jan</option>
+                    <option value="02">Feb</option>
+                    <option value="03">Mar</option>
+                    <option value="04">Apr</option>
+                    <option value="05">May</option>
+                    <option value="06">Jun</option>
+                    <option value="07">Jul</option>
+                    <option value="08">Aug</option>
+                    <option value="09">Sep</option>
+                    <option value="10">Oct</option>
+                    <option value="11">Nov</option>
+                    <option value="12">Dec</option>
+                  </select>
+                </div>
+              </div>
+              <div class="tr-date-field">
+                <span class="tr-date-label">End month</span>
+                <div class="tr-month-picker">
+                  <select class="tr-month-select" id="trFilterEndYear" aria-label="End year">
+                    <option value="">Year</option>
+                  </select>
+                  <select class="tr-month-select" id="trFilterEndMonth" aria-label="End month">
+                    <option value="">Month</option>
+                    <option value="01">Jan</option>
+                    <option value="02">Feb</option>
+                    <option value="03">Mar</option>
+                    <option value="04">Apr</option>
+                    <option value="05">May</option>
+                    <option value="06">Jun</option>
+                    <option value="07">Jul</option>
+                    <option value="08">Aug</option>
+                    <option value="09">Sep</option>
+                    <option value="10">Oct</option>
+                    <option value="11">Nov</option>
+                    <option value="12">Dec</option>
+                  </select>
+                </div>
+              </div>
+              <button class="tr-date-reset" id="trFilterDateReset" type="button">Reset months</button>
             </div>
           </div>
           <div class="tr-filter-indicator" id="activeFilterHint" hidden></div>

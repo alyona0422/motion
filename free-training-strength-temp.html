@@ -70,9 +70,6 @@
 
     /* Page header */
     .page-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
       padding: 8px 20px 16px;
     }
 
@@ -81,24 +78,6 @@
       font-size: 1.65rem;
       font-weight: 800;
       letter-spacing: 0.06em;
-    }
-
-    .close-btn {
-      width: 36px;
-      height: 36px;
-      border: none;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.08);
-      color: var(--text);
-      font-size: 1.1rem;
-      cursor: pointer;
-      display: grid;
-      place-items: center;
-      transition: background 180ms ease;
-    }
-
-    .close-btn:hover {
-      background: rgba(255, 255, 255, 0.14);
     }
 
     /* Main scroll area */
@@ -663,7 +642,6 @@
 
     <header class="page-header">
       <h1>力量训练</h1>
-      <button type="button" class="close-btn" id="closeBtn" aria-label="关闭">✕</button>
     </header>
 
     <div class="dashboard" id="dashboard">
@@ -690,7 +668,34 @@
         </div>
       </article>
 
-      <!-- Training config -->
+      <!-- Chart (upper half — display / feedback) -->
+      <article class="panel chart-panel">
+        <div class="chart-panel-header">
+          <h2 class="panel-title">动作幅度与功率</h2>
+          <div class="chart-avg">平均 <strong id="chartAvgValue">8.8</strong></div>
+        </div>
+        <div class="chart-tabs-row">
+          <div class="chart-tabs" id="chartTabs" role="group" aria-label="图表类型">
+            <button type="button" class="chart-tab active" data-tab="rom">幅度</button>
+            <button type="button" class="chart-tab" data-tab="power">功率</button>
+          </div>
+          <div class="chart-legend">
+            <div class="legend-item">
+              <span class="legend-dot left"></span>
+              <span>L</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot right"></span>
+              <span>R</span>
+            </div>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="romPowerCanvas" aria-label="实时幅度与功率图表"></canvas>
+        </div>
+      </article>
+
+      <!-- Training config (lower half — controls) -->
       <article class="panel config-layout">
         <h2 class="panel-title">训练配置</h2>
 
@@ -723,7 +728,7 @@
         <div class="resistance-block">
           <div class="side-badge" id="sideBadge">左 L</div>
           <div class="resistance-control">
-            <button type="button" id="resistanceMinus" aria-label="减少 0.5kg">−</button>
+            <button type="button" id="resistanceMinus" aria-label="减少阻力">−</button>
             <div class="iw-dial-container">
               <svg class="iw-dial-svg" viewBox="0 0 120 120">
                 <defs>
@@ -741,9 +746,9 @@
                 <div class="iw-dial-unit">kg</div>
               </div>
             </div>
-            <button type="button" id="resistancePlus" aria-label="增加 0.5kg">+</button>
+            <button type="button" id="resistancePlus" aria-label="增加阻力">+</button>
           </div>
-          <div class="step-note">步进：0.5 kg</div>
+          <div class="step-note" id="stepNote">步进：1 kg</div>
         </div>
 
         <div class="slider-block" id="coeffSliderBlock">
@@ -753,33 +758,6 @@
           </div>
           <input type="range" id="coeffSlider" min="1" max="10" step="1" value="8" aria-label="系数档位">
           <span class="slider-hint">档位越高，反馈越早。</span>
-        </div>
-      </article>
-
-      <!-- Chart -->
-      <article class="panel chart-panel">
-        <div class="chart-panel-header">
-          <h2 class="panel-title">动作幅度与功率</h2>
-          <div class="chart-avg">平均 <strong id="chartAvgValue">8.8</strong></div>
-        </div>
-        <div class="chart-tabs-row">
-          <div class="chart-tabs" id="chartTabs" role="group" aria-label="图表类型">
-            <button type="button" class="chart-tab active" data-tab="rom">幅度</button>
-            <button type="button" class="chart-tab" data-tab="power">功率</button>
-          </div>
-          <div class="chart-legend">
-            <div class="legend-item">
-              <span class="legend-dot left"></span>
-              <span>L</span>
-            </div>
-            <div class="legend-item">
-              <span class="legend-dot right"></span>
-              <span>R</span>
-            </div>
-          </div>
-        </div>
-        <div class="chart-wrap">
-          <canvas id="romPowerCanvas" aria-label="实时幅度与功率图表"></canvas>
         </div>
       </article>
     </div>
@@ -801,6 +779,7 @@
       const iwDialProgress = document.getElementById("iwDialProgress");
       const resistanceMinus = document.getElementById("resistanceMinus");
       const resistancePlus = document.getElementById("resistancePlus");
+      const stepNote = document.getElementById("stepNote");
       const motorRow = document.getElementById("motorRow");
       const sideBadge = document.getElementById("sideBadge");
       const modeBtns = document.querySelectorAll("#modeGroup .seg-btn");
@@ -813,13 +792,14 @@
       const flipBtn = document.getElementById("flipBtn");
       const startBtn = document.getElementById("startBtn");
       const endBtn = document.getElementById("endBtn");
-      const closeBtn = document.getElementById("closeBtn");
       const canvas = document.getElementById("romPowerCanvas");
       const ctx = canvas.getContext("2d");
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-      const RESISTANCE_STEP = 0.5;
-      const RESISTANCE_MIN = 0.5;
+      const BARBELL_STEP = 1;
+      const NONBARBELL_STEP = 0.5;
+      const RESISTANCE_MIN_BARBELL = 1;
+      const RESISTANCE_MIN_NONBARBELL = 0.5;
       const RESISTANCE_MAX = 100;
       const KCAL_TO_KJ = 4.184;
       const DASHARRAY = 213.63;
@@ -839,6 +819,32 @@
       let frameId = null;
       let chartTick = 0;
       let dpr = 1;
+
+      function getResistanceStep() {
+        return structureMode === "barbell" ? BARBELL_STEP : NONBARBELL_STEP;
+      }
+
+      function getResistanceMin() {
+        return structureMode === "barbell" ? RESISTANCE_MIN_BARBELL : RESISTANCE_MIN_NONBARBELL;
+      }
+
+      function normalizeResistance(val) {
+        if (structureMode === "barbell") return Math.round(val);
+        return Math.round(val * 10) / 10;
+      }
+
+      function formatResistance(val) {
+        if (structureMode === "barbell") return normalizeResistance(val).toFixed(0);
+        return normalizeResistance(val).toFixed(1);
+      }
+
+      function updateStepUI() {
+        var step = getResistanceStep();
+        var label = step === 1 ? "1" : "0.5";
+        if (stepNote) stepNote.textContent = "步进：" + label + " kg";
+        resistanceMinus.setAttribute("aria-label", "减少 " + label + " kg");
+        resistancePlus.setAttribute("aria-label", "增加 " + label + " kg");
+      }
 
       function formatDuration(totalSeconds) {
         const min = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
@@ -868,8 +874,8 @@
 
       function updateResistanceUI() {
         const active = getActiveResistance();
-        resistanceDisplayVal.textContent = active.toFixed(1);
-        const percent = (active - RESISTANCE_MIN) / (RESISTANCE_MAX - RESISTANCE_MIN);
+        resistanceDisplayVal.textContent = formatResistance(active);
+        const percent = (active - getResistanceMin()) / (RESISTANCE_MAX - getResistanceMin());
         iwDialProgress.style.strokeDashoffset = DASHARRAY - (DASHARRAY * Math.max(0, Math.min(1, percent)));
         resistanceValue.textContent = getTotalResistance().toFixed(1);
       }
@@ -882,6 +888,7 @@
           sideBadge.textContent = activeSide === "left" ? "左 L" : "右 R";
           sideBadge.classList.toggle("side-right", activeSide === "right");
         }
+        updateStepUI();
         updateResistanceUI();
       }
 
@@ -933,18 +940,21 @@
 
       resistanceMinus.addEventListener("click", function () {
         var val = getActiveResistance();
-        if (val > RESISTANCE_MIN) {
-          val = Math.max(RESISTANCE_MIN, val - RESISTANCE_STEP);
-          setActiveResistance(Math.round(val * 10) / 10);
+        var min = getResistanceMin();
+        var step = getResistanceStep();
+        if (val > min) {
+          val = Math.max(min, val - step);
+          setActiveResistance(normalizeResistance(val));
           updateResistanceUI();
         }
       });
 
       resistancePlus.addEventListener("click", function () {
         var val = getActiveResistance();
+        var step = getResistanceStep();
         if (val < RESISTANCE_MAX) {
-          val = Math.min(RESISTANCE_MAX, val + RESISTANCE_STEP);
-          setActiveResistance(Math.round(val * 10) / 10);
+          val = Math.min(RESISTANCE_MAX, val + step);
+          setActiveResistance(normalizeResistance(val));
           updateResistanceUI();
         }
       });
@@ -1080,7 +1090,6 @@
 
       startBtn.addEventListener("click", startTraining);
       endBtn.addEventListener("click", endTraining);
-      closeBtn.addEventListener("click", endTraining);
 
       updateStructureUI();
       window.addEventListener("resize", resizeCanvas);

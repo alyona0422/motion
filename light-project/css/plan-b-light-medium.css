@@ -458,6 +458,7 @@
 .tr-card-head p,
 .tr-stat-period,
 .tr-date-label,
+.tr-filter-group-title,
 .tr-muscle-legend-name,
 .tr-row-time,
 .tr-empty-list,
@@ -525,6 +526,40 @@
   color: #334155;
   background: rgba(255, 255, 255, 0.86);
   border-color: rgba(148, 163, 184, 0.34);
+}
+
+.tr-filter-chip {
+  color: #334155;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.34);
+}
+
+.tr-filter-chip.is-active {
+  color: #0f172a;
+  background: rgba(0, 122, 255, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(0, 122, 255, 0.42);
+}
+
+.tr-period-nav-btn {
+  background: rgba(255, 255, 255, 0.92);
+  color: #0f172a;
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.34);
+}
+
+.tr-period-nav-btn:not(:disabled):hover {
+  background: rgba(0, 122, 255, 0.12);
+}
+
+.tr-month-select {
+  background-color: rgba(255, 255, 255, 0.92);
+  color: #0f172a;
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.34);
+}
+
+.tr-chip.source-move {
+  border-color: rgba(124, 58, 237, 0.42);
+  background: rgba(237, 233, 254, 0.92);
+  color: #5b21b6;
 }
 
 .all-training-level {

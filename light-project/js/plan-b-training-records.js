@@ -13,9 +13,15 @@
   const chartsView = document.getElementById("trChartsView");
   const listView = document.getElementById("trListView");
   const statPeriodEl = document.getElementById("trStatPeriod");
-  const filterDateStart = document.getElementById("trFilterDateStart");
-  const filterDateEnd = document.getElementById("trFilterDateEnd");
+  const periodNavEl = document.getElementById("trPeriodNav");
+  const periodPrevBtn = document.getElementById("trPeriodPrev");
+  const periodNextBtn = document.getElementById("trPeriodNext");
+  const filterStartYear = document.getElementById("trFilterStartYear");
+  const filterStartMonth = document.getElementById("trFilterStartMonth");
+  const filterEndYear = document.getElementById("trFilterEndYear");
+  const filterEndMonth = document.getElementById("trFilterEndMonth");
   const filterDateReset = document.getElementById("trFilterDateReset");
+  const monthFilterSelects = [filterStartYear, filterStartMonth, filterEndYear, filterEndMonth];
   const frontMuscleLegend = document.getElementById("frontMuscleLegend");
   const backMuscleLegend = document.getElementById("backMuscleLegend");
 
@@ -40,8 +46,12 @@
 
   const SOURCE_LABELS = {
     "Plan Follow": "计划跟练",
-    "Free Training": "自由训练"
+    "Free Training": "自由训练",
+    "Movement Follow": "动作跟练"
   };
+
+  const MONTH_FILTER_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const MONTH_FILTER_YEARS = [2024, 2025, 2026, 2027, 2028];
 
   function getModeLabel(mode) {
     return MODE_LABELS[mode] || mode;
@@ -51,15 +61,10 @@
     return SOURCE_LABELS[source] || source;
   }
 
-  function getFilterTypeLabel(type) {
-    if (type === "mode") return "模式";
-    if (type === "source") return "来源";
-    return type;
-  }
-
-  const STAT_RANGES = {
-    week: { start: "2026-06-09", end: "2026-06-16" },
-    month: { start: "2026-05-15", end: "2026-06-16" }
+  const PERIOD_ANCHORS = {
+    weekStart: "2026-06-09",
+    monthYear: 2026,
+    monthIndex: 5
   };
 
   const WEEKDAY_ZH = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
@@ -106,19 +111,58 @@
     return next;
   }
 
+  function formatYmd(date) {
+    var year = date.getFullYear();
+    var month = String(date.getMonth() + 1).padStart(2, "0");
+    var day = String(date.getDate()).padStart(2, "0");
+    return year + "-" + month + "-" + day;
+  }
+
+  function formatPeriodSlash(start, end) {
+    return formatYmd(start).replace(/-/g, "/") + "-" + formatYmd(end).replace(/-/g, "/");
+  }
+
+  function getWeekRange(offset) {
+    var start = addDays(parseYmd(PERIOD_ANCHORS.weekStart), (offset || 0) * 7);
+    var end = addDays(start, 6);
+    return { start: start, end: end };
+  }
+
+  function getMonthRange(offset) {
+    var monthIndex = PERIOD_ANCHORS.monthIndex + (offset || 0);
+    var year = PERIOD_ANCHORS.monthYear + Math.floor(monthIndex / 12);
+    var normalizedMonth = ((monthIndex % 12) + 12) % 12;
+    var start = new Date(year, normalizedMonth, 1);
+    var end = new Date(year, normalizedMonth + 1, 0);
+    return { start: start, end: end };
+  }
+
+  function getActivePeriodRange() {
+    if (state.range === "week") return getWeekRange(state.weekOffset);
+    if (state.range === "month") return getMonthRange(state.monthOffset);
+    return null;
+  }
+
+  function getPeriodOffset() {
+    if (state.range === "week") return state.weekOffset;
+    if (state.range === "month") return state.monthOffset;
+    return 0;
+  }
+
   function buildWeekAxisLabels() {
-    var start = parseYmd(STAT_RANGES.week.start);
+    var range = getWeekRange(state.weekOffset);
     var names = isZhLocale() ? WEEKDAY_ZH : WEEKDAY_EN;
     var labels = [];
     for (var i = 0; i < 7; i += 1) {
-      labels.push(names[addDays(start, i).getDay()]);
+      labels.push(names[addDays(range.start, i).getDay()]);
     }
     return labels;
   }
 
   function buildMonthWeekAxisLabels() {
-    var start = parseYmd(STAT_RANGES.month.start);
-    var end = parseYmd(STAT_RANGES.month.end);
+    var range = getMonthRange(state.monthOffset);
+    var start = range.start;
+    var end = range.end;
     var labels = [];
     var cursor = new Date(start.getTime());
     var weekCount = 4;
@@ -177,9 +221,9 @@
       },
       records: [
         { title: "力量：全身训练", time: "今天 08:30", date: "2026-06-16", duration: "45分钟", metric: "8,200 kg", mode: "Strength", source: "Plan Follow" },
-        { title: "普拉提：核心流动", time: "昨天 19:20", date: "2026-06-15", duration: "32分钟", metric: "1,120 kg", mode: "Pilates", source: "Free Training" },
+        { title: "普拉提：核心流动", time: "昨天 19:20", date: "2026-06-15", duration: "32分钟", metric: "1,120 kg", mode: "Pilates", source: "Movement Follow" },
         { title: "力量：上肢专项", time: "周五 07:40", date: "2026-06-13", duration: "56分钟", metric: "10,500 kg", mode: "Strength", source: "Plan Follow" },
-        { title: "有氧：划船 HIIT", time: "周四 18:05", date: "2026-06-12", duration: "28分钟", metric: "420 kcal", mode: "Cardio", source: "Free Training" },
+        { title: "有氧：划船 HIIT", time: "周四 18:05", date: "2026-06-12", duration: "28分钟", metric: "420 kcal", mode: "Cardio", source: "Movement Follow" },
         { title: "力量：下肢链条", time: "周二 08:00", date: "2026-06-10", duration: "42分钟", metric: "7,600 kg", mode: "Strength", source: "Plan Follow" },
         { title: "普拉提：脊柱重置", time: "周一 20:12", date: "2026-06-09", duration: "35分钟", metric: "980 kg", mode: "Pilates", source: "Plan Follow" }
       ]
@@ -222,9 +266,9 @@
         hamstrings: 7
       },
       records: [
-        { title: "有氧：耐力骑行", time: "6月2日 07:55", date: "2026-06-02", duration: "35分钟", metric: "530 kcal", mode: "Cardio", source: "Free Training" },
+        { title: "有氧：耐力骑行", time: "6月2日 07:55", date: "2026-06-02", duration: "35分钟", metric: "530 kcal", mode: "Cardio", source: "Movement Follow" },
         { title: "有氧：爬坡冲刺", time: "6月5日 18:40", date: "2026-06-05", duration: "25分钟", metric: "410 kcal", mode: "Cardio", source: "Free Training" },
-        { title: "有氧：节奏划船", time: "6月10日 07:28", date: "2026-06-10", duration: "31分钟", metric: "460 kcal", mode: "Cardio", source: "Free Training" },
+        { title: "有氧：节奏划船", time: "6月10日 07:28", date: "2026-06-10", duration: "31分钟", metric: "460 kcal", mode: "Cardio", source: "Movement Follow" },
         { title: "有氧：单车构建", time: "6月13日 19:10", date: "2026-06-13", duration: "38分钟", metric: "590 kcal", mode: "Cardio", source: "Plan Follow" },
         { title: "有氧：恢复跑", time: "6月16日 06:58", date: "2026-06-16", duration: "27分钟", metric: "350 kcal", mode: "Cardio", source: "Free Training" }
       ]
@@ -233,7 +277,7 @@
   const LEGACY_YEAR_RECORDS = [
     { title: "力量：渐进推举", time: "3月20日 08:12", date: "2026-03-20", duration: "53分钟", metric: "9,850 kg", mode: "Strength", source: "Plan Follow" },
     { title: "普拉提：平衡控制", time: "3月18日 19:03", date: "2026-03-18", duration: "33分钟", metric: "1,230 kg", mode: "Pilates", source: "Plan Follow" },
-    { title: "有氧：Zone 2 骑行", time: "3月15日 07:35", date: "2026-03-15", duration: "42分钟", metric: "620 kcal", mode: "Cardio", source: "Free Training" },
+    { title: "有氧：Zone 2 骑行", time: "3月15日 07:35", date: "2026-03-15", duration: "42分钟", metric: "620 kcal", mode: "Cardio", source: "Movement Follow" },
     { title: "力量：拉力容量", time: "3月10日 08:24", date: "2026-03-10", duration: "49分钟", metric: "8,900 kg", mode: "Strength", source: "Free Training" },
     { title: "力量：腿部爆发", time: "3月7日 07:50", date: "2026-03-07", duration: "58分钟", metric: "10,980 kg", mode: "Strength", source: "Plan Follow" },
     { title: "普拉提：灵活性重置", time: "3月2日 20:02", date: "2026-03-02", duration: "37分钟", metric: "1,420 kg", mode: "Pilates", source: "Free Training" }
@@ -263,7 +307,9 @@
 
   const state = {
     range: "week",
-    filter: null,
+    weekOffset: 0,
+    monthOffset: 0,
+    listFilters: { type: "", scene: "" },
     dateFilter: { start: "", end: "" }
   };
 
@@ -351,7 +397,6 @@
   function setRange(range) {
     if (!PERIOD_DATA[range]) return;
     state.range = range;
-    state.filter = null;
     rangeButtons.forEach(function (button) {
       var active = button.dataset.range === range;
       button.classList.toggle("is-active", active);
@@ -361,29 +406,140 @@
     renderAll();
   }
 
-  function setFilter(filter) {
-    state.filter = filter;
+  function setListFilter(group, value) {
+    if (group === "type") state.listFilters.type = value;
+    if (group === "scene") state.listFilters.scene = value;
+    document.querySelectorAll('.tr-filter-chip[data-group="' + group + '"]').forEach(function (chip) {
+      chip.classList.toggle("is-active", (chip.dataset.value || "") === value);
+    });
     renderHistory();
   }
 
+  function resetListFilterChips() {
+    document.querySelectorAll(".tr-filter-chip").forEach(function (chip) {
+      chip.classList.toggle("is-active", (chip.dataset.value || "") === "");
+    });
+  }
+
   function clearFilter() {
-    state.filter = null;
-    resetDateFilter();
+    state.listFilters = { type: "", scene: "" };
+    resetListFilterChips();
+    state.dateFilter.start = "";
+    state.dateFilter.end = "";
+    resetMonthFilterSelects();
+    renderHistory();
+  }
+
+  function formatMonthFilterLabel(ym) {
+    if (!ym) return "";
+    var parts = ym.split("-");
+    var monthIndex = Number(parts[1]) - 1;
+    if (!parts[0] || monthIndex < 0 || monthIndex > 11) return ym;
+    return MONTH_FILTER_LABELS[monthIndex] + " " + parts[0];
+  }
+
+  function getMonthFilterValue(yearSelect, monthSelect) {
+    if (!yearSelect || !monthSelect || !yearSelect.value || !monthSelect.value) return "";
+    return yearSelect.value + "-" + monthSelect.value;
+  }
+
+  function resetMonthFilterSelects() {
+    monthFilterSelects.forEach(function (select) {
+      if (select) select.value = "";
+    });
+  }
+
+  function initMonthFilterSelects() {
+    [filterStartYear, filterEndYear].forEach(function (select) {
+      if (!select || select.options.length > 1) return;
+      MONTH_FILTER_YEARS.forEach(function (year) {
+        var option = document.createElement("option");
+        option.value = String(year);
+        option.textContent = String(year);
+        select.appendChild(option);
+      });
+    });
   }
 
   function getCurrentData() {
-    return PERIOD_DATA[state.range] || PERIOD_DATA.week;
+    if (state.range === "all") return PERIOD_DATA.all;
+    var offset = getPeriodOffset();
+    if (state.range === "week" && offset === 0) return WEEK_DATA;
+    if (state.range === "month" && offset === 0) return MONTH_DATA;
+    return buildSyntheticPeriodData(state.range, offset);
+  }
+
+  function scaleObjectNumbers(obj, factor) {
+    var result = {};
+    Object.keys(obj || {}).forEach(function (key) {
+      result[key] = Math.max(0, Math.round(Number(obj[key] || 0) * factor));
+    });
+    return result;
+  }
+
+  function scaleSplitValues(split, factor) {
+    return (split || []).map(function (item) {
+      return {
+        name: item.name,
+        value: Math.max(0, Math.round(Number(item.value || 0) * factor))
+      };
+    });
+  }
+
+  function buildSyntheticPeriodData(range, offset) {
+    var base = range === "week" ? WEEK_DATA : MONTH_DATA;
+    var factor = 1 + offset * 0.12;
+    return {
+      volumeByType: base.volumeByType,
+      qualityScore: base.qualityScore,
+      sourceSplit: scaleSplitValues(base.sourceSplit, factor),
+      modeSplit: scaleSplitValues(base.modeSplit, factor),
+      bodyLoad: scaleObjectNumbers(base.bodyLoad, factor),
+      bodySessions: scaleObjectNumbers(base.bodySessions, factor),
+      records: []
+    };
   }
 
   function getStatPeriodLabel(range) {
-    var isZh = (document.documentElement.lang || "").toLowerCase().indexOf("zh") === 0;
+    var isZh = isZhLocale();
     var prefix = isZh ? "数据统计周期为：" : "Data period: ";
-    var periods = {
-      week: "2026/06/09-2026/06/16",
-      month: "2026/05/15-2026/06/16"
-    };
-    if (!periods[range]) return "";
-    return prefix + periods[range];
+    var periodRange = range === "week" ? getWeekRange(state.weekOffset) : getMonthRange(state.monthOffset);
+    return prefix + formatPeriodSlash(periodRange.start, periodRange.end);
+  }
+
+  function updatePeriodNavControls() {
+    if (!periodNavEl) return;
+    var showNav = state.range === "week" || state.range === "month";
+    periodNavEl.hidden = !showNav;
+    if (!showNav) return;
+    var offset = getPeriodOffset();
+    var isWeek = state.range === "week";
+    var isZh = isZhLocale();
+    if (periodPrevBtn) {
+      periodPrevBtn.setAttribute("aria-label", isZh
+        ? (isWeek ? "上一周" : "上一月")
+        : (isWeek ? "Previous week" : "Previous month"));
+    }
+    if (periodNextBtn) {
+      periodNextBtn.disabled = offset >= 0;
+      periodNextBtn.setAttribute("aria-label", isZh
+        ? (isWeek ? "下一周" : "下一月")
+        : (isWeek ? "Next week" : "Next month"));
+    }
+  }
+
+  function shiftPeriod(delta) {
+    if (state.range === "week") {
+      state.weekOffset += delta;
+      if (state.weekOffset > 0) state.weekOffset = 0;
+    } else if (state.range === "month") {
+      state.monthOffset += delta;
+      if (state.monthOffset > 0) state.monthOffset = 0;
+    } else {
+      return;
+    }
+    updatePeriodNavControls();
+    renderAll();
   }
 
   function updateStatPeriodDisplay() {
@@ -391,10 +547,12 @@
     if (state.range === "week" || state.range === "month") {
       statPeriodEl.textContent = getStatPeriodLabel(state.range);
       statPeriodEl.hidden = false;
+      updatePeriodNavControls();
       return;
     }
     statPeriodEl.textContent = "";
     statPeriodEl.hidden = true;
+    updatePeriodNavControls();
   }
 
   function applyViewMode() {
@@ -408,7 +566,14 @@
     }
   }
 
-  function buildDemoVolumeSeries(range, count) {
+  function applySeriesOffset(values, offset) {
+    var factor = 1 + (offset || 0) * 0.1;
+    return (values || []).map(function (value) {
+      return Math.max(0, Math.round(Number(value || 0) * factor));
+    });
+  }
+
+  function buildDemoVolumeSeries(range, count, offset) {
     var presets = {
       week: {
         Strength: [4100, 5600, 5200, 6700, 7200, 6400, 6900],
@@ -423,54 +588,33 @@
     };
     var base = presets[range] || presets.week;
     return {
-      Strength: base.Strength.slice(0, count),
-      Pilates: base.Pilates.slice(0, count),
-      Cardio: base.Cardio.slice(0, count)
+      Strength: applySeriesOffset(base.Strength.slice(0, count), offset),
+      Pilates: applySeriesOffset(base.Pilates.slice(0, count), offset),
+      Cardio: applySeriesOffset(base.Cardio.slice(0, count), offset)
     };
   }
 
-  function buildDemoQualitySeries(range, count) {
+  function buildDemoQualitySeries(range, count, offset) {
     var presets = {
       week: [84, 86, 88, 89, 91, 92, 93],
       month: [83, 85, 87, 89]
     };
     var base = presets[range] || presets.week;
-    return base.slice(0, count);
+    return applySeriesOffset(base.slice(0, count), offset).map(function (value, index) {
+      return Math.min(100, Math.max(60, value + index));
+    });
   }
 
-  function sumSeries(arr) {
-    if (!Array.isArray(arr)) return 0;
-    return arr.reduce(function (sum, v) { return sum + Number(v || 0); }, 0);
-  }
-
-  /** When "real" period data has no strength/pilates load, show hint on top of demo chart. */
-  function shouldShowVolumeEmptyOverlay(data) {
-    var s = data.volumeByType && data.volumeByType.Strength;
-    var p = data.volumeByType && data.volumeByType.Pilates;
-    return sumSeries(s) + sumSeries(p) === 0;
-  }
-
-  /** When period has no AI quality samples, show hint on top of demo chart. */
-  function shouldShowQualityEmptyOverlay(data) {
-    return !Array.isArray(data.qualityScore) || data.qualityScore.length === 0;
-  }
-
-  /** Week-only overlays; Month/All always hide regardless of underlying stats. */
-  function updateEmptyOverlays(data) {
-    if (volumeEmptyOverlay) {
-      var showVolume = state.range === "week" && shouldShowVolumeEmptyOverlay(data);
-      volumeEmptyOverlay.hidden = !showVolume;
-    }
-    if (qualityEmptyOverlay) {
-      var showQuality = state.range === "week" && shouldShowQualityEmptyOverlay(data);
-      qualityEmptyOverlay.hidden = !showQuality;
-    }
+  /** Week and month always show charts without empty overlays. */
+  function updateEmptyOverlays() {
+    if (volumeEmptyOverlay) volumeEmptyOverlay.hidden = true;
+    if (qualityEmptyOverlay) qualityEmptyOverlay.hidden = true;
   }
 
   function renderVolumeChart(data) {
     if (!charts.volume) return;
     var axisLabels = getChartAxisLabels(state.range);
-    var demoVolume = buildDemoVolumeSeries(state.range, axisLabels.length);
+    var demoVolume = buildDemoVolumeSeries(state.range, axisLabels.length, getPeriodOffset());
     var strengthSeries = demoVolume.Strength;
     var pilatesSeries = demoVolume.Pilates;
     var cardioSeries = demoVolume.Cardio;
@@ -526,7 +670,7 @@
   function renderQualityChart(data) {
     if (!charts.quality) return;
     var axisLabels = getChartAxisLabels(state.range);
-    var qualitySeries = buildDemoQualitySeries(state.range, axisLabels.length);
+    var qualitySeries = buildDemoQualitySeries(state.range, axisLabels.length, getPeriodOffset());
     var isMonthRange = state.range === "month";
     charts.quality.setOption({
       animationDuration: 350,
@@ -613,7 +757,9 @@
   }
 
   function toSourceClass(source) {
-    return source === "Plan Follow" ? "source-plan" : "source-free";
+    if (source === "Plan Follow") return "source-plan";
+    if (source === "Movement Follow") return "source-move";
+    return "source-free";
   }
 
   function toModeClass(mode) {
@@ -622,40 +768,67 @@
     return "mode-cardio";
   }
 
+  function getMonthRangeStart(ym) {
+    return ym ? ym + "-01" : "";
+  }
+
+  function getMonthRangeEnd(ym) {
+    if (!ym) return "";
+    var parts = ym.split("-");
+    var year = Number(parts[0]);
+    var month = Number(parts[1]);
+    if (!year || !month) return "";
+    var lastDay = new Date(year, month, 0).getDate();
+    return ym + "-" + String(lastDay).padStart(2, "0");
+  }
+
+  function recordMatchesMonthFilter(itemDate) {
+    if (!itemDate) return true;
+    if (state.dateFilter.start && itemDate < getMonthRangeStart(state.dateFilter.start)) return false;
+    if (state.dateFilter.end && itemDate > getMonthRangeEnd(state.dateFilter.end)) return false;
+    return true;
+  }
+
   function filterRecords(records) {
     var filtered = records || [];
-    if (state.filter) {
+    if (state.listFilters.type) {
       filtered = filtered.filter(function (item) {
-        if (state.filter.type === "mode") return item.mode === state.filter.value;
-        if (state.filter.type === "source") return item.source === state.filter.value;
-        return true;
+        return item.source === state.listFilters.type;
+      });
+    }
+    if (state.listFilters.scene) {
+      filtered = filtered.filter(function (item) {
+        return item.mode === state.listFilters.scene;
       });
     }
     if (state.dateFilter.start || state.dateFilter.end) {
       filtered = filtered.filter(function (item) {
-        if (!item.date) return true;
-        if (state.dateFilter.start && item.date < state.dateFilter.start) return false;
-        if (state.dateFilter.end && item.date > state.dateFilter.end) return false;
-        return true;
+        return recordMatchesMonthFilter(item.date);
       });
     }
     return filtered;
   }
 
   function hasActiveFilters() {
-    return Boolean(state.filter) || Boolean(state.dateFilter.start) || Boolean(state.dateFilter.end);
+    return Boolean(state.listFilters.type)
+      || Boolean(state.listFilters.scene)
+      || Boolean(state.dateFilter.start)
+      || Boolean(state.dateFilter.end);
   }
 
   function updateFilterIndicator() {
     if (!activeFilterHint || !clearFilterBtn) return;
     var parts = [];
-    if (state.filter) {
-      parts.push("已按" + getFilterTypeLabel(state.filter.type) + "筛选：" + (state.filter.type === "mode" ? getModeLabel(state.filter.value) : getSourceLabel(state.filter.value)));
+    if (state.listFilters.type) {
+      parts.push("训练类型：" + getSourceLabel(state.listFilters.type));
+    }
+    if (state.listFilters.scene) {
+      parts.push("场景：" + getModeLabel(state.listFilters.scene));
     }
     if (state.dateFilter.start || state.dateFilter.end) {
-      var startText = state.dateFilter.start || "不限";
-      var endText = state.dateFilter.end || "不限";
-      parts.push("日期：" + startText + " 至 " + endText);
+      var startText = state.dateFilter.start ? formatMonthFilterLabel(state.dateFilter.start) : "Any";
+      var endText = state.dateFilter.end ? formatMonthFilterLabel(state.dateFilter.end) : "Any";
+      parts.push("Month: " + startText + " to " + endText);
     }
     clearFilterBtn.hidden = !hasActiveFilters();
     activeFilterHint.hidden = parts.length === 0;
@@ -663,16 +836,15 @@
   }
 
   function syncDateFilterFromInputs() {
-    if (filterDateStart) state.dateFilter.start = filterDateStart.value || "";
-    if (filterDateEnd) state.dateFilter.end = filterDateEnd.value || "";
+    state.dateFilter.start = getMonthFilterValue(filterStartYear, filterStartMonth);
+    state.dateFilter.end = getMonthFilterValue(filterEndYear, filterEndMonth);
     renderHistory();
   }
 
   function resetDateFilter() {
     state.dateFilter.start = "";
     state.dateFilter.end = "";
-    if (filterDateStart) filterDateStart.value = "";
-    if (filterDateEnd) filterDateEnd.value = "";
+    resetMonthFilterSelects();
     renderHistory();
   }
 
@@ -731,7 +903,7 @@
       renderHistory();
       return;
     }
-    updateEmptyOverlays(data);
+    updateEmptyOverlays();
     renderVolumeChart(data);
     renderQualityChart(data);
     renderStructureCharts(data);
@@ -746,6 +918,17 @@
   }
 
   function wireEvents() {
+    if (periodPrevBtn) {
+      periodPrevBtn.addEventListener("click", function () {
+        shiftPeriod(-1);
+      });
+    }
+    if (periodNextBtn) {
+      periodNextBtn.addEventListener("click", function () {
+        shiftPeriod(1);
+      });
+    }
+
     rangeButtons.forEach(function (button) {
       button.addEventListener("click", function () {
         setRange(button.dataset.range);
@@ -760,15 +943,19 @@
     if (clearFilterBtn) {
       clearFilterBtn.addEventListener("click", clearFilter);
     }
-    if (filterDateStart) {
-      filterDateStart.addEventListener("change", syncDateFilterFromInputs);
-    }
-    if (filterDateEnd) {
-      filterDateEnd.addEventListener("change", syncDateFilterFromInputs);
-    }
+    monthFilterSelects.forEach(function (select) {
+      if (!select) return;
+      select.addEventListener("change", syncDateFilterFromInputs);
+    });
     if (filterDateReset) {
       filterDateReset.addEventListener("click", resetDateFilter);
     }
+
+    document.querySelectorAll(".tr-filter-chip").forEach(function (chip) {
+      chip.addEventListener("click", function () {
+        setListFilter(chip.dataset.group, chip.dataset.value || "");
+      });
+    });
 
     var homeTabBtn = document.getElementById("homeTabBtn");
     var allTrainingNavBtn = document.getElementById("allTrainingNavBtn");
@@ -803,6 +990,7 @@
     });
   }
 
+  initMonthFilterSelects();
   initCharts();
   applyViewMode();
   wireEvents();
