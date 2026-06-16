@@ -10,7 +10,6 @@
   const panelDragZone = document.getElementById("controlCenterDrag");
   const scrim = document.getElementById("controlCenterScrim");
   const wifiTile = document.getElementById("wifiToggleTile");
-  const btTile = document.getElementById("btToggleTile");
   const ambientCard = document.getElementById("ccAmbientCard");
   const ambientPowerToggle = document.getElementById("ambientPowerToggleCc");
   const ambientStatusText = document.getElementById("ambientStatusTextCc");
@@ -52,10 +51,10 @@
   function createAmbientDefaultState() {
     return {
       power: false,
+      color: "#FFFFFF",
       brightness: 60,
       mode: "steady",
       breathSpeed: "medium",
-      autoBrightness: false,
       musicSync: false,
       trainingSync: false
     };
@@ -72,7 +71,6 @@
     merged.brightness = clamp(Number(merged.brightness) || defaults.brightness, 0, 100);
     merged.mode = merged.mode === "breathing" ? "breathing" : "steady";
     merged.breathSpeed = ["slow", "medium", "fast"].includes(merged.breathSpeed) ? merged.breathSpeed : "medium";
-    merged.autoBrightness = Boolean(merged.autoBrightness);
     merged.musicSync = Boolean(merged.musicSync);
     merged.trainingSync = Boolean(merged.trainingSync);
     return merged;
@@ -288,7 +286,6 @@
   }
 
   wireTileToggle(wifiTile);
-  wireTileToggle(btTile);
 
   (function wireThemeSwitch() {
     const themeSegment = document.getElementById("ccThemeSegment");
@@ -297,8 +294,11 @@
     const currentTheme = isLight ? "light" : "dark";
     const fileName = window.location.pathname.split("/").pop() || "index-plan-b-home.html";
     themeSegment.querySelectorAll("[data-theme]").forEach((button) => {
+      const target = button.dataset.theme === "light" ? "light" : "dark";
+      const isActive = target === currentTheme;
+      button.classList.toggle("is-active", isActive);
+      button.setAttribute("aria-pressed", String(isActive));
       button.addEventListener("click", () => {
-        const target = button.dataset.theme === "light" ? "light" : "dark";
         if (target === currentTheme) return;
         window.location.href = target === "light"
           ? "light-project/" + fileName

@@ -979,16 +979,18 @@ body.cream-medium .cc-panel {
 }
 
 body.cream-medium .cc-tile,
+body.cream-medium .cc-quick-btn,
 body.cream-medium .cc-slider,
 body.cream-medium .cc-ambient,
-body.cream-medium .cc-music,
-body.cream-medium .cc-theme {
+body.cream-medium .cc-music {
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(255, 250, 238, 0.76)) !important;
   border-color: rgba(148, 163, 184, 0.28) !important;
   color: #0f172a !important;
 }
 
-body.cream-medium .cc-tile.active {
+body.cream-medium .cc-tile.active,
+body.cream-medium .cc-quick-btn.active,
+body.cream-medium .cc-quick-btn.is-active {
   background: linear-gradient(165deg, rgba(20, 184, 166, 0.28), rgba(224, 242, 254, 0.86)) !important;
   border-color: rgba(8, 145, 178, 0.48) !important;
   color: #0f172a !important;
@@ -999,8 +1001,7 @@ body.cream-medium .cc-slider-label,
 body.cream-medium .cc-ambient-state,
 body.cream-medium .cc-ambient-label,
 body.cream-medium .cc-progress-time,
-body.cream-medium .cc-music-copy span,
-body.cream-medium .cc-theme-state {
+body.cream-medium .cc-music-copy span {
   color: #64748b !important;
 }
 

@@ -118,6 +118,7 @@
 }
 
 .cc-slider {
+  grid-column: span 2;
   border-radius: 16px;
   border: 1px solid var(--line-soft);
   background: var(--panel);
@@ -176,35 +177,69 @@
   text-transform: uppercase;
 }
 
-.cc-theme {
+
+.cc-quick-row {
   grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  align-items: stretch;
+}
+
+.cc-quick-btn {
+  min-height: 72px;
   border-radius: 16px;
   border: 1px solid var(--line-soft);
-  background: linear-gradient(145deg, var(--panel), var(--panel-strong));
-  padding: 12px;
-  display: flex;
+  background: var(--panel);
+  color: var(--text);
+  padding: 10px 8px;
+  display: inline-flex;
   flex-direction: column;
-  gap: 10px;
-}
-
-.cc-theme-head {
-  display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: border-color 180ms ease, background 180ms ease, color 180ms ease, box-shadow 180ms ease;
 }
 
-.cc-theme-title {
-  display: flex;
+.cc-quick-btn:hover {
+  border-color: rgba(148, 163, 184, 0.32);
+}
+
+.cc-quick-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.cc-quick-btn-icon-wrap {
+  position: relative;
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
 }
 
-.cc-theme-state {
-  display: block;
-  margin-top: 2px;
+.cc-quick-btn-icon-wrap .cc-toggle-dot {
+  position: absolute;
+  top: -2px;
+  right: -6px;
+}
+
+.cc-quick-btn-label {
   font-size: 11px;
-  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.cc-quick-btn.active,
+.cc-quick-btn.is-active {
+  background: linear-gradient(165deg, rgba(14, 165, 233, 0.35), rgba(14, 165, 233, 0.18));
+  border-color: rgba(56, 189, 248, 0.52);
+  color: #f8fafc;
+  box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.18);
+}
+
+.cc-quick-btn.active .cc-toggle-dot {
+  background: #22d3ee;
 }
 
 .cc-ambient {
@@ -598,6 +633,7 @@ body.cc-open .cc-bottom-handle {
   .cc-switch-knob,
   .cc-switch,
   .cc-segment-btn,
+  .cc-quick-btn,
   .cc-progress-fill,
   .cc-playlist,
   .cc-playlist-item {

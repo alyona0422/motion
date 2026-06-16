@@ -8,7 +8,6 @@ const STORAGE_PLAN_PROGRESS = "planBPlanProgressV1";
 const STORAGE_PLAN_TRAINING_DAYS = "planBPlanTrainingDaysV1";
 const STORAGE_PLAN_DAY_RESCHEDULE = "planBPlanDayRescheduleV1";
 const STORAGE_PLAN_TRAINING_SESSION = "planBPlanTrainingSessionV1";
-const STORAGE_PERSON_FOLLOW = "planBPersonFollowingV1";
 
 const grid = document.getElementById("exploreGrid");
 const title = document.getElementById("exploreTitle");
@@ -74,11 +73,9 @@ const iwAiReadyOverlay = document.getElementById("iwAiReadyOverlay");
 const iwAiReadyPanel = document.getElementById("iwAiReadyPanel");
 const iwRecogStatus = document.getElementById("iwRecogStatus");
 const iwRecogAlert = document.getElementById("iwRecogAlert");
-const iwPersonFollowSwitch = document.getElementById("iwPersonFollowSwitch");
-const iwAiReadyBtn = document.getElementById("iwAiReadyBtn");
-const iwExitWorkoutBtn = document.getElementById("iwExitWorkoutBtn");
-const iwTrainerSelect = document.getElementById("iwTrainerSelect");
-const iwTrainerOptions = Array.from(document.querySelectorAll("#iwTrainerSelect .iw-trainer-option"));
+const iwRecogHint = document.getElementById("iwRecogHint");
+const iwRecogZoneFrame = document.getElementById("iwRecogZoneFrame");
+const iwRecogCompleteBadge = document.getElementById("iwRecogCompleteBadge");
 const iwAiScoreValue = document.getElementById("iwAiScoreValue");
 const iwAiScoreRing = document.getElementById("iwAiScoreRing");
 const iwAiTierValue = document.getElementById("iwAiTierValue");
@@ -278,6 +275,15 @@ function updateSpringBarVisual(coilEl, valueEl, kg, min, max) {
   }
 }
 
+function updatePilatesSpringBarVisual(coilEl, markerEl, kg, min, max) {
+  const span = max - min;
+  const ratio = span > 0 ? Math.max(0, Math.min(1, (kg - min) / span)) : 0;
+  if (markerEl) markerEl.style.left = `${ratio * 100}%`;
+  if (coilEl) {
+    coilEl.style.background = "linear-gradient(90deg, #4ade80 0%, #a3e635 22%, #facc15 50%, #fb923c 78%, #ef4444 100%)";
+  }
+}
+
 function formatResistanceDisplay(kg, bounds) {
   if (bounds.step >= 1) return String(Math.round(kg));
   return kg.toFixed(1);
@@ -382,10 +388,14 @@ let reportPowerCurveSelectedKey = "session";
 let pilatesEndTrainingFn = null;
 let selectedTrainer = "";
 let iwRecognitionTimerId = 0;
+let iwRecogCycleIndex = 0;
 const IW_AI_GUIDANCE_DWELL_MS = 2200;
 const IW_AI_SCAN_MS = 800;
-const IW_AI_SUCCESS_DWELL_MS = 900;
-const IW_RECOG_DEMO_ANOMALY = "";
+const IW_AI_SUCCESS_DWELL_MS = 1200;
+const IW_RECOG_FAILURE_DWELL_MS = 2500;
+const IW_RECOG_HINT_MESSAGE = "请面向屏幕站立确保相机能够有效识别。";
+const IW_RECOG_FAILURE_MESSAGE = "请确保相机镜头未被遮挡或环境光不存在过暗或过曝情况。";
+const IW_RECOG_CYCLE = ["scanning", "failure", "success"];
 const adInstallPreviewAsset = {
   image: "assets/show.jpg",
   video: ""
@@ -1954,7 +1964,6 @@ function openImmersiveWorkout() {
     iwRecognitionTimerId = 0;
   }
   selectedTrainer = "";
-  syncPersonFollowSwitchUI();
   scheduleAutoRecognition();
 }
 
@@ -1976,13 +1985,6 @@ function closeImmersiveWorkout() {
     iwAiReadyOverlay.setAttribute("aria-hidden", "true");
   }
   clearIwRecognitionFlow();
-  setIwReadyStep("env");
-}
-
-function setIwReadyStep(step) {
-  if (!iwAiReadyPanel) return;
-  const nextStep = step === "select" ? "select" : "env";
-  iwAiReadyPanel.dataset.currentStep = nextStep;
 }
 
 function clearIwRecognitionFlow() {
@@ -1991,106 +1993,73 @@ function clearIwRecognitionFlow() {
     iwRecognitionTimerId = 0;
   }
   if (iwAiReadyPanel) iwAiReadyPanel.classList.remove("is-scanning");
+  iwRecogCycleIndex = 0;
 }
 
-function getPersonFollowingEnabled() {
-  try {
-    const raw = localStorage.getItem(STORAGE_PERSON_FOLLOW);
-    if (raw === null) return true;
-    return raw === "true";
-  } catch (e) {
-    return true;
+function setRecogState(state) {
+  if (!iwAiReadyPanel) return;
+  iwAiReadyPanel.dataset.recogState = state;
+  if (iwRecogHint) {
+    iwRecogHint.hidden = state !== "scanning";
+    iwRecogHint.textContent = IW_RECOG_HINT_MESSAGE;
   }
-}
-
-function setPersonFollowingEnabled(enabled) {
-  try {
-    localStorage.setItem(STORAGE_PERSON_FOLLOW, enabled ? "true" : "false");
-  } catch (e) {
-    /* ignore */
+  if (iwRecogAlert) {
+    iwRecogAlert.hidden = state !== "failure";
+    if (state === "failure") iwRecogAlert.textContent = IW_RECOG_FAILURE_MESSAGE;
   }
-  syncPersonFollowSwitchUI();
-}
-
-function syncPersonFollowSwitchUI() {
-  if (!iwPersonFollowSwitch) return;
-  const on = getPersonFollowingEnabled();
-  iwPersonFollowSwitch.classList.toggle("is-on", on);
-  iwPersonFollowSwitch.setAttribute("aria-checked", String(on));
-}
-
-function applyRecogAnomalyState() {
-  if (!iwRecogAlert) return;
-  if (IW_RECOG_DEMO_ANOMALY === "light") {
-    iwRecogAlert.textContent = "环境光线过暗";
-    iwRecogAlert.hidden = false;
+  if (iwRecogZoneFrame) {
+    iwRecogZoneFrame.classList.toggle("is-complete", state === "success");
+    iwRecogZoneFrame.classList.toggle("is-error", state === "failure");
+  }
+  if (iwRecogCompleteBadge) {
+    iwRecogCompleteBadge.hidden = state !== "success";
+  }
+  if (!iwRecogStatus) return;
+  if (state === "scanning") {
+    iwRecogStatus.textContent = "识别中…";
+    iwRecogStatus.classList.remove("is-success", "is-failure");
     return;
   }
-  if (IW_RECOG_DEMO_ANOMALY === "blocked") {
-    iwRecogAlert.textContent = "相机视线被遮挡";
-    iwRecogAlert.hidden = false;
+  if (state === "success") {
+    iwRecogStatus.textContent = "识别成功";
+    iwRecogStatus.classList.add("is-success");
+    iwRecogStatus.classList.remove("is-failure");
     return;
   }
-  iwRecogAlert.hidden = true;
+  iwRecogStatus.textContent = "识别失败";
+  iwRecogStatus.classList.add("is-failure");
+  iwRecogStatus.classList.remove("is-success");
 }
 
 function scheduleAutoRecognition() {
   clearIwRecognitionFlow();
-  setIwReadyStep("env");
-  applyRecogAnomalyState();
-  if (iwRecogStatus) {
-    iwRecogStatus.textContent = "识别中…";
-    iwRecogStatus.classList.remove("is-success");
-  }
-  iwRecognitionTimerId = window.setTimeout(beginRecognitionScan, IW_AI_GUIDANCE_DWELL_MS);
+  runRecogCycle();
 }
 
-function beginRecognitionScan() {
+function runRecogCycle() {
   if (!iwAiReadyPanel) return;
-  iwRecognitionTimerId = 0;
-  iwAiReadyPanel.classList.add("is-scanning");
-  if (iwRecogStatus) iwRecogStatus.textContent = "识别中…";
-  iwRecognitionTimerId = window.setTimeout(finishAutoRecognition, IW_AI_SCAN_MS);
-}
-
-function finishAutoRecognition() {
-  iwRecognitionTimerId = 0;
-  if (iwAiReadyPanel) iwAiReadyPanel.classList.remove("is-scanning");
-  if (iwRecogStatus) {
-    iwRecogStatus.textContent = "识别成功";
-    iwRecogStatus.classList.add("is-success");
-  }
-  iwRecognitionTimerId = window.setTimeout(proceedAfterRecognitionSuccess, IW_AI_SUCCESS_DWELL_MS);
-}
-
-function proceedAfterRecognitionSuccess() {
-  iwRecognitionTimerId = 0;
-  if (getPersonFollowingEnabled()) {
-    setIwReadyStep("select");
-    if (iwTrainerOptions.length) {
-      const defaultOption = iwTrainerOptions.find((option) => option.classList.contains("is-selected")) || iwTrainerOptions[0];
-      setSelectedTrainer(defaultOption);
+  const state = IW_RECOG_CYCLE[iwRecogCycleIndex % IW_RECOG_CYCLE.length];
+  setRecogState(state);
+  iwAiReadyPanel.classList.toggle("is-scanning", state === "scanning");
+  const dwellMs =
+    state === "scanning"
+      ? IW_AI_GUIDANCE_DWELL_MS + IW_AI_SCAN_MS
+      : state === "success"
+        ? IW_AI_SUCCESS_DWELL_MS
+        : IW_RECOG_FAILURE_DWELL_MS;
+  iwRecognitionTimerId = window.setTimeout(() => {
+    if (state === "success") {
+      startIwTrainingAfterReady();
+      return;
     }
-    return;
-  }
-  startIwTrainingAfterReady();
-}
-
-function exitAiWorkoutFromSelect() {
-  closeImmersiveWorkout();
-  if (window.history.length > 1) {
-    window.history.back();
-    return;
-  }
-  window.location.href = "plan-b-move-detail.html";
+    iwRecogCycleIndex += 1;
+    runRecogCycle();
+  }, dwellMs);
 }
 
 function startIwTrainingAfterReady() {
   if (!iwVideo || !iwPlayBtn) return;
-  if (!selectedTrainer && iwTrainerOptions.length) {
-    const defaultOption = iwTrainerOptions.find((option) => option.classList.contains("is-selected")) || iwTrainerOptions[0];
-    selectedTrainer = defaultOption ? String(defaultOption.dataset.trainer || "") : "";
-  }
+  iwRecognitionTimerId = 0;
   if (iwAiReadyOverlay) {
     iwAiReadyOverlay.classList.remove("is-visible");
     iwAiReadyOverlay.setAttribute("aria-hidden", "true");
@@ -2105,27 +2074,6 @@ function startIwTrainingAfterReady() {
   iwVideo.play().catch(() => {});
   iwPlayBtn.textContent = "Pause";
   iwState.playing = true;
-}
-
-function setSelectedTrainer(option) {
-  if (!option || !iwTrainerOptions.length) return;
-  iwTrainerOptions.forEach((item) => {
-    const isCurrent = item === option;
-    item.classList.toggle("is-selected", isCurrent);
-    item.setAttribute("aria-checked", String(isCurrent));
-  });
-  selectedTrainer = String(option.dataset.trainer || "");
-}
-
-function initIwTrainerSelection() {
-  if (!iwTrainerSelect || !iwTrainerOptions.length) return;
-  const defaultOption = iwTrainerOptions.find((option) => option.classList.contains("is-selected")) || iwTrainerOptions[0];
-  setSelectedTrainer(defaultOption);
-  iwTrainerOptions.forEach((option) => {
-    option.addEventListener("click", () => {
-      setSelectedTrainer(option);
-    });
-  });
 }
 
 function createCard(item, index) {
@@ -2235,19 +2183,6 @@ if (adActionHero && adVideoFallback) {
 }
 
 if (iwEndBtn) iwEndBtn.addEventListener("click", openReportFromIwTraining);
-initIwTrainerSelection();
-if (iwAiReadyBtn) {
-  iwAiReadyBtn.addEventListener("click", startIwTrainingAfterReady);
-}
-if (iwExitWorkoutBtn) {
-  iwExitWorkoutBtn.addEventListener("click", exitAiWorkoutFromSelect);
-}
-if (iwPersonFollowSwitch) {
-  iwPersonFollowSwitch.addEventListener("click", () => {
-    setPersonFollowingEnabled(!getPersonFollowingEnabled());
-  });
-  syncPersonFollowSwitchUI();
-}
 if (iwAiRingCard) {
   iwAiRingCard.style.cursor = "pointer";
   iwAiRingCard.addEventListener("click", advanceIwAiCycleOnClick);
@@ -2450,7 +2385,6 @@ if (resistanceCardioBtn) {
 }
 
 const pilatesView = document.getElementById("pilatesView");
-const pilatesBackBtn = document.getElementById("pilatesBackBtn");
 const contentSection = document.querySelector(".content");
 const bottomNav = document.querySelector(".bottom-nav");
 
@@ -2483,16 +2417,6 @@ if (pilatesTrainingBtn) {
     showPilatesView();
   });
 }
-if (pilatesBackBtn) {
-  pilatesBackBtn.addEventListener("click", () => {
-    if (PLAN_B_PAGE === "pilates") {
-      window.location.href = "index-plan-b-home.html";
-      return;
-    }
-    if (typeof pilatesEndTrainingFn === "function") pilatesEndTrainingFn();
-    hidePilatesView();
-  });
-}
 
 let pilatesDashboardWired = false;
 
@@ -2502,29 +2426,24 @@ function initPilatesDashboard() {
   if (pilatesDashboardWired) return;
   pilatesDashboardWired = true;
 
-  const dashboard = root.querySelector("#pilatesDashboard");
   const durationValue = document.getElementById("pilatesDurationValue");
   const resistanceValue = document.getElementById("pilatesResistanceValue");
-  const currentResistance = document.getElementById("pilatesCurrentResistance");
   const energyValue = document.getElementById("pilatesEnergyValue");
   const calorieValue = document.getElementById("pilatesCalorieValue");
   const startBtn = document.getElementById("pilatesStartBtn");
   const endBtn = document.getElementById("pilatesEndBtn");
   const flipBtn = document.getElementById("pilatesFlipBtn");
+  const screenWrap = document.getElementById("pilatesScreenWrap");
   const resistanceMinus = document.getElementById("pilatesResistanceMinus");
   const resistancePlus = document.getElementById("pilatesResistancePlus");
   const resistanceDisplayVal = document.getElementById("pilatesResistanceDisplayVal");
   const dialProgress = document.getElementById("pilatesDialProgress");
   const springCoil = document.getElementById("pilatesSpringCoil");
-  const springBarValue = document.getElementById("pilatesSpringBarValue");
-  const modeBtns = Array.from(root.querySelectorAll(".mode-btn"));
-  const springSliderBlock = document.getElementById("pilatesSpringSliderBlock");
-  const springSlider = document.getElementById("pilatesSpringSlider");
-  const springSliderLabel = document.getElementById("pilatesSpringSliderLabel");
-  const isokineticSliderBlock = document.getElementById("pilatesIsokineticSliderBlock");
-  const isokineticSlider = document.getElementById("pilatesIsokineticSlider");
-  const isokineticSliderLabel = document.getElementById("pilatesIsokineticSliderLabel");
-  const isokineticSliderHint = document.getElementById("pilatesIsokineticSliderHint");
+  const springMarker = document.getElementById("pilatesSpringMarker");
+  const stepNote = document.getElementById("pilatesStepNote");
+  const chartAvgValue = document.getElementById("pilatesChartAvgValue");
+  const modeBtns = Array.from(root.querySelectorAll("#pilatesModeGroup .seg-btn"));
+  const chartTabs = Array.from(root.querySelectorAll("#pilatesChartTabs .chart-tab"));
   const canvas = document.getElementById("romPowerCanvas");
   if (!canvas) return;
   const ctx = canvas.getContext("2d");
@@ -2536,20 +2455,17 @@ function initPilatesDashboard() {
     step: PILATES_RESISTANCE.step,
     default: PILATES_RESISTANCE.default
   };
+  const DASHARRAY = 213.63;
 
-  let trainingMode = "standard";
+  let trainingMode = "spring";
   let resistanceKg = bounds.default;
-  let springLevel = 1;
-  let isokineticLevel = 1;
+  let chartTab = "rom";
   let elapsedSeconds = 0;
   let calories = 0;
   let isRunning = false;
   let timerId = null;
   let frameId = null;
-  let phase = 0;
-  let targetPowerPercent = 26;
-  let currentPowerPercent = 26;
-  let baseNoiseSeed = Math.random() * 1000;
+  let chartTick = 0;
   let dpr = 1;
   let resistanceTimeline = [];
 
@@ -2560,34 +2476,32 @@ function initPilatesDashboard() {
   }
 
   function renderResistance() {
-    if (resistanceValue) resistanceValue.textContent = String(resistanceKg);
-    if (currentResistance) currentResistance.textContent = `${resistanceKg}kg`;
     if (resistanceDisplayVal) resistanceDisplayVal.textContent = String(resistanceKg);
     if (dialProgress) {
       const span = bounds.max - bounds.min;
       const percent = span > 0 ? (resistanceKg - bounds.min) / span : 0;
-      const dasharray = 213.63;
-      dialProgress.style.strokeDashoffset = dasharray - (dasharray * Math.max(0, Math.min(1, percent)));
+      dialProgress.style.strokeDashoffset = DASHARRAY - (DASHARRAY * Math.max(0, Math.min(1, percent)));
     }
-    updateSpringBarVisual(springCoil, springBarValue, resistanceKg, bounds.min, bounds.max);
+    if (resistanceValue) resistanceValue.textContent = String(resistanceKg);
+    updatePilatesSpringBarVisual(springCoil, springMarker, resistanceKg, bounds.min, bounds.max);
     return resistanceKg;
   }
 
   function setTrainingMode(mode) {
     trainingMode = mode;
     modeBtns.forEach((btn) => btn.classList.toggle("active", btn.dataset.mode === mode));
-    if (springSliderBlock) springSliderBlock.classList.toggle("visible", mode === "spring");
-    if (isokineticSliderBlock) isokineticSliderBlock.classList.toggle("visible", mode === "isokinetic");
   }
 
-  function getPilatesIsokineticHint(level) {
-    if (level >= 1 && level <= 5) return "Slow/Stability — strong speed limit, suited for strength at lockout.";
-    if (level >= 6 && level <= 15) return "Standard/Hypertrophy — simulates typical gym tempo.";
-    return "Power/Sport — allows very fast start; minimal speed limit.";
+  function setChartTab(tab) {
+    chartTab = tab;
+    chartTabs.forEach((btn) => btn.classList.toggle("active", btn.dataset.tab === tab));
   }
 
   modeBtns.forEach((btn) => {
     btn.addEventListener("click", () => setTrainingMode(btn.dataset.mode || "standard"));
+  });
+  chartTabs.forEach((btn) => {
+    btn.addEventListener("click", () => setChartTab(btn.dataset.tab || "rom"));
   });
 
   if (resistanceMinus) {
@@ -2607,63 +2521,31 @@ function initPilatesDashboard() {
     });
   }
 
-  if (springSlider) {
-    springSlider.addEventListener("input", () => {
-      springLevel = parseInt(springSlider.value, 10);
-      if (springSliderLabel) springSliderLabel.textContent = `Level ${springLevel}`;
-    });
-  }
-  if (isokineticSlider) {
-    isokineticSlider.addEventListener("input", () => {
-      isokineticLevel = parseInt(isokineticSlider.value, 10);
-      if (isokineticSliderLabel) isokineticSliderLabel.textContent = `Level ${isokineticLevel}`;
-      if (isokineticSliderHint) isokineticSliderHint.textContent = getPilatesIsokineticHint(isokineticLevel);
-    });
-  }
-
-  function valueNoise(x) {
-    const x0 = Math.floor(x);
-    const x1 = x0 + 1;
-    const t = x - x0;
-    const fade = t * t * (3 - 2 * t);
-    const n0 = fractSin(x0);
-    const n1 = fractSin(x1);
-    return n0 * (1 - fade) + n1 * fade;
-  }
-
-  function fractSin(x) {
-    const raw = Math.sin(x * 127.1 + baseNoiseSeed) * 43758.5453;
-    return raw - Math.floor(raw);
-  }
-
-  const staticAmplitudeROM = 1.2;
-  const staticAmplitudePower = 0.9;
-
-  function generateWaveY(x, width, lineType) {
-    const normalizedX = x / width;
-    const noise = valueNoise(normalizedX * 12 + phase * 0.26);
-    const smoothNoise = (noise - 0.5) * 2;
-    const speedOffset = phase * 0.4;
-    if (lineType === "rom") {
-      const slow = Math.sin(normalizedX * 7.2 - speedOffset * 1.25);
-      const mid = Math.sin(normalizedX * 13.8 - speedOffset * 1.88 + 1.4);
-      return slow * staticAmplitudeROM * 42 + mid * staticAmplitudeROM * 14 + smoothNoise * staticAmplitudeROM * 10;
+  function drawWave(ctx2d, width, height, baseY, amp, waveLen, phaseOffset, gradient, shadowColor) {
+    ctx2d.lineWidth = 4;
+    ctx2d.strokeStyle = gradient;
+    ctx2d.shadowBlur = 18;
+    ctx2d.shadowColor = shadowColor;
+    ctx2d.beginPath();
+    for (let x = 0; x <= width; x += 6) {
+      const y = baseY - Math.sin((x + chartTick * 10 + phaseOffset) / waveLen) * amp;
+      if (x === 0) ctx2d.moveTo(x, y);
+      else ctx2d.lineTo(x, y);
     }
-    const slow = Math.sin(normalizedX * 8.4 - speedOffset * 1.5 + 0.8);
-    const mid = Math.sin(normalizedX * 16.2 - speedOffset * 2.05 + 2.3);
-    return slow * staticAmplitudePower * 34 + mid * staticAmplitudePower * 12 + smoothNoise * staticAmplitudePower * 8;
+    ctx2d.stroke();
+    ctx2d.shadowBlur = 0;
   }
 
   function resizeCanvas() {
     if (!root.classList.contains("is-active")) return;
     dpr = window.devicePixelRatio || 1;
     const rect = canvas.getBoundingClientRect();
-    const fallbackWidth = Math.max(320, Math.floor(rect.width));
-    const fallbackHeight = Math.max(200, Math.floor(rect.height));
-    const cssWidth = Math.max(1, Math.floor(rect.width)) || fallbackWidth;
-    const cssHeight = Math.max(1, Math.floor(rect.height)) || fallbackHeight;
-    canvas.width = Math.max(1, Math.floor(cssWidth * dpr));
-    canvas.height = Math.max(1, Math.floor(cssHeight * dpr));
+    const w = Math.max(1, Math.floor(rect.width)) || 640;
+    const h = Math.max(1, Math.floor(rect.height)) || 180;
+    canvas.width = Math.floor(w * dpr);
+    canvas.height = Math.floor(h * dpr);
+    canvas.style.width = w + "px";
+    canvas.style.height = h + "px";
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     if (reducedMotion) drawChart();
   }
@@ -2676,68 +2558,45 @@ function initPilatesDashboard() {
       if (!reducedMotion) frameId = requestAnimationFrame(drawChart);
       return;
     }
+
     ctx.clearRect(0, 0, width, height);
-    const centerROM = height * 0.4;
-    const centerPower = height * 0.64;
-    currentPowerPercent += (targetPowerPercent - currentPowerPercent) * 0.06;
-    document.documentElement.style.setProperty("--power-level", (currentPowerPercent / 100).toFixed(2));
-    phase += 0.028;
+    ctx.strokeStyle = "rgba(148,163,184,0.22)";
     ctx.lineWidth = 1;
-    ctx.strokeStyle = "rgba(182, 203, 228, 0.12)";
-    for (let i = 1; i <= 4; i += 1) {
-      const y = (height / 5) * i;
+    const rowGap = height / 4;
+    for (let i = 1; i <= 3; i += 1) {
       ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(width, y);
+      ctx.moveTo(0, i * rowGap);
+      ctx.lineTo(width, i * rowGap);
       ctx.stroke();
     }
-    drawWaveLine(width, height, centerROM, "rom");
-    drawWaveLine(width, height, centerPower, "power");
-    if (!reducedMotion) frameId = requestAnimationFrame(drawChart);
-  }
 
-  function drawWaveLine(width, height, centerY, lineType) {
-    const gradient = ctx.createLinearGradient(0, 0, width, 0);
-    if (lineType === "rom") {
-      gradient.addColorStop(0, "rgba(94, 234, 255, 0.96)");
-      gradient.addColorStop(0.5, "rgba(170, 221, 255, 0.95)");
-      gradient.addColorStop(1, "rgba(104, 163, 255, 0.92)");
+    const baseY = height * 0.55;
+    const waveLen = width / 3.5;
+    const amp = height * 0.22 * (resistanceKg / 20);
+    const leftAmp = amp;
+    const rightAmp = amp;
+
+    const leftGrad = ctx.createLinearGradient(0, 0, width, 0);
+    leftGrad.addColorStop(0, "rgba(94, 234, 255, 0.96)");
+    leftGrad.addColorStop(1, "rgba(104, 163, 255, 0.92)");
+    const rightGrad = ctx.createLinearGradient(0, 0, width, 0);
+    rightGrad.addColorStop(0, "rgba(255, 188, 123, 0.94)");
+    rightGrad.addColorStop(1, "rgba(255, 124, 70, 0.92)");
+
+    if (chartTab === "rom") {
+      drawWave(ctx, width, height, baseY, leftAmp, waveLen, 0, leftGrad, "rgba(102, 220, 255, 0.78)");
+      drawWave(ctx, width, height, baseY, rightAmp, waveLen, 60, rightGrad, "rgba(255, 156, 90, 0.76)");
     } else {
-      gradient.addColorStop(0, "rgba(255, 188, 123, 0.94)");
-      gradient.addColorStop(0.5, "rgba(255, 171, 99, 0.96)");
-      gradient.addColorStop(1, "rgba(255, 124, 70, 0.92)");
+      drawWave(ctx, width, height, baseY, leftAmp * 0.9, waveLen, 30, leftGrad, "rgba(102, 220, 255, 0.78)");
+      drawWave(ctx, width, height, baseY, rightAmp * 0.9, waveLen, 90, rightGrad, "rgba(255, 156, 90, 0.76)");
     }
-    const area = ctx.createLinearGradient(0, centerY - 30, 0, height);
-    if (lineType === "rom") {
-      area.addColorStop(0, "rgba(94, 234, 255, 0.2)");
-      area.addColorStop(1, "rgba(94, 234, 255, 0)");
-    } else {
-      area.addColorStop(0, "rgba(255, 160, 96, 0.16)");
-      area.addColorStop(1, "rgba(255, 160, 96, 0)");
+
+    if (chartAvgValue) {
+      chartAvgValue.textContent = ((leftAmp + rightAmp) / (height * 0.22) * 10).toFixed(1);
     }
-    ctx.beginPath();
-    for (let x = 0; x <= width; x += 2) {
-      const y = centerY + generateWaveY(x, width, lineType);
-      if (x === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-    ctx.lineTo(width, height);
-    ctx.lineTo(0, height);
-    ctx.closePath();
-    ctx.fillStyle = area;
-    ctx.fill();
-    ctx.beginPath();
-    for (let x = 0; x <= width; x += 2) {
-      const y = centerY + generateWaveY(x, width, lineType);
-      if (x === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-    ctx.strokeStyle = gradient;
-    ctx.lineWidth = lineType === "rom" ? 4 : 3.4;
-    ctx.shadowBlur = lineType === "rom" ? 26 : 22;
-    ctx.shadowColor = lineType === "rom" ? "rgba(102, 220, 255, 0.78)" : "rgba(255, 156, 90, 0.76)";
-    ctx.stroke();
-    ctx.shadowBlur = 0;
+
+    chartTick += 1;
+    if (!reducedMotion) frameId = requestAnimationFrame(drawChart);
   }
 
   function tickTraining() {
@@ -2746,34 +2605,26 @@ function initPilatesDashboard() {
     const resistance = renderResistance();
     resistanceTimeline.push(resistance);
     if (resistanceTimeline.length > 7200) resistanceTimeline.shift();
-    targetPowerPercent = Math.max(20, Math.min(100, 20 + resistance * 1.15 + Math.random() * 26));
-    const energyStep = resistance * (0.42 + targetPowerPercent / 188);
+    const energyStep = resistance * (0.42 + Math.random() * 0.3);
     calories += energyStep * 0.24;
-    if (energyValue) energyValue.textContent = energyKjFromCalories(calories).toFixed(0);
-    if (calorieValue) calorieValue.textContent = calories.toFixed(0);
+    if (energyValue) energyValue.textContent = energyKjFromCalories(calories).toFixed(1);
+    if (calorieValue) calorieValue.textContent = String(Math.round(calories));
     if (durationValue) durationValue.textContent = formatDuration(elapsedSeconds);
-  }
-
-  function setIdleWave() {
-    targetPowerPercent = 8;
   }
 
   function startTraining() {
     if (isRunning) return;
     isRunning = true;
     resistanceTimeline = [];
-    if (startBtn) { startBtn.disabled = true; startBtn.style.opacity = "0.55"; }
+    if (startBtn) startBtn.disabled = true;
     timerId = setInterval(tickTraining, 1000);
-    const resistance = renderResistance();
-    targetPowerPercent = Math.max(24, Math.min(100, 24 + resistance * 1.1));
   }
 
   function endTraining() {
     isRunning = false;
     clearInterval(timerId);
     timerId = null;
-    if (startBtn) { startBtn.disabled = false; startBtn.style.opacity = "1"; }
-    setIdleWave();
+    if (startBtn) startBtn.disabled = false;
     const timeline = resistanceTimeline.length
       ? resistanceTimeline.slice()
       : buildSyntheticTimeline(Math.max(12, elapsedSeconds), renderResistance(), trainingMode);
@@ -2814,18 +2665,33 @@ function initPilatesDashboard() {
     });
   }
   pilatesEndTrainingFn = endTraining;
-  if (flipBtn && dashboard) {
+  if (flipBtn && screenWrap) {
     flipBtn.addEventListener("click", () => {
-      dashboard.style.transform = dashboard.style.transform === "rotate(180deg)" ? "rotate(0deg)" : "rotate(180deg)";
-      dashboard.style.transition = "transform 480ms ease";
+      screenWrap.classList.toggle("flipped");
     });
   }
 
-  setTrainingMode("standard");
-  if (isokineticSliderHint) isokineticSliderHint.textContent = getPilatesIsokineticHint(1);
+  const statusTime = document.getElementById("pilatesStatusTime");
+  const statusDate = document.getElementById("pilatesStatusDate");
+  const now = new Date();
+  if (statusTime) {
+    statusTime.textContent =
+      String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0");
+  }
+  if (statusDate) {
+    statusDate.textContent = `${now.getFullYear()}.${now.getMonth() + 1}.${now.getDate()}`;
+  }
+  if (stepNote) stepNote.textContent = `Step: ${bounds.step} kg`;
+
+  setTrainingMode("spring");
+  setChartTab("rom");
   renderResistance();
   if (durationValue) durationValue.textContent = formatDuration(elapsedSeconds);
-  setIdleWave();
+  window.addEventListener("resize", resizeCanvas);
+  window.addEventListener("beforeunload", () => {
+    if (timerId) clearInterval(timerId);
+    if (frameId) cancelAnimationFrame(frameId);
+  });
   resizeCanvas();
   setTimeout(resizeCanvas, 80);
   if (reducedMotion) drawChart();

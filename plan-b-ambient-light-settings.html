@@ -53,9 +53,9 @@
             <div class="setting-row">
               <div>
                 <h2 class="card-title">Color</h2>
-                <p class="card-subtitle">Preset colors and color picker.</p>
+                <p class="card-subtitle">Choose a preset color.</p>
               </div>
-              <span class="badge">7 presets + 3 custom</span>
+              <span class="badge">7 presets</span>
             </div>
 
             <div class="preset-grid" id="presetGrid">
@@ -66,18 +66,6 @@
               <button class="preset-chip" type="button" data-color="#ef4444" data-name="Red"><span class="chip-dot" style="--chip-color:#ef4444;"></span>Red</button>
               <button class="preset-chip" type="button" data-color="#f97316" data-name="Orange"><span class="chip-dot" style="--chip-color:#f97316;"></span>Orange</button>
               <button class="preset-chip" type="button" data-color="#22c55e" data-name="Green"><span class="chip-dot" style="--chip-color:#22c55e;"></span>Green</button>
-              <button class="preset-chip custom-chip" type="button" data-index="0"><span class="chip-dot is-empty"></span>Custom 1</button>
-              <button class="preset-chip custom-chip" type="button" data-index="1"><span class="chip-dot is-empty"></span>Custom 2</button>
-              <button class="preset-chip custom-chip" type="button" data-index="2"><span class="chip-dot is-empty"></span>Custom 3</button>
-            </div>
-            <p class="color-grid-tip">Press and hold a set custom color to clear it</p>
-
-            <div class="board-row">
-              <label class="field-label" for="colorBoardInput">Palette</label>
-              <div class="board-controls">
-                <input id="colorBoardInput" class="color-board-input" type="color" value="#ffffff" aria-label="Color picker" />
-                <button id="addFavoriteBtn" class="secondary-btn" type="button">Save to custom</button>
-              </div>
             </div>
           </article>
 
@@ -93,16 +81,6 @@
                   <span>100%</span>
                 </div>
               </div>
-            </div>
-
-            <div class="setting-row brightness-auto-row">
-              <div>
-                <h3 class="row-title">Auto brightness</h3>
-                <p class="row-note">Automatically adjust brightness based on ambient light.</p>
-              </div>
-              <button class="toggle-btn" id="autoBrightnessToggle" type="button" role="switch" aria-checked="false" aria-label="Auto brightness">
-                <span class="toggle-knob"></span>
-              </button>
             </div>
           </article>
 
@@ -173,7 +151,7 @@
           <h3 id="resetModalTitle">Restore defaults</h3>
           <button class="close-btn" id="closeResetModalBtn" type="button" aria-label="Close">✕</button>
         </div>
-        <p class="reset-modal-copy">Reset all ambient light settings to factory defaults? Your custom colors and switch states will be cleared.</p>
+        <p class="reset-modal-copy">Reset all ambient light settings to factory defaults? Your current settings and switch states will be cleared.</p>
         <div class="reset-modal-actions">
           <button class="secondary-btn reset-modal-cancel" type="button" id="cancelResetBtn">Cancel</button>
           <button class="resume-btn reset-modal-confirm" type="button" id="confirmResetBtn">Restore</button>
