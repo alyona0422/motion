@@ -1,40 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const STORAGE_PERSON_FOLLOW = 'planBPersonFollowingV1';
-  const devicePersonFollowSwitch = document.getElementById('devicePersonFollowSwitch');
-
-  function getPersonFollowingEnabled() {
-    try {
-      const raw = localStorage.getItem(STORAGE_PERSON_FOLLOW);
-      if (raw === null) return true;
-      return raw === 'true';
-    } catch (e) {
-      return true;
-    }
-  }
-
-  function setPersonFollowingEnabled(enabled) {
-    try {
-      localStorage.setItem(STORAGE_PERSON_FOLLOW, enabled ? 'true' : 'false');
-    } catch (e) {
-      /* ignore */
-    }
-    syncDevicePersonFollowSwitch();
-  }
-
-  function syncDevicePersonFollowSwitch() {
-    if (!devicePersonFollowSwitch) return;
-    const on = getPersonFollowingEnabled();
-    devicePersonFollowSwitch.classList.toggle('is-on', on);
-    devicePersonFollowSwitch.setAttribute('aria-checked', String(on));
-  }
-
-  if (devicePersonFollowSwitch) {
-    devicePersonFollowSwitch.addEventListener('click', () => {
-      setPersonFollowingEnabled(!getPersonFollowingEnabled());
-    });
-    syncDevicePersonFollowSwitch();
-  }
-
   const wifiSettingsBtn = document.getElementById('wifiSettingsBtn');
   const wifiBottomSheet = document.getElementById('wifiBottomSheet');
   const wifiOverlay = document.getElementById('wifiOverlay');
@@ -67,7 +31,6 @@ document.addEventListener('DOMContentLoaded', () => {
       title: 'DEVICE SETTINGS',
       wifi: 'WI-FI SETTINGS',
       ambient: 'AMBIENT LIGHT',
-      personFollow: 'Person Following',
       lang: 'LANGUAGE',
       privacy: 'PRIVACY & AGREEMENT',
       langTitle: 'Language',
@@ -77,7 +40,6 @@ document.addEventListener('DOMContentLoaded', () => {
       title: '设备设置',
       wifi: '无线网络设置',
       ambient: '氛围灯设置',
-      personFollow: '人物追随功能',
       lang: '语言',
       privacy: '隐私与协议',
       langTitle: '语言',
@@ -429,7 +391,10 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       
       // Show top status chip
-      if (wifiStatusChip) wifiStatusChip.style.display = 'inline-flex';
+      if (wifiStatusChip) {
+        wifiStatusChip.style.display = 'inline-flex';
+        wifiStatusChip.textContent = 'Wi-Fi';
+      }
       
       // Re-render list
       renderWifiList();

@@ -391,7 +391,10 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       
       // Show top status chip
-      if (wifiStatusChip) wifiStatusChip.style.display = 'inline-flex';
+      if (wifiStatusChip) {
+        wifiStatusChip.style.display = 'inline-flex';
+        wifiStatusChip.textContent = 'Wi-Fi';
+      }
       
       // Re-render list
       renderWifiList();
