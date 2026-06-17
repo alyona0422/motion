@@ -58,7 +58,7 @@
         progress: 0,
         currentDay: 0,
         totalDays: 8,
-        status: "Expired",
+        status: "Ended",
         date: "Jan 10, 2026",
         isPersonalized: true
       }
@@ -83,8 +83,8 @@
         statusBadge = `<span class="plan-status status-completed">Completed</span>`;
       } else if (item.status === "Quit") {
         statusBadge = `<span class="plan-status status-quit">Quit</span>`;
-      } else if (item.status === "Expired") {
-        statusBadge = `<span class="plan-status status-expired">Expired</span>`;
+      } else if (item.status === "Ended") {
+        statusBadge = `<span class="plan-status status-ended">Ended</span>`;
       }
 
       const progressBar = activeTab === "ongoing" 
