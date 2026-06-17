@@ -642,6 +642,14 @@
   gap: 10px;
 }
 
+.tr-metrics-footnote {
+  margin: 2px 2px 12px;
+  font-size: 11px;
+  line-height: 1.45;
+  letter-spacing: 0.03em;
+  color: rgba(176, 198, 224, 0.58);
+}
+
 .tr-stat {
   border-radius: 16px;
   padding: 11px 12px 10px;
