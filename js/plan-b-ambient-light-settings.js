@@ -8,7 +8,6 @@ document.addEventListener("DOMContentLoaded", () => {
       brightness: 60,
       mode: "steady",
       breathSpeed: "medium",
-      musicSync: false,
       trainingSync: false
     };
   }
@@ -22,7 +21,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const brightnessValue = document.getElementById("brightnessValue");
   const modeSegment = document.getElementById("modeSegment");
   const breathingSpeedGroup = document.getElementById("breathingSpeedGroup");
-  const musicSyncToggle = document.getElementById("musicSyncToggle");
   const trainingSyncToggle = document.getElementById("trainingSyncToggle");
   const resetDefaultsBtn = document.getElementById("resetDefaultsBtn");
   const resetDefaultsModal = document.getElementById("resetDefaultsModal");
@@ -53,7 +51,6 @@ document.addEventListener("DOMContentLoaded", () => {
       merged.brightness = clamp(Number(merged.brightness) || DEFAULT_STATE.brightness, 0, 100);
       merged.mode = merged.mode === "breathing" ? "breathing" : "steady";
       merged.breathSpeed = ["slow", "medium", "fast"].includes(merged.breathSpeed) ? merged.breathSpeed : "medium";
-      merged.musicSync = Boolean(merged.musicSync);
       merged.trainingSync = Boolean(merged.trainingSync);
       merged.power = Boolean(merged.power);
       return merged;
@@ -97,7 +94,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderMode() {
     const modeButtons = modeSegment ? modeSegment.querySelectorAll("[data-mode]") : [];
     const speedButtons = breathingSpeedGroup ? breathingSpeedGroup.querySelectorAll("[data-speed]") : [];
-    const modeLocked = state.musicSync || state.trainingSync;
+    const modeLocked = state.trainingSync;
 
     if (modeSegment) modeSegment.classList.toggle("is-locked", modeLocked);
     modeButtons.forEach((btn) => {
@@ -119,7 +116,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function render() {
     setToggle(ambientPowerToggle, state.power);
-    setToggle(musicSyncToggle, state.musicSync);
     setToggle(trainingSyncToggle, state.trainingSync);
 
     if (featureGroup) {
@@ -184,21 +180,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  if (musicSyncToggle) {
-    musicSyncToggle.addEventListener("click", () => {
-      const next = !state.musicSync;
-      state.musicSync = next;
-      if (next) state.trainingSync = false;
-      saveState();
-      render();
-    });
-  }
-
   if (trainingSyncToggle) {
     trainingSyncToggle.addEventListener("click", () => {
-      const next = !state.trainingSync;
-      state.trainingSync = next;
-      if (next) state.musicSync = false;
+      state.trainingSync = !state.trainingSync;
       saveState();
       render();
     });

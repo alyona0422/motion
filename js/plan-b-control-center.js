@@ -55,7 +55,6 @@
       brightness: 60,
       mode: "steady",
       breathSpeed: "medium",
-      musicSync: false,
       trainingSync: false
     };
   }
@@ -71,7 +70,6 @@
     merged.brightness = clamp(Number(merged.brightness) || defaults.brightness, 0, 100);
     merged.mode = merged.mode === "breathing" ? "breathing" : "steady";
     merged.breathSpeed = ["slow", "medium", "fast"].includes(merged.breathSpeed) ? merged.breathSpeed : "medium";
-    merged.musicSync = Boolean(merged.musicSync);
     merged.trainingSync = Boolean(merged.trainingSync);
     return merged;
   }
@@ -116,7 +114,7 @@
   }
 
   function renderAmbientCard() {
-    const modeLocked = ambientState.musicSync || ambientState.trainingSync;
+    const modeLocked = ambientState.trainingSync;
     const modeButtons = ambientModeSegment ? ambientModeSegment.querySelectorAll("[data-mode]") : [];
     setAmbientSwitchState(ambientState.power);
 
