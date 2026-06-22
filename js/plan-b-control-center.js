@@ -288,20 +288,15 @@
   (function wireThemeSwitch() {
     const themeSegment = document.getElementById("ccThemeSegment");
     if (!themeSegment) return;
-    const isLight = window.location.pathname.includes("/light-project/");
-    const currentTheme = isLight ? "light" : "dark";
-    const fileName = window.location.pathname.split("/").pop() || "index-plan-b-home.html";
     themeSegment.querySelectorAll("[data-theme]").forEach((button) => {
-      const target = button.dataset.theme === "light" ? "light" : "dark";
-      const isActive = target === currentTheme;
-      button.classList.toggle("is-active", isActive);
-      button.setAttribute("aria-pressed", String(isActive));
-      button.addEventListener("click", () => {
-        if (target === currentTheme) return;
-        window.location.href = target === "light"
-          ? "light-project/" + fileName
-          : "../" + fileName;
-      });
+      const isDark = button.dataset.theme === "dark";
+      button.classList.toggle("is-active", isDark);
+      button.setAttribute("aria-pressed", String(isDark));
+      if (!isDark) {
+        button.addEventListener("click", (event) => {
+          event.preventDefault();
+        });
+      }
     });
   })();
 
